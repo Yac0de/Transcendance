@@ -14,7 +14,7 @@ services:
     networks:
       - transcendance_net
     volumes:
-      - db_data:/var/lib/postgresql/data # Volume nommé
+      - /tmp/db_data:/var/lib/postgresql/data # Volume nommé
 
   # Adminer for DB management
   adminer:

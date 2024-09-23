@@ -14,7 +14,7 @@ services:
     networks:
       - transcendance_net
     volumes:
-      - /tmp/db_data:/var/lib/postgresql/data # Volume nommé
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql # Script d'initialisation des données
 
   # Adminer for DB management
   adminer:
@@ -28,38 +28,42 @@ services:
     depends_on:
       - db
 
-  # Service frontend pour un serveur web simple avec HTML, CSS, JS
+  # Frontend en Vue.js avec Vite
   frontend:
-    image: nginx:alpine
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: frontend
-    volumes:
-      - ./frontend:/usr/share/nginx/html # Volume monté, A supprimer apres la phase de dev
     ports:
-      - '80:80'
+      - '3000:5173'  # Redirection du port 5173 (Vite) vers 3000 (localhost)
+    environment:
+      - NODE_ENV=development  # S'assurer qu'il est en mode développement
     networks:
       - transcendance_net
+    depends_on:
+      - db
 
-  # # Backend service
-  # backend:
-  #   build:
-  #     context: ./backend
-  #   ports:
-  #     - '5000:5000'
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_USER}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_DB}
-  #     POSTGRES_HOST: db
-  #   networks:
-  #     - transcendance_net
-  #   depends_on:
-  #     - db
+  # Backend en Go
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: golang
+    ports:
+      - '5000:5000'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: db
+    networks:
+      - transcendance_net
+    depends_on:
+      - db
 
-# Volumes pour stocker les données de PostgreSQL
 volumes:
   db_data:
 
-# Réseau pour la communication entre services
 networks:
   transcendance_net:
     driver: bridge

@@ -1,5 +1,5 @@
 -- Création de tables et insertion de données de test
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS test (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) NOT NULL,

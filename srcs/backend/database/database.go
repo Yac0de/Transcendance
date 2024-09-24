@@ -30,6 +30,7 @@ func initDB() *gorm.DB  {
 
     database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
     if err != nil {
+        log.Printf("ERR DOCKER")
         log.Fatalln(err)
     }
     database.AutoMigrate(&models.User{})

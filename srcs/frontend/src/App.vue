@@ -1,12 +1,12 @@
 <template>
   <div id="app">
     <nav class="sticky-nav">
-      <div class="nav-content"> 
+      <div class="nav-content">
         <button @click="navigate('home')">Home</button>
         <button @click="navigate('login')">Login</button>
         <button @click="navigate('signup')">Sign Up</button>
         <button @click="navigate('pong')">Play Pong</button>
-      </div>          
+      </div>
     </nav>
     <div class="content">
       <component :is="currentComponent" @navigate="navigate"></component>
@@ -17,7 +17,7 @@
 <script lang="ts">
 import { defineComponent, ref, shallowRef } from 'vue'
 import HomeView from './components/HomeView.vue'
-import LoginForm from './components/LoginForm.vue'
+import LoginForm from './components/SignInForm.vue'
 import SignUpForm from './components/SignUpForm.vue'
 import PongGame from './components/PongGame.vue'
 
@@ -35,7 +35,7 @@ export default defineComponent({
     const currentComponent = shallowRef<typeof HomeView>(HomeView)
 
     const navigate = (page: ComponentName) => {
-      switch(page) {
+      switch (page) {
         case 'home':
           currentComponent.value = HomeView
           break
@@ -73,7 +73,7 @@ export default defineComponent({
   left: 0;
   right: 0;
   background-color: #f8f9fa;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 }
 
@@ -102,7 +102,8 @@ export default defineComponent({
 }
 
 .content {
-  margin-top: 60px; /* Adjust this value based on the height of your nav bar */
+  margin-top: 60px;
+  /* Adjust this value based on the height of your nav bar */
   padding: 20px;
 }
 </style>

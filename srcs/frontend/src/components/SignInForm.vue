@@ -4,8 +4,8 @@
       <h2>Login</h2>
       <form @submit.prevent="handleSubmit">
         <div>
-          <label for="username">Username:</label>
-          <input type="text" id="username" v-model="username" required>
+          <label for="nickname">Nickname:</label>
+          <input type="text" id="nickname" v-model="nickname" required>
         </div>
         <div>
           <label for="password">Password:</label>
@@ -15,21 +15,32 @@
       </form>
       <button class="signup-button" @click="handleSignup">Sign Up</button>
     </div>
+    <div v-if="error" class="error-message">{{ error }}</div>
+    <div v-if="user" class="success-message">Welcome, {{ user.name }}!</div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
+import api from '../services/api'
 
 export default defineComponent({
   name: 'LoginForm',
   setup(props, { emit }) {
-    const username = ref('')
+    const nickname = ref('')
     const password = ref('')
+    const error = ref('')
+    const user = ref<any>(null)
 
-    const handleSubmit = () => {
-      console.log('Login attempted with username:', username.value)
-      alert('Login functionality not implemented yet')
+    const handleSubmit = async () => {
+      try {
+        error.value = ''
+        user.value = await api.login({ email: nickname.value, password: password.value })
+        console.log('Login successful', user.value)
+      } catch (err) {
+        error.value = err instanceof Error ? err.message : 'An error occurred during login'
+        console.error('Login failed', err)
+      }
     }
 
     const handleSignup = () => {
@@ -37,8 +48,10 @@ export default defineComponent({
     }
 
     return {
-      username,
+      nickname,
       password,
+      error,
+      user,
       handleSubmit,
       handleSignup
     }
@@ -47,32 +60,48 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+
+.success-message {
+  color: green;
+  margin-top: 10px;
+}
+</style>
+<style scoped>
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
+
 .login-form {
   width: 300px;
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 10px;
   background-color: #f9f9f9;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
 .login-form h2 {
   text-align: center;
   color: #333;
 }
+
 .login-form div {
   margin-bottom: 15px;
 }
+
 label {
   display: block;
   margin-bottom: 5px;
   color: #666;
 }
+
 input {
   width: 100%;
   padding: 8px;
@@ -80,6 +109,7 @@ input {
   border-radius: 4px;
   box-sizing: border-box;
 }
+
 button {
   width: 100%;
   padding: 10px;
@@ -90,13 +120,16 @@ button {
   cursor: pointer;
   font-size: 16px;
 }
+
 button:hover {
   background-color: #45a049;
 }
+
 .signup-button {
   margin-top: 10px;
   background-color: #3498db;
 }
+
 .signup-button:hover {
   background-color: #2980b9;
 }

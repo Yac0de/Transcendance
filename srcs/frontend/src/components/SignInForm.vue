@@ -35,7 +35,7 @@ export default defineComponent({
     const handleSubmit = async () => {
       try {
         error.value = ''
-        user.value = await api.login({ email: nickname.value, password: password.value })
+        user.value = await api.login({ nickname: nickname.value, password: password.value })
         console.log('Login successful', user.value)
       } catch (err) {
         error.value = err instanceof Error ? err.message : 'An error occurred during login'

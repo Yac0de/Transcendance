@@ -41,6 +41,9 @@ services:
       - '3000:5173'  # Redirection du port 5173 (Vite) vers 3000 (localhost)
     environment:
       - NODE_ENV=development  # S'assurer qu'il est en mode développement
+    volumes:
+      - ./frontend:/app  # Volume pour synchroniser les fichiers du frontend
+      - /app/node_modules  # Ne pas monter node_modules pour éviter les conflits
     networks:
       - transcendance_net
     depends_on:

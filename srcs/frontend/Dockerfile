@@ -4,18 +4,18 @@ FROM node:20-alpine
 # Définir le répertoire de travail
 WORKDIR /app
 
+# Mettre à jour npm à la dernière version
+RUN npm install -g npm@latest
+
 # Copier les fichiers package.json et package-lock.json et installer les dépendances
 COPY package*.json ./
 RUN npm install
 
-# Mettre à jour npm à la dernière version
-RUN npm install -g npm@latest
-
 # Copier tout le code source dans le conteneur
 COPY . .
 
-# Exposer le port utilisé par Vite (3000 par défaut)
-EXPOSE 3000
+# Exposer le port utilisé par Vite (5173 par défaut)
+EXPOSE 5173
 
 # Démarrer le serveur de développement de Vite
 CMD ["npm", "run", "dev"]

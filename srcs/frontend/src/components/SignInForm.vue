@@ -5,11 +5,11 @@
       <form @submit.prevent="handleSubmit">
         <div>
           <label for="nickname">Nickname:</label>
-          <input type="text" id="nickname" v-model="nickname" required />
+          <input type="text" id="nickname" v-model="nickname" required>
         </div>
         <div>
           <label for="password">Password:</label>
-          <input type="password" id="password" v-model="password" required />
+          <input type="password" id="password" v-model="password" required>
         </div>
         <button type="submit">Login</button>
       </form>
@@ -20,34 +20,56 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+<script lang="ts">
+import { defineComponent, ref } from 'vue'
 import api from '../services/api'
 
-const nickname = ref('')
-const password = ref('')
-const error = ref('')
-const user = ref<any>(null)
-const router = useRouter()
+export default defineComponent({
+  name: 'LoginForm',
+  setup(props, { emit }) {
+    const nickname = ref('')
+    const password = ref('')
+    const error = ref('')
+    const user = ref<any>(null)
 
-const handleSubmit = async () => {
-  try {
-    error.value = ''
-    user.value = await api.login({ nickname: nickname.value, password: password.value })
-    console.log('Login successful', user.value)
-    router.push('/account')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An error occurred during login'
-    console.error('Login failed', err)
+    const handleSubmit = async () => {
+      try {
+        error.value = ''
+        user.value = await api.login({ nickname: nickname.value, password: password.value })
+        console.log('Login successful', user.value)
+      } catch (err) {
+        error.value = err instanceof Error ? err.message : 'An error occurred during login'
+        console.error('Login failed', err)
+      }
+    }
+
+    const handleSignup = () => {
+      emit('switch-to-signup')
+    }
+
+    return {
+      nickname,
+      password,
+      error,
+      user,
+      handleSubmit,
+      handleSignup
+    }
   }
-}
-
-const handleSignup = () => {
-  router.push('/signup')
-}
+})
 </script>
 
+<style scoped>
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+
+.success-message {
+  color: green;
+  margin-top: 10px;
+}
+</style>
 <style scoped>
 .login-container {
   display: flex;
@@ -110,15 +132,5 @@ button:hover {
 
 .signup-button:hover {
   background-color: #2980b9;
-}
-
-.error-message {
-  color: red;
-  margin-top: 10px;
-}
-
-.success-message {
-  color: green;
-  margin-top: 10px;
 }
 </style>

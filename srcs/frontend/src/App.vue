@@ -2,23 +2,64 @@
   <div id="app">
     <nav class="sticky-nav">
       <div class="nav-content">
-        <router-link to="/" class="nav-button">Home</router-link>
-        <router-link to="/login" class="nav-button">Login</router-link>
-        <router-link to="/signup" class="nav-button">Sign Up</router-link>
-        <router-link to="/pong" class="nav-button">Play Pong</router-link>
-        <router-link to="/account" class="nav-button">Account</router-link>
+        <button @click="navigate('home')">Home</button>
+        <button @click="navigate('login')">Login</button>
+        <button @click="navigate('signup')">Sign Up</button>
+        <button @click="navigate('pong')">Play Pong</button>
       </div>
     </nav>
     <div class="content">
-      <router-view></router-view> <!-- Affiche le composant correspondant à la route -->
+      <component :is="currentComponent" @navigate="navigate"></component>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
+import { defineComponent, ref, shallowRef } from 'vue'
+import HomeView from './components/HomeView.vue'
+import LoginForm from './components/SignInForm.vue'
+import SignUpForm from './components/SignUpForm.vue'
+import PongGame from './components/PongGame.vue'
+
+type ComponentName = 'home' | 'login' | 'signup' | 'pong'
+
+export default defineComponent({
+  name: 'App',
+  components: {
+    HomeView,
+    LoginForm,
+    SignUpForm,
+    PongGame
+  },
+  setup() {
+    const currentComponent = shallowRef<typeof HomeView>(HomeView)
+
+    const navigate = (page: ComponentName) => {
+      switch (page) {
+        case 'home':
+          currentComponent.value = HomeView
+          break
+        case 'login':
+          currentComponent.value = LoginForm
+          break
+        case 'signup':
+          currentComponent.value = SignUpForm
+          break
+        case 'pong':
+          currentComponent.value = PongGame
+          break
+      }
+    }
+
+    return {
+      currentComponent,
+      navigate
+    }
+  }
+})
 </script>
 
-<style scoped>
+<style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -44,7 +85,7 @@
   margin: 0 auto;
 }
 
-.nav-button {
+.nav-content button {
   margin-right: 10px;
   padding: 5px 10px;
   font-size: 16px;
@@ -53,16 +94,16 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  text-decoration: none;
   transition: background-color 0.3s;
 }
 
-.nav-button:hover {
+.nav-content button:hover {
   background-color: #0056b3;
 }
 
 .content {
   margin-top: 60px;
+  /* Adjust this value based on the height of your nav bar */
   padding: 20px;
 }
 </style>

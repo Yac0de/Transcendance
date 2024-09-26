@@ -5,19 +5,19 @@
       <form @submit.prevent="handleSubmit">
         <div>
           <label for="nickname">Nickname:</label>
-          <input type="text" id="nickname" v-model="nickname" required />
+          <input type="text" id="nickname" v-model="nickname" required>
         </div>
         <div>
           <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" required />
+          <input type="email" id="email" v-model="email" required>
         </div>
         <div>
           <label for="password">Password:</label>
-          <input type="password" id="password" v-model="password" required />
+          <input type="password" id="password" v-model="password" required>
         </div>
         <div>
           <label for="confirmPassword">Confirm Password:</label>
-          <input type="password" id="confirmPassword" v-model="confirmPassword" required />
+          <input type="password" id="confirmPassword" v-model="confirmPassword" required>
         </div>
         <button type="submit">Sign Up</button>
       </form>
@@ -28,50 +28,64 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+<script lang="ts">
+import { defineComponent, ref } from 'vue'
 import api from '../services/api'
 
-const nickname = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const error = ref('')
-const successMessage = ref('')
-const router = useRouter()
+export default defineComponent({
+  name: 'SignUpForm',
+  setup({ emit }) {
+    const nickname = ref('')
+    const email = ref('')
+    const password = ref('')
+    const confirmPassword = ref('')
+    const error = ref('')
+    const successMessage = ref('')
 
-const handleSubmit = async () => {
-  if (password.value !== confirmPassword.value) {
-    error.value = "Passwords don't match!"
-    return
+    const handleSubmit = async () => {
+      console.log("YEAHHHH")
+      if (password.value !== confirmPassword.value) {
+        error.value = "Passwords don't match!"
+        return
+      }
+
+      if (password.value.length < 6) {
+        error.value = "Passwords don't match!"
+        return
+      }
+
+      try {
+        error.value = ''
+        successMessage.value = ''
+        const user = await api.signup({
+          nickname: nickname.value,
+          email: email.value,
+          password: password.value
+        })
+        console.log('Sign up successful', user)
+        successMessage.value = `Sign up successful! Welcome, ${nickname.value}!`
+      } catch (err) {
+        error.value = err instanceof Error ? err.message : 'An error occurred during sign up'
+        console.error('Sign up failed', err)
+      }
+    }
+
+    const handleLogin = () => {
+      emit('switch-to-login')
+    }
+
+    return {
+      nickname,
+      email,
+      password,
+      confirmPassword,
+      error,
+      successMessage,
+      handleSubmit,
+      handleLogin
+    }
   }
-
-  if (password.value.length < 6) {
-    error.value = "Password must be at least 6 characters long!"
-    return
-  }
-
-  try {
-    error.value = ''
-    successMessage.value = ''
-    const user = await api.signup({
-      nickname: nickname.value,
-      email: email.value,
-      password: password.value
-    })
-    console.log('Sign up successful', user)
-    successMessage.value = `Sign up successful! Welcome, ${nickname.value}!`
-    router.push('/login')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An error occurred during sign up'
-    console.error('Sign up failed', err)
-  }
-}
-
-const handleLogin = () => {
-  router.push('/login')
-}
+})
 </script>
 
 <style scoped>

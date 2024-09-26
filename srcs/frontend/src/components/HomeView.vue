@@ -3,27 +3,15 @@
     <div class="homepage-content">
       <h1 class="logo">43</h1>
       <div class="button-container">
-        <button class="login-button" @click="navigateTo('login')">Login</button>
-        <button class="signup-button" @click="navigateTo('signup')">Sign Up</button>
-        <button class="pong-button" @click="navigateTo('pong')">Play Pong</button>
+        <router-link to="/login" class="login-button">Login</router-link>
+        <router-link to="/signup" class="signup-button">Sign Up</router-link>
+        <router-link to="/pong" class="pong-button">Play Pong</router-link>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-type NavigationDestination = 'login' | 'signup' | 'pong'
-
-export default defineComponent({
-  name: 'HomeView',
-  methods: {
-    navigateTo(page: NavigationDestination): void {
-      this.$emit('navigate', page)
-    }
-  }
-})
+<script setup lang="ts">
 </script>
 
 <style scoped>
@@ -52,32 +40,35 @@ export default defineComponent({
   gap: 20px;
   flex-wrap: wrap;
 }
-button {
+.button-container a {
+  display: inline-block;
   width: 120px;
   padding: 10px;
   color: white;
+  background-color: #4CAF50;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
+  text-align: center;
+  text-decoration: none;
   transition: background-color 0.3s;
 }
-.login-button {
+
+.button-container a.login-button {
   background-color: #4CAF50;
 }
-.login-button:hover {
-  background-color: #45a049;
-}
-.signup-button {
+
+.button-container a.signup-button {
   background-color: #3498db;
 }
-.signup-button:hover {
-  background-color: #2980b9;
-}
-.pong-button {
+
+.button-container a.pong-button {
   background-color: #e74c3c;
 }
-.pong-button:hover {
-  background-color: #c0392b;
+
+.button-container a:hover {
+  opacity: 0.8;
 }
+
 </style>

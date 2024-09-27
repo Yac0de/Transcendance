@@ -1,101 +1,155 @@
 <template>
-    <div class="account-container">
-      <div class="account-content">
-        <h2>Account Details</h2>
-        <div class="account-info">
-          <p><strong>Nickname:</strong> {{ user.nickname }}</p>
-          <p><strong>Email:</strong> {{ user.email }}</p>
-        </div>
-        <div class="account-actions">
-          <button class="edit-button" @click="editProfile">Edit Profile</button>
-          <button class="logout-button" @click="logout">Logout</button>
-        </div>
+  <div class="account-container">
+    <div class="account-content">
+      <h2>Account Details</h2>
+      <div class="avatar-container">
+        <img :src="avatarUrl" alt="User Avatar" class="avatar-image" />
+        <input type="file" @change="uploadAvatar" accept="image/*" id="avatar-upload" class="avatar-upload" />
+        <label for="avatar-upload" class="avatar-upload-label">Change Avatar</label>
+      </div>
+      <div class="account-info">
+        <p><strong>Nickname:</strong> {{ user.nickname }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+      </div>
+      <div class="account-actions">
+        <button class="edit-button" @click="editProfile">Edit Profile</button>
+        <button class="logout-button" @click="logout">Logout</button>
       </div>
     </div>
-  </template>
+  </div>
+</template>
 
-  <script setup lang="ts">
-  import { ref } from 'vue'
-  import { useRouter } from 'vue-router'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '../services/api'
 
-  // Simulated user data (replace with actual API data or store in a real scenario)
-  const user = ref({
-    nickname: 'Test',
-    email: 'exemple@example.com'
-  })
+const user = ref({
+  nickname: 'Test',
+  email: 'exemple@example.com',
+  avatarPath: ''
+})
 
-  const router = useRouter()
+const router = useRouter()
 
-  const editProfile = () => {
-    // Logic to edit the profile (could open a modal or navigate to a profile editing route)
-    console.log('Edit profile clicked')
+const avatarUrl = computed(() => {
+  if (user.value.avatarPath) {
+    return api.getAvatarUrl(user.value.avatarPath)
   }
+  return 'https://upload.wikimedia.org/wikipedia/commons/1/18/Lionel-Messi-Argentina-2022-FIFA-World-Cup_sharpness.jpg' // Default avatar URL
+})
 
-  const logout = () => {
-    // Example logout logic: Clear session or token
-    console.log('User logged out')
+const editProfile = () => {
+  console.log('Edit profile clicked')
+}
 
-    // Redirect to the home page after logging out
-    router.push('/')
+const logout = () => {
+  console.log('User logged out')
+  router.push('/')
+}
+
+const uploadAvatar = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (file) {
+    try {
+      const avatarPath = await api.uploadAvatar(file)
+      user.value.avatarPath = avatarPath
+      console.log('Avatar updated')
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+    }
   }
-  </script>
+}
+</script>
 
-  <style scoped>
-  .account-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+<style scoped>
+/* Styles remain the same as in the previous version */
+.account-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-  .account-content {
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
-  }
+.account-content {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+}
 
-  h2 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
 
-  .account-info p {
-    font-size: 16px;
-    margin-bottom: 10px;
-  }
+.avatar-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
 
-  .account-actions {
-    display: flex;
-    justify-content: space-between;
-  }
+.avatar-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
-  button {
-    width: 45%;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    color: white;
-    font-size: 14px;
-    transition: background-color 0.3s;
-  }
+.avatar-upload {
+  display: none;
+}
 
-  .edit-button {
-    background-color: #3498db;
-  }
+.avatar-upload-label {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: #3498db;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+}
 
-  .edit-button:hover {
-    background-color: #2980b9;
-  }
+.avatar-upload-label:hover {
+  background-color: #2980b9;
+}
 
-  .logout-button {
-    background-color: #e74c3c;
-  }
+.account-info p {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
 
-  .logout-button:hover {
-    background-color: #c0392b;
-  }
-  </style>
+.account-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  width: 45%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.edit-button {
+  background-color: #3498db;
+}
+
+.edit-button:hover {
+  background-color: #2980b9;
+}
+
+.logout-button {
+  background-color: #e74c3c;
+}
+
+.logout-button:hover {
+  background-color: #c0392b;
+}
+</style>

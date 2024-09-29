@@ -3,17 +3,23 @@ package controllers
 import (
 	"api/database"
 	"api/models"
+	"fmt"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func Users(ctx *gin.RouterGroup) {
-	ctx.GET("", GetAllUsers)
+	ctx.GET("", GetUser)
+	ctx.GET("/all", GetAllUsers)
 	ctx.GET("/:userId", GetUser)
+
+	ctx.POST("/upload-avatar", UploadAvatar)
 	ctx.PUT("/:userId", UpdateUser)
 	ctx.DELETE("/:userId", DeleteUser)
 }
@@ -29,14 +35,15 @@ func GetAllUsers(ctx *gin.Context) {
 }
 
 func GetUser(ctx *gin.Context) {
-	id, err := GetUserIdToUINT(ctx.Params)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	userId, exists := ctx.Get("UserId")
+	id, ok := userId.(uint)
+	if exists == false || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
 		return
 	}
 
 	var user models.UserResponse
-	result := database.DB.Raw("SELECT id, nickname, email FROM users WHERE id = ?", id).Scan(&user)
+	result := database.DB.Raw("SELECT id, nickname, email, avatar FROM users WHERE id = ?", id).Scan(&user)
 	if result.Error != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
 		return
@@ -47,10 +54,47 @@ func GetUser(ctx *gin.Context) {
 		return
 	}
 
-	value, _ := ctx.Get("UserId")
-	ctx.JSON(http.StatusOK, gin.H{
-		"userId": value,
-		"user":   user})
+	ctx.JSON(http.StatusOK, user)
+}
+
+func UploadAvatar(ctx *gin.Context) {
+	id, exists := ctx.Get("UserId")
+	userId, ok := id.(uint)
+	if exists == false || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
+
+	file, err := ctx.FormFile("avatar")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "File not found"})
+		return
+	}
+
+	timestamp := time.Now().Unix()
+	newFilename := fmt.Sprintf("%d_%s", timestamp, file.Filename)
+	file.Filename = newFilename
+	fmt.Println(userId)
+
+	err = ctx.SaveUploadedFile(file, filepath.Join("./avatars", file.Filename))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save file"})
+		return
+	}
+
+	result := database.DB.Exec("UPDATE users SET avatar = ? WHERE ID = ?", file.Filename, userId)
+
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Can't update table"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"success": "Files uploaded successfully"})
 }
 
 func UpdateUser(ctx *gin.Context) {

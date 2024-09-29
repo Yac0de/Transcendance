@@ -9,6 +9,7 @@ interface UserData {
     nickname: string;
     email: string;
     password: string;
+    avatar: string;
 }
 
 export default {
@@ -46,7 +47,7 @@ export default {
         const formData = new FormData();
         formData.append('avatar', file);
 
-        const response = await fetch(`${API_BASE_URL}/upload-avatar`, {
+        const response = await fetch(`${API_BASE_URL}/users/upload-avatar`, {
             method: 'POST',
             credentials: "include",
             body: formData,
@@ -60,7 +61,21 @@ export default {
         return data.avatarPath;
     },
 
+    async getUserData(): Promise<UserData> {
+        const response = await fetch(`${API_BASE_URL}/users`, {
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            throw new Error('Fetching user data failed');
+        }
+
+        const data: UserData = await response.json();
+        return data;
+    },
+
     getAvatarUrl(avatarPath: string): string {
-        return `${API_BASE_URL}/uploads/${avatarPath}`;
+        console.log("Avatar: ", avatarPath)
+        return `${API_BASE_URL}/users/avatar/${avatarPath}`;
     }
 };

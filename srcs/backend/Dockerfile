@@ -26,7 +26,8 @@ WORKDIR /app
 # Copier le binaire compilé depuis l'étape de build
 COPY --from=build-stage /app/backend .
 
-# Exposer le port 4000 pour l'application
+COPY ./uploads /app
+
 EXPOSE 4000
 
 # Démarrer l'application

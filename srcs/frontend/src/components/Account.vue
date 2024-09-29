@@ -20,23 +20,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 
 const user = ref({
-  nickname: 'Test',
-  email: 'exemple@example.com',
-  avatarPath: ''
+  nickname: '',
+  email: '',
+  avatar: ''
 })
 
 const router = useRouter()
 
 const avatarUrl = computed(() => {
-  if (user.value.avatarPath) {
-    return api.getAvatarUrl(user.value.avatarPath)
+  if (user.value.avatar) {
+    return api.getAvatarUrl(user.value.avatar)
   }
-  return 'https://upload.wikimedia.org/wikipedia/commons/1/18/Lionel-Messi-Argentina-2022-FIFA-World-Cup_sharpness.jpg' // Default avatar URL
+    return api.getAvatarUrl("default.png")
+})
+
+const fetchUserData = async () => {
+  try {
+    const userData = await api.getUserData()
+    user.value = userData
+  } catch (error) {
+    console.error('Error fetching user data:', error)
+  }
+}
+
+onMounted(() => {
+  fetchUserData()
 })
 
 const editProfile = () => {
@@ -53,7 +66,7 @@ const uploadAvatar = async (event: Event) => {
   if (file) {
     try {
       const avatarPath = await api.uploadAvatar(file)
-      user.value.avatarPath = avatarPath
+      user.value.avatar = avatarPath
       console.log('Avatar updated')
     } catch (error) {
       console.error('Error uploading avatar:', error)

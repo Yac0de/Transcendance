@@ -8,7 +8,6 @@ interface Credentials {
 interface UserData {
     nickname: string;
     email: string;
-    password: string;
     avatar: string;
 }
 
@@ -43,39 +42,40 @@ export default {
         return response.json();
     },
 
-    async uploadAvatar(file: File): Promise<string> {
-        const formData = new FormData();
-        formData.append('avatar', file);
+    async getUserData(): Promise<UserData> {
+        const response = await fetch(`${API_BASE_URL}/users`, {
+            credentials: "include",
+        });
+        if (!response.ok) {
+            throw new Error('Fetching user data failed');
+        }
+        const data: UserData = await response.json();
+        return data;
+    },
 
-        const response = await fetch(`${API_BASE_URL}/users/upload-avatar`, {
-            method: 'POST',
+    async updateUserProfile(userData: UserData, avatarFile: File | null): Promise<UserData> {
+        const formData = new FormData();
+        formData.append('nickname', userData.nickname);
+        formData.append('email', userData.email);
+        
+        if (avatarFile) {
+            formData.append('avatar', avatarFile);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/update-profile`, {
+            method: 'PUT',
             credentials: "include",
             body: formData,
         });
 
         if (!response.ok) {
-            throw new Error('Avatar upload failed');
+            throw new Error('Profile update failed');
         }
 
-        const data = await response.json();
-        return data.avatarPath;
-    },
-
-    async getUserData(): Promise<UserData> {
-        const response = await fetch(`${API_BASE_URL}/users`, {
-            credentials: "include",
-        });
-
-        if (!response.ok) {
-            throw new Error('Fetching user data failed');
-        }
-
-        const data: UserData = await response.json();
-        return data;
+        return response.json();
     },
 
     getAvatarUrl(avatarPath: string): string {
-        console.log("Avatar: ", avatarPath)
         return `${API_BASE_URL}/users/avatar/${avatarPath}`;
     }
 };

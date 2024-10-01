@@ -88,13 +88,12 @@ const editProfile = () => {
 
 const saveProfile = async () => {
   try {
-    const updatedUserData = await api.updateUserProfile(editedUser.value, newAvatarFile.value)
-    user.value = updatedUserData
+    const response = await api.updateUserProfile(editedUser.value, newAvatarFile.value)
+    fetchUserData()
     isEditing.value = false
-    newAvatarFile.value = null
     console.log('Profile updated successfully')
   } catch (error) {
-    console.error('Error updating profile:', error)
+    console.error('Error updating profile:', error.message)
     isEditing.value = false
   }
 }

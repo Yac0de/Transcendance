@@ -31,12 +31,15 @@ const error = ref('')
 const user = ref<any>(null)
 const router = useRouter()
 
+const emit = defineEmits(['login-success']);
+
 const handleSubmit = async () => {
   try {
     error.value = ''
     user.value = await api.login({ nickname: nickname.value, password: password.value })
     console.log('Login successful', user.value)
-    router.push('/account')
+    emit('login-success')
+    router.push('/pong')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred during login'
     console.error('Login failed', err)

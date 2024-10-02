@@ -12,7 +12,7 @@ interface UserData {
 }
 
 export default {
-    async login(credentials: Credentials): Promise<any> {
+    async signin(credentials: Credentials): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/auth/signin`, {
             method: 'POST',
             headers: {
@@ -22,7 +22,7 @@ export default {
             body: JSON.stringify(credentials),
         });
         if (!response.ok) {
-            throw new Error('Login failed');
+            throw new Error('Sign in failed');
         }
         return response.json();
     },
@@ -87,7 +87,7 @@ export default {
             credentials: "include",
         })
         if (!response.ok) {
-            throw new Error('Logout failed');
+            throw new Error('Sign out failed');
         }
     },
 

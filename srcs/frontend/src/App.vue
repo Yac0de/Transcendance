@@ -7,19 +7,19 @@
         </div>
         <div class="nav-right">
           <template v-if="!isAuthenticated">
-            <router-link to="/login" class="nav-button">Login</router-link>
+            <router-link to="/signin" class="nav-button">Sign In</router-link>
             <router-link to="/signup" class="nav-button">Sign Up</router-link>
           </template>
           <template v-else>
             <router-link to="/pong" class="nav-button">Play Pong</router-link>
             <router-link to="/account" class="nav-button">Account</router-link>
-            <button @click="handleLogout" class="nav-button">Logout</button>
+            <button @click="handleSignout" class="nav-button">Sign Out</button>
           </template>
         </div>
       </div>
     </nav>
     <div class="content">
-      <router-view @login-success="handleLoginSuccess"></router-view>
+      <router-view @signin-success="handleSigninSuccess"></router-view>
     </div>
   </div>
 </template>
@@ -38,12 +38,12 @@ const checkAuth = async () => {
   isAuthenticated.value = userData !== null;
 };
 
-const handleLoginSuccess = () => {
+const handleSigninSuccess = () => {
   isAuthenticated.value = true;
   checkAuth();
 }
 
-const handleLogout = async () => {
+const handleSignout = async () => {
   await api.signout();
   isAuthenticated.value = false;
   router.push('/');

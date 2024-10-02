@@ -21,7 +21,7 @@
         </div>
         <button type="submit">Sign Up</button>
       </form>
-      <button class="login-button" @click="handleLogin">Back to Login</button>
+      <button class="signin-button" @click="handleSignin">Back to sign in</button>
     </div>
     <div v-if="error" class="error-message">{{ error }}</div>
     <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
@@ -62,15 +62,15 @@ const handleSubmit = async () => {
     })
     console.log('Sign up successful', user)
     successMessage.value = `Sign up successful! Welcome, ${nickname.value}!`
-    router.push('/login')
+    router.push('/signin')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred during sign up'
     console.error('Sign up failed', err)
   }
 }
 
-const handleLogin = () => {
-  router.push('/login')
+const handleSignin = () => {
+  router.push('/signin')
 }
 </script>
 
@@ -129,12 +129,12 @@ button:hover {
   background-color: #45a049;
 }
 
-.login-button {
+.signin-button {
   margin-top: 10px;
   background-color: #3498db;
 }
 
-.login-button:hover {
+.signin-button:hover {
   background-color: #2980b9;
 }
 

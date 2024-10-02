@@ -1,7 +1,7 @@
 <template>
-  <div class="login-container">
-    <div class="login-form">
-      <h2>Login</h2>
+  <div class="signin-container">
+    <div class="signin-form">
+      <h2>Sign In</h2>
       <form @submit.prevent="handleSubmit">
         <div>
           <label for="nickname">Nickname:</label>
@@ -11,7 +11,7 @@
           <label for="password">Password:</label>
           <input type="password" id="password" v-model="password" required />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">Sign In</button>
       </form>
       <button class="signup-button" @click="handleSignup">Sign Up</button>
     </div>
@@ -31,18 +31,18 @@ const error = ref('')
 const user = ref<any>(null)
 const router = useRouter()
 
-const emit = defineEmits(['login-success']);
+const emit = defineEmits(['signin-success']);
 
 const handleSubmit = async () => {
   try {
     error.value = ''
-    user.value = await api.login({ nickname: nickname.value, password: password.value })
-    console.log('Login successful', user.value)
-    emit('login-success')
+    user.value = await api.signin({ nickname: nickname.value, password: password.value })
+    console.log('Sign in successful', user.value)
+    emit('signin-success')
     router.push('/pong')
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An error occurred during login'
-    console.error('Login failed', err)
+    error.value = err instanceof Error ? err.message : 'An error occurred during sign in'
+    console.error('Sign in failed', err)
   }
 }
 
@@ -52,14 +52,14 @@ const handleSignup = () => {
 </script>
 
 <style scoped>
-.login-container {
+.signin-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-.login-form {
+.signin-form {
   width: 300px;
   padding: 20px;
   border: 1px solid #ccc;
@@ -68,12 +68,12 @@ const handleSignup = () => {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.login-form h2 {
+.signin-form h2 {
   text-align: center;
   color: #333;
 }
 
-.login-form div {
+.signin-form div {
   margin-bottom: 15px;
 }
 

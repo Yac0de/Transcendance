@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:4000/auth';
+const API_BASE_URL = 'http://localhost:4000';
 
 interface Credentials {
     nickname: string;
@@ -8,12 +8,12 @@ interface Credentials {
 interface UserData {
     nickname: string;
     email: string;
-    password: string;
+    avatar: string;
 }
 
 export default {
     async login(credentials: Credentials): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/signin`, {
+        const response = await fetch(`${API_BASE_URL}/auth/signin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -21,16 +21,14 @@ export default {
             credentials: "include",
             body: JSON.stringify(credentials),
         });
-
         if (!response.ok) {
             throw new Error('Login failed');
         }
-
         return response.json();
     },
 
     async signup(userData: UserData): Promise<any> {
-        const response = await fetch(`${API_BASE_URL}/signup`, {
+        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -38,11 +36,46 @@ export default {
             credentials: "include",
             body: JSON.stringify(userData),
         });
-
         if (!response.ok) {
             throw new Error('Signup failed');
+        }
+        return response.json();
+    },
+
+    async getUserData(): Promise<UserData> {
+        const response = await fetch(`${API_BASE_URL}/users`, {
+            credentials: "include",
+        });
+        if (!response.ok) {
+            throw new Error('Fetching user data failed');
+        }
+        const data: UserData = await response.json();
+        return data;
+    },
+
+    async updateUserProfile(userData: UserData, avatarFile: File | null): Promise<UserData> {
+        const formData = new FormData();
+        formData.append('nickname', userData.nickname);
+        formData.append('email', userData.email);
+        
+        if (avatarFile) {
+            formData.append('avatar', avatarFile);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/users/update-profile`, {
+            method: 'PUT',
+            credentials: "include",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Profile update failed');
         }
 
         return response.json();
     },
+
+    getAvatarUrl(avatarPath: string): string {
+        return `${API_BASE_URL}/users/avatar/${avatarPath}`;
+    }
 };

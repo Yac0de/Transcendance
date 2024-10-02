@@ -5,6 +5,7 @@ import (
 	"api/models"
 	"api/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -31,7 +32,7 @@ func SignUp(ctx *gin.Context) {
 	}
 
 	newUser := models.User{
-		Nickname: input.Nickname,
+		Nickname: strings.ToLower(input.Nickname),
 		Email:    input.Email,
 		Password: string(hashedPassword),
 	}

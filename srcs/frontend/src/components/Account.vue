@@ -65,7 +65,7 @@ const avatarUrl = computed(() => {
   if (editedUser.value.avatar) {
     return api.getAvatarUrl(editedUser.value.avatar)
   }
-  return api.getAvatarUrl("default.avif")
+  return api.getAvatarUrl("default.png")
 })
 
 const fetchUserData = async () => {

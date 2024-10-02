@@ -2,9 +2,9 @@ package models
 
 type User struct {
 	ID       uint   `json:"id" gorm:"primary_key;autoIncrement"`
-	Nickname string `json:"nickname" gorm:"unique;not null" binding:"required,min=3"`
-	Email    string `json:"email" gorm:"unique;not null" binding:"required,email"`
-	Password string `json:"password" gorm:"not null" binding:"required,min=6"`
+	Nickname string `json:"nickname" gorm:"unique;not null" binding:"required,min=3" validate:"required,min=3"`
+	Email    string `json:"email" gorm:"unique;not null" binding:"required,email" validate:"required,email"`
+	Password string `json:"password" gorm:"not null" binding:"required,min=6" validate:"required,min=6"`
 	Avatar   string `json:"avatar"`
 }
 

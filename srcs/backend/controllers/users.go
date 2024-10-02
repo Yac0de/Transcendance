@@ -9,13 +9,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/go-playground/validator/v10"
 )
 
 func Users(ctx *gin.RouterGroup) {
@@ -24,9 +22,6 @@ func Users(ctx *gin.RouterGroup) {
 	ctx.GET("/:userId", GetUser)
 
 	ctx.PUT("/update-profile", UpdateProfile)
-	ctx.POST("/upload-avatar", UploadAvatar)
-	ctx.PUT("/:userId", UpdateUser)
-	ctx.DELETE("/:userId", DeleteUser)
 }
 
 func GetAllUsers(ctx *gin.Context) {
@@ -64,27 +59,38 @@ func GetUser(ctx *gin.Context) {
 
 func UpdateProfile(ctx *gin.Context) {
 	id, exists := ctx.Get("UserId")
+
 	userId, ok := id.(uint)
 	if exists == false || !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
 		return
 	}
 
+	code, err := UpdateUser(ctx, userId)
+	if err != nil {
+		ctx.JSON(code, gin.H{"error": err.Error()})
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": "user profile updated successfully",
+	})
+}
+
+func UpdateUser(ctx *gin.Context, id uint) (int, error) {
+	validate := validator.New()
 	var user models.User
-	result := database.DB.First(&user, "id = ?", userId)
+
+	result := database.DB.First(&user, "id = ?", id)
 	if result.Error != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
-		return
+		return http.StatusNotFound, result.Error
 	}
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
+		return http.StatusNotFound, err
 	}
 
 	for key := range form.Value {
-		// Unsecure (any data validation)
 		switch strings.ToLower(key) {
 		case "nickname":
 			user.Nickname = form.Value[key][0]
@@ -94,27 +100,30 @@ func UpdateProfile(ctx *gin.Context) {
 		}
 	}
 
+	err = validate.Struct(user)
+	if err != nil {
+		var e string
+		for _, err := range err.(validator.ValidationErrors) {
+			e += fmt.Sprintf("Erreur de validation pour le champ '%s': %s\n", err.Field(), err.Tag())
+		}
+		return http.StatusBadRequest, fmt.Errorf(e)
+	}
+
 	if form.File["avatar"] != nil {
 		filename, err := SaveAvatar(ctx, form.File["avatar"][0])
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+			return http.StatusInternalServerError, err
 		}
 		if len(user.Avatar) > 0 {
 			err = os.Remove(filepath.Join("./avatars", user.Avatar))
-			fmt.Println("Can not remove file: ", user.Avatar, err)
 		}
 		user.Avatar = filename
 	}
 
 	if err := database.DB.Save(&user).Error; err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return http.StatusBadRequest, err
 	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": "user profile updated successfully",
-	})
+	return 0, nil
 }
 
 func SaveAvatar(ctx *gin.Context, file *multipart.FileHeader) (string, error) {
@@ -131,124 +140,4 @@ func SaveAvatar(ctx *gin.Context, file *multipart.FileHeader) (string, error) {
 	}
 
 	return filename, nil
-}
-
-func UploadAvatar(ctx *gin.Context) {
-	id, exists := ctx.Get("UserId")
-	userId, ok := id.(uint)
-	if exists == false || !ok {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
-		return
-	}
-
-	file, err := ctx.FormFile("avatar")
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "File not found"})
-		return
-	}
-
-	timestamp := time.Now().Unix()
-	newFilename := fmt.Sprintf("%d_%s", timestamp, file.Filename)
-	file.Filename = newFilename
-	fmt.Println(userId)
-
-	err = ctx.SaveUploadedFile(file, filepath.Join("./avatars", file.Filename))
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to save file"})
-		return
-	}
-
-	result := database.DB.Exec("UPDATE users SET avatar = ? WHERE ID = ?", file.Filename, userId)
-
-	if result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-		return
-	}
-
-	if result.RowsAffected == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Can't update table"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"success": "Files uploaded successfully"})
-}
-
-func UpdateUser(ctx *gin.Context) {
-	id, err := GetUserIdToUINT(ctx.Params)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var target models.User
-	if err := database.DB.First(&target, id).Error; err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	var input models.UpdateUserDto
-
-	err = ctx.ShouldBindJSON(&input)
-	if err != nil || reflect.DeepEqual(input, (models.UpdateUserDto{})) {
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
-		} else {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "No fields to update"})
-		}
-		return
-	}
-
-	if input.Email != "" && input.Email != target.Email {
-		target.Email = input.Email
-	}
-
-	if input.Nickname != "" && input.Nickname != target.Nickname {
-		target.Nickname = input.Nickname
-	}
-
-	if input.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), 10)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		target.Password = string(hashedPassword)
-	}
-
-	if err := database.DB.Save(&target).Error; err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	ctx.Status(http.StatusAccepted)
-}
-
-func DeleteUser(ctx *gin.Context) {
-	id, err := GetUserIdToUINT(ctx.Params)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	result := database.DB.Delete(&models.User{}, id)
-
-	if result.Error != nil {
-		ctx.JSON(500, gin.H{"error": result.Error.Error()})
-		return
-	}
-
-	if result.RowsAffected == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-
-	ctx.Status(http.StatusNoContent)
-}
-
-func GetUserIdToUINT(params gin.Params) (uint, error) {
-	idStr := params.ByName("userId")
-
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		return 0, err
-	}
-
-	return uint(id), nil
 }

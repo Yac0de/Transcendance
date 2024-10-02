@@ -14,6 +14,12 @@ import (
 func Auth(ctx *gin.RouterGroup) {
 	ctx.POST("/signin", SignIn)
 	ctx.POST("/signup", SignUp)
+	ctx.POST("/signout", SignOut)
+}
+
+func SignOut(ctx *gin.Context) {
+	ctx.SetCookie("access_token", "", 0, "/", "", false, true)
+	ctx.JSON(http.StatusCreated, gin.H{"succes": "Logout successfully"})
 }
 
 func SignUp(ctx *gin.Context) {
@@ -33,8 +39,9 @@ func SignUp(ctx *gin.Context) {
 
 	newUser := models.User{
 		Nickname: strings.ToLower(input.Nickname),
-		Email:    input.Email,
+		Email:    strings.ToLower(input.Email),
 		Password: string(hashedPassword),
+		Avatar:   "",
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {

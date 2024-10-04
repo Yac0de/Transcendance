@@ -12,7 +12,7 @@ interface UserData {
 }
 
 export default {
-    async login(credentials: Credentials): Promise<any> {
+    async signin(credentials: Credentials): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/auth/signin`, {
             method: 'POST',
             headers: {
@@ -22,7 +22,7 @@ export default {
             body: JSON.stringify(credentials),
         });
         if (!response.ok) {
-            throw new Error('Login failed');
+            throw new Error('Sign in failed');
         }
         return response.json();
     },
@@ -42,15 +42,17 @@ export default {
         return response.json();
     },
 
-    async getUserData(): Promise<UserData> {
+    async getUserData(): Promise<UserData | null> {
         const response = await fetch(`${API_BASE_URL}/users`, {
             credentials: "include",
         });
         if (!response.ok) {
+            if (response.status === 401) {
+                return null;
+            }
             throw new Error('Fetching user data failed');
         }
-        const data: UserData = await response.json();
-        return data;
+        return response.json();
     },
 
     async updateUserProfile(userData: UserData, avatarFile: File | null): Promise<UserData> {
@@ -77,5 +79,20 @@ export default {
 
     getAvatarUrl(avatarPath: string): string {
         return `${API_BASE_URL}/users/avatar/${avatarPath}`;
+    },
+
+    async   signout(): Promise<void> {
+        const   response = await fetch(`${API_BASE_URL}/auth/signout`, {
+            method: 'POST',
+            credentials: "include",
+        })
+        if (!response.ok) {
+            throw new Error('Sign out failed');
+        }
+    },
+
+    async   isAuthenticated(): Promise<boolean> {
+        const   userData = await this.getUserData();
+        return userData !== null;
     }
 };

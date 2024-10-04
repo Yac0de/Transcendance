@@ -53,6 +53,7 @@ func createMockUsers() {
 	for i := range users {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(users[i].Password), 10)
 		users[i].Nickname = strings.ToLower(users[i].Nickname)
+		users[i].Email = strings.ToLower(users[i].Email)
 		users[i].Password = string(hashedPassword)
 		if err := DB.Create(&users[i]).Error; err != nil {
 			log.Printf("Failed to create user %s: %v", users[i].Nickname, err)

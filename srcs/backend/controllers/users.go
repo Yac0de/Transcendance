@@ -69,6 +69,7 @@ func UpdateProfile(ctx *gin.Context) {
 	code, err := UpdateUser(ctx, userId)
 	if err != nil {
 		ctx.JSON(code, gin.H{"error": err.Error()})
+		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
@@ -93,9 +94,9 @@ func UpdateUser(ctx *gin.Context, id uint) (int, error) {
 	for key := range form.Value {
 		switch strings.ToLower(key) {
 		case "nickname":
-			user.Nickname = form.Value[key][0]
+			user.Nickname = strings.ToLower(form.Value[key][0])
 		case "email":
-			user.Email = form.Value[key][0]
+			user.Email = strings.ToLower(form.Value[key][0])
 			// Handle password case
 		}
 	}

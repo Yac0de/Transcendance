@@ -4,6 +4,7 @@ import SignInForm from '../components/SignInForm.vue'
 import SignUpForm from '../components/SignUpForm.vue'
 import PongGame from '../components/PongGame.vue'
 import Account from '../components/Account.vue'
+import NotFound from '../components/NotFound.vue'
 import api from '../services/api'
 
 const routes = [
@@ -25,6 +26,10 @@ const routes = [
     path: '/account', 
     component: Account, 
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/:pathMatch(.*)*', 
+    component: NotFound
   }
 ]
 

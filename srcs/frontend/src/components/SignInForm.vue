@@ -39,7 +39,7 @@ const handleSubmit = async () => {
     user.value = await api.signin({ nickname: nickname.value, password: password.value })
     console.log('Sign in successful', user.value)
     emit('signin-success')
-    router.push('/pong')
+    router.push('/')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'An error occurred during sign in'
     console.error('Sign in failed', err)

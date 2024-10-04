@@ -11,6 +11,12 @@ interface UserData {
     avatar: string;
 }
 
+interface SignUpData {
+    nickname: string;
+    email: string;
+    password: string;
+}
+
 export default {
     async signin(credentials: Credentials): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/auth/signin`, {
@@ -27,7 +33,7 @@ export default {
         return response.json();
     },
 
-    async signup(userData: UserData): Promise<any> {
+    async signup(userData: SignUpData): Promise<any> {
         const response = await fetch(`${API_BASE_URL}/auth/signup`, {
             method: 'POST',
             headers: {

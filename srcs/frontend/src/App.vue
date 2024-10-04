@@ -30,7 +30,6 @@ import { useRouter } from 'vue-router';
 import api from './services/api'
 
 const isAuthenticated = ref(false);
-const user = ref(null);
 const router = useRouter();
 
 const checkAuth = async () => {

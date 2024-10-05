@@ -14,8 +14,8 @@
       </div>
       <div class="account-info">
         <div v-if="!isEditing">
-          <p><strong>Nickname:</strong> {{ user.nickname }}</p>
-          <p><strong>Email:</strong> {{ user.email }}</p>
+          <p><strong>Nickname:</strong> {{ user?.nickname }}</p>
+          <p><strong>Email:</strong> {{ user?.email }}</p>
         </div>
         <div v-if="isEditing" class="edit-fields">
           <label for="edit-nickname">Nickname:</label>
@@ -43,12 +43,7 @@ interface UserData {
   avatar: string;
 }
 
-const user = ref<UserData>({
-  nickname: '',
-  email: '',
-  avatar: ''
-})
-
+const user = ref<UserData | null>(null)
 const isEditing = ref(false)
 const editedUser = ref<UserData>({
   nickname: '',
@@ -71,8 +66,12 @@ const avatarUrl = computed(() => {
 const fetchUserData = async () => {
   try {
     const userData = await api.getUserData()
-    user.value = userData
-    editedUser.value = { ...userData }
+    if (userData) {
+      user.value = userData
+      editedUser.value = { ...userData }
+    } else {
+      user.value = null
+    }
   } catch (error) {
     console.error('Error fetching user data:', error)
   }
@@ -88,21 +87,23 @@ const editProfile = () => {
 
 const saveProfile = async () => {
   try {
-    const response = await api.updateUserProfile(editedUser.value, newAvatarFile.value)
+    await api.updateUserProfile(editedUser.value, newAvatarFile.value)
     fetchUserData()
     isEditing.value = false
     console.log('Profile updated successfully')
   } catch (error) {
-    console.error('Error updating profile:', error.message)
+    console.error('Error updating profile:', (error as Error).message);
     isEditing.value = false
   }
 }
 
 const cancelEdit = () => {
-  editedUser.value = { ...user.value }
+  if (user.value) {
+    editedUser.value = { ...user.value }
+  }
   isEditing.value = false
   newAvatarFile.value = null
-}
+};
 
 const handleAvatarChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0]

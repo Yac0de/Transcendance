@@ -7,13 +7,12 @@ interface Credentials {
 
 interface UserData {
     nickname: string;
-    email: string;
+    displayname: string;
     avatar: string;
 }
 
 interface SignUpData {
     nickname: string;
-    email: string;
     password: string;
 }
 
@@ -63,7 +62,7 @@ export default {
     async updateUserProfile(userData: UserData, avatarFile: File | null): Promise<UserData> {
         const formData = new FormData();
         formData.append('nickname', userData.nickname);
-        formData.append('email', userData.email);
+        formData.append('displayname', userData.displayname);
         
         if (avatarFile) {
             formData.append('avatar', avatarFile);

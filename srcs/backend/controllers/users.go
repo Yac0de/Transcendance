@@ -27,7 +27,7 @@ func Users(ctx *gin.RouterGroup) {
 func GetAllUsers(ctx *gin.Context) {
 	var users []models.UserResponse
 
-	if err := database.DB.Raw("SELECT id, nickname, email FROM users").Scan(&users).Error; err != nil {
+	if err := database.DB.Raw("SELECT id, nickname, display_name FROM users").Scan(&users).Error; err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
@@ -43,8 +43,10 @@ func GetUser(ctx *gin.Context) {
 	}
 
 	var user models.UserResponse
-	result := database.DB.Raw("SELECT id, nickname, email, avatar FROM users WHERE id = ?", id).Scan(&user)
+	result := database.DB.Raw("SELECT id, display_name, nickname, avatar FROM users WHERE id = ?", id).Scan(&user)
+
 	if result.Error != nil {
+		fmt.Println("It s here ! ", user)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
 		return
 	}
@@ -95,8 +97,8 @@ func UpdateUser(ctx *gin.Context, id uint) (int, error) {
 		switch strings.ToLower(key) {
 		case "nickname":
 			user.Nickname = strings.ToLower(form.Value[key][0])
-		case "email":
-			user.Email = strings.ToLower(form.Value[key][0])
+		case "displayname":
+			user.DisplayName = form.Value[key][0]
 			// Handle password case
 		}
 	}

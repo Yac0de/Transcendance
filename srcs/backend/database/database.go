@@ -37,6 +37,7 @@ func initDB() *gorm.DB {
 		log.Printf("ERR DOCKER")
 		log.Fatalln(err)
 	}
+
 	database.AutoMigrate(&models.User{})
 
 	return database
@@ -44,16 +45,15 @@ func initDB() *gorm.DB {
 
 func createMockUsers() {
 	users := []models.User{
-		{Nickname: "Hichame", Email: "hichame@42LH.fr", Password: "hichame42LH"},
-		{Nickname: "Maxime", Email: "maxime@42LH.fr", Password: "maxime42LH"},
-		{Nickname: "Yanis", Email: "yanis@42LH.fr", Password: "yanis42LH"},
-		{Nickname: "Omar", Email: "omar@42LH.fr", Password: "omar42LH"},
+		{Nickname: "Hichame", DisplayName: "hichame", Password: "hichame42LH"},
+		{Nickname: "Maxime", DisplayName: "maxime", Password: "maxime42LH"},
+		{Nickname: "Yanis", DisplayName: "yanis", Password: "yanis42LH"},
+		{Nickname: "Omar", DisplayName: "omar", Password: "omar42LH"},
 	}
 
 	for i := range users {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(users[i].Password), 10)
 		users[i].Nickname = strings.ToLower(users[i].Nickname)
-		users[i].Email = strings.ToLower(users[i].Email)
 		users[i].Password = string(hashedPassword)
 		if err := DB.Create(&users[i]).Error; err != nil {
 			log.Printf("Failed to create user %s: %v", users[i].Nickname, err)

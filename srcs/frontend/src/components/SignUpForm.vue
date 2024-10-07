@@ -8,10 +8,6 @@
           <input type="text" id="nickname" v-model="nickname" required />
         </div>
         <div>
-          <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" required />
-        </div>
-        <div>
           <label for="password">Password:</label>
           <input type="password" id="password" v-model="password" required />
         </div>
@@ -34,7 +30,6 @@ import { useRouter } from 'vue-router'
 import api from '../services/api'
 
 const nickname = ref('')
-const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const error = ref('')
@@ -57,7 +52,6 @@ const handleSubmit = async () => {
     successMessage.value = ''
     const user = await api.signup({
       nickname: nickname.value,
-      email: email.value,
       password: password.value
     })
     console.log('Sign up successful', user)

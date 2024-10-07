@@ -15,13 +15,13 @@
       <div class="account-info">
         <div v-if="!isEditing">
           <p><strong>Nickname:</strong> {{ user?.nickname }}</p>
-          <p><strong>Email:</strong> {{ user?.email }}</p>
+          <p><strong>Display Name:</strong> {{ user?.displayname }}</p>
         </div>
         <div v-if="isEditing" class="edit-fields">
           <label for="edit-nickname">Nickname:</label>
           <input id="edit-nickname" v-model="editedUser.nickname" type="text" />
-          <label for="edit-email">Email:</label>
-          <input id="edit-email" v-model="editedUser.email" type="email" />
+          <label for="edit-displayname">Display Name:</label>
+          <input id="edit-displayname" v-model="editedUser.displayname" type="displayname" />
         </div>
       </div>
       <div class="account-actions">
@@ -39,7 +39,7 @@ import api from '../services/api'
 
 interface UserData {
   nickname: string;
-  email: string;
+  displayname: string;
   avatar: string;
 }
 
@@ -47,7 +47,7 @@ const user = ref<UserData | null>(null)
 const isEditing = ref(false)
 const editedUser = ref<UserData>({
   nickname: '',
-  email: '',
+  displayname: '',
   avatar: ''
 })
 const avatarInput = ref<HTMLInputElement | null>(null)

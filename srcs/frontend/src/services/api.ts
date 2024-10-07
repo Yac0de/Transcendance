@@ -7,13 +7,12 @@ interface Credentials {
 
 interface UserData {
     nickname: string;
-    email: string;
+    displayname: string;
     avatar: string;
 }
 
 interface SignUpData {
     nickname: string;
-    email: string;
     password: string;
 }
 
@@ -39,7 +38,6 @@ export default {
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: "include",
             body: JSON.stringify(userData),
         });
         if (!response.ok) {
@@ -51,20 +49,21 @@ export default {
     async getUserData(): Promise<UserData | null> {
         const response = await fetch(`${API_BASE_URL}/users`, {
             credentials: "include",
-        });
+        })
         if (!response.ok) {
             if (response.status === 401) {
                 return null;
             }
             throw new Error('Fetching user data failed');
         }
+        console.log(response.data);
         return response.json();
     },
 
     async updateUserProfile(userData: UserData, avatarFile: File | null): Promise<UserData> {
         const formData = new FormData();
         formData.append('nickname', userData.nickname);
-        formData.append('email', userData.email);
+        formData.append('displayname', userData.displayname);
         
         if (avatarFile) {
             formData.append('avatar', avatarFile);

@@ -38,10 +38,10 @@ func SignUp(ctx *gin.Context) {
 	}
 
 	newUser := models.User{
-		Nickname: strings.ToLower(input.Nickname),
-		Email:    strings.ToLower(input.Email),
-		Password: string(hashedPassword),
-		Avatar:   "",
+		Nickname:    strings.ToLower(input.Nickname),
+		DisplayName: input.Nickname,
+		Password:    string(hashedPassword),
+		Avatar:      "",
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {
@@ -96,6 +96,5 @@ func SignIn(ctx *gin.Context) {
 	}
 	ctx.SetCookie("access_token", token, 0, "/", "", false, true)
 
-	// ctx.Status(http.StatusNoContent)
 	ctx.JSON(http.StatusAccepted, gin.H{"succes": "User connected"})
 }

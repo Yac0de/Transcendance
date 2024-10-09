@@ -6,6 +6,11 @@ WORKDIR /app
 
 # Copier seulement les fichiers nécessaires pour les dépendances
 COPY go.mod go.sum ./
+
+RUN go get github.com/prometheus/client_golang/prometheus \
+    && go get github.com/prometheus/client_golang/prometheus/promauto \
+    && go get github.com/prometheus/client_golang/prometheus/promhttp
+
 RUN go mod download
 
 # Copier tout le code source dans le conteneur

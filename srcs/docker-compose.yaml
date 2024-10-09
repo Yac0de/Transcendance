@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   # PostgreSQL database service
+
   db:
     image: postgres
     container_name: postgres
@@ -67,6 +68,31 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - transcendance_net
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - transcendance_net
+    depends_on:
+      - prometheus
 
 volumes:
   db_data:

@@ -19,9 +19,10 @@ import (
 func Users(ctx *gin.RouterGroup) {
 	ctx.GET("", GetUser)
 	ctx.GET("/all", GetAllUsers)
-	ctx.GET("/:userId", GetUser)
 
 	ctx.PUT("/update-profile", UpdateProfile)
+
+	FriendShip(ctx.Group("/friendships")) // /users/friends/...
 }
 
 func GetAllUsers(ctx *gin.Context) {
@@ -46,7 +47,6 @@ func GetUser(ctx *gin.Context) {
 	result := database.DB.Raw("SELECT id, display_name, nickname, avatar FROM users WHERE id = ?", id).Scan(&user)
 
 	if result.Error != nil {
-		fmt.Println("It s here ! ", user)
 		ctx.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
 		return
 	}

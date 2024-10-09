@@ -6,7 +6,7 @@ type User struct {
 	Nickname    string  `json:"nickname" gorm:"unique;not null" binding:"required,min=3" validate:"required,min=3"`
 	Password    string  `json:"password" gorm:"not null" binding:"required,min=6" validate:"required,min=6"`
 	Avatar      string  `json:"avatar"`
-	Friends     []*User `gorm:"many2many:friends;"`
+	Friends     []*User `gorm:"many2many:friendShip;"`
 }
 
 type FriendShip struct {

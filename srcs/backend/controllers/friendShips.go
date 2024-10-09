@@ -5,7 +5,6 @@ import (
 	"api/models"
 	"net/http"
 	"strconv"
-	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,43 +53,48 @@ func AcceptFriend(ctx *gin.Context) {
 }
 
 func AddFriend(ctx *gin.Context) {
-	log.Println("AddF func calld");
-    friendUsername := ctx.Query("username")
+	friendNickname := ctx.Query("nickname")
 
-    userId, exists := ctx.Get("UserId")
-    id, ok := userId.(uint)
-    if exists == false || !ok {
-        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
-        return
-    }
+	userId, exists := ctx.Get("UserId")
+	id, ok := userId.(uint)
+	if exists == false || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
 
-    var friendUser models.User
-    if err := database.DB.Where("nickname = ?", friendUsername).First(&friendUser).Error; err != nil {
-    log.Println("username not found in database");
-        ctx.JSON(http.StatusNotFound, gin.H{"error": "Friend not found"})
-        return
-    }
+	if friendNickname == "" {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Invalid friend nickname"})
+		return
+	}
+	var friendUser models.User
+	if err := database.DB.First(&friendUser, "nickname = ?", friendNickname).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Friend not found"})
+		return
+	}
 
-	//existing friend logic seem to be bugged for now ?
+	if friendUser.ID == id {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Invalid request (same user id as requester)"})
+		return
+	}
 
-    // var existingFriend models.FriendShip
-    // if err := database.DB.First(&existingFriend, "(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)", id, friendUser.ID, friendUser.ID, id).Error; err == nil {
-    //     ctx.JSON(http.StatusConflict, gin.H{"error": "Friendship already exists"})
-    //     return
-    // }
+	var existingFriend models.FriendShip
+	if err := database.DB.First(&existingFriend, "(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)", id, friendUser.ID, friendUser.ID, id).Error; err == nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": "Friendship already exists"})
+		return
+	}
 
-    friends := models.FriendShip{
-        UserID:        id,
-        FriendID:      friendUser.ID,
-        MutualFriends: false,
-    }
+	friends := models.FriendShip{
+		UserID:        id,
+		FriendID:      friendUser.ID,
+		MutualFriends: false,
+	}
 
-    if err := database.DB.Create(&friends).Error; err != nil {
-        ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
-        return
-    }
+	if err := database.DB.Create(&friends).Error; err != nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{"Success": "Request sent"})
+	ctx.JSON(http.StatusOK, gin.H{"Success": "Request sent"})
 }
 
 func GetFriendList(ctx *gin.Context) {

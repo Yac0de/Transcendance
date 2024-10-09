@@ -1,111 +1,81 @@
 <template>
-  <div class="game-container">
-    <canvas ref="gameCanvas" width="400" height="400" class="game-canvas"></canvas>
-    <p>Use WASD keys to move the square</p>
+  <div class="pong-menu">
+    <div class="menu-buttons">
+      <button @click="startTournament" class="menu-button">Tournament</button>
+      <button @click="startPlayerVsRobot" class="menu-button">Player VS Robot</button>
+      <button @click="startPlayerVsFriend" class="menu-button">Play against your friend</button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router';
 
-interface Square {
-  x: number
-  y: number
-  size: number
-  speed: number
-}
+const router = useRouter();
 
-interface Keys {
-  w: boolean
-  a: boolean
-  s: boolean
-  d: boolean
-}
+const startTournament = () => {
+  // TODO: Implement tournament logic 
+  console.log('Starting tournament');
+};
 
-const gameCanvas = ref<HTMLCanvasElement | null>(null)
-const ctx = ref<CanvasRenderingContext2D | null>(null)
+const startPlayerVsRobot = () => {
+  // TODO: Implement player vs robot logic 
+  console.log('Starting Player VS Robot game');
+};
 
-const square = reactive<Square>({
-  x: 175,
-  y: 175,
-  size: 50,
-  speed: 5
-})
-
-const keys = reactive<Keys>({
-  w: false,
-  a: false,
-  s: false,
-  d: false
-})
-
-const initGame = () => {
-  if (gameCanvas.value) {
-    ctx.value = gameCanvas.value.getContext('2d')
-    gameLoop()
-  }
-}
-
-const gameLoop = () => {
-  update()
-  draw()
-  requestAnimationFrame(gameLoop)
-}
-
-const update = () => {
-  if (!gameCanvas.value) return
-
-  if (keys.w && square.y > 0) square.y -= square.speed
-  if (keys.s && square.y < gameCanvas.value.height - square.size) square.y += square.speed
-  if (keys.a && square.x > 0) square.x -= square.speed
-  if (keys.d && square.x < gameCanvas.value.width - square.size) square.x += square.speed
-}
-
-const draw = () => {
-  if (!ctx.value || !gameCanvas.value) return
-
-  // Clear the canvas
-  ctx.value.clearRect(0, 0, gameCanvas.value.width, gameCanvas.value.height)
-  
-  // Draw the square
-  ctx.value.fillStyle = 'blue'
-  ctx.value.fillRect(square.x, square.y, square.size, square.size)
-}
-
-const handleKeyDown = (e: KeyboardEvent) => {
-  const key = e.key.toLowerCase()
-  if (key in keys) {
-    keys[key as keyof Keys] = true
-  }
-}
-
-const handleKeyUp = (e: KeyboardEvent) => {
-  const key = e.key.toLowerCase()
-  if (key in keys) {
-    keys[key as keyof Keys] = false
-  }
-}
-
-onMounted(() => {
-  initGame()
-  window.addEventListener('keydown', handleKeyDown)
-  window.addEventListener('keyup', handleKeyUp)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeyDown)
-  window.removeEventListener('keyup', handleKeyUp)
-})
+const startPlayerVsFriend = () => {
+  // TODO: Implement player vs friend logic 
+  console.log('Starting Play VS Friend game');
+};
 </script>
 
 <style scoped>
-.game-container {
+.pong-menu {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 20px;
+  justify-content: center;
+  height: 100vh;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
 }
-.game-canvas {
-  border: 1px solid black;
+
+.menu-title {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.menu-button {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 200px;
+}
+
+.menu-button:hover {
+  background-color: #0056b3;
+}
+
+@media (max-width: 600px) {
+  .menu-title {
+    font-size: 2rem;
+  }
+
+  .menu-button {
+    width: 100%;
+  }
 }
 </style>

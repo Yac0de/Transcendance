@@ -13,7 +13,8 @@
         </button>
         <button @click="toggleFriendRequests" class="icon-button friend-requests-button">
           <i class="fas fa-bell"></i>
-          <span v-if="friendRequests.length" class="notification-badge">{{ friendRequests.length }}</span>
+          <span v-if="friendRequests && friendRequests.length" class="notification-badge">{{ friendRequests.length
+            }}</span>
         </button>
       </div>
     </div>
@@ -24,13 +25,11 @@
       </div>
       <div class="friend-list-content">
         <div v-for="friend in friends" :key="friend.id" class="friend-item">
-          <div class="friend-avatar" :style="{ backgroundColor: friend.color }">
+          <div class="friend-avatar">
+            <img :src="friend.avatar" :alt="friend.nickname + '\'s avatar'" />
           </div>
           <div class="friend-info">
-            <div class="friend-name">{{ friend.name }}</div>
-            <div class="friend-status" :class="friend.status.toLowerCase()">
-              {{ friend.status }}
-            </div>
+            <div class="friend-nickname">{{ friend.nickname }}</div>
           </div>
         </div>
       </div>
@@ -51,18 +50,22 @@
         <button @click="toggleFriendRequests" class="close-button">&times;</button>
       </div>
       <div class="friend-requests-content">
-        <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
-          <div class="friend-request-name">{{ request.name }}</div>
-          <div class="friend-request-actions">
-            <button @click="acceptFriendRequest(request.id)" class="accept-button">
-              <i class="fas fa-check"></i>
-            </button>
-            <button @click="denyFriendRequest(request.id)" class="deny-button">
-              <i class="fas fa-times"></i>
-            </button>
+        <template v-if="friendRequests">
+          <div v-if="friendRequests.length > 0">
+            <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
+              <div class="friend-request-name">{{ request.nickname }}</div>
+              <div class="friend-request-actions">
+                <button @click="acceptFriendRequest(request.id)" class="accept-button">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button @click="denyFriendRequest(request.id)" class="deny-button">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-        <div v-if="friendRequests.length === 0" class="no-requests">
+        </template>
+        <div v-else class="error-message">
           No pending friend requests
         </div>
       </div>
@@ -77,22 +80,18 @@ import friendlistAPI from '../services/friendlist';
 const showFriendList = ref(false);
 const showAddFriend = ref(false);
 const newFriendNickname = ref('');
-const friends = ref<{ nickname: string }[]>([]);
+const friends = ref([]);
+const friendRequests = ref([]);
 const loading = ref(false);
 const showFriendRequests = ref(false);
 
-
-const friendRequests = ref([
-  { id: 1, name: 'Faris' },
-  { id: 2, name: 'Farisa' },
-]);
 
 const toggleFriendList = async () => {
   showFriendList.value = !showFriendList.value;
   if (showFriendList.value) {
     showAddFriend.value = false;
     showFriendRequests.value = false;
-    await fetchFriends();
+    await fetchFriendList();
   }
 };
 
@@ -104,20 +103,34 @@ const toggleAddFriend = () => {
   }
 };
 
-const toggleFriendRequests = () => {
+const toggleFriendRequests = async () => {
   showFriendRequests.value = !showFriendRequests.value;
   if (showFriendRequests.value) {
     showFriendList.value = false;
     showAddFriend.value = false;
+    await fetchFriendRequests();
   }
 };
 
-const fetchFriends = async () => {
+const fetchFriendList = async () => {
   loading.value = true;
   try {
     friends.value = await friendlistAPI.getFriendList();
+    //console.log("JSON response:", JSON.stringify(friends.value, null, 2));
   } catch (error) {
-    console.error('Failed to fetch friends:', error);
+    console.error('Failed to fetch friend list:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchFriendRequests = async () => {
+  loading.value = true;
+  try {
+    friendRequests.value = await friendlistAPI.getFriendRequests();
+    //console.log("JSON response:", JSON.stringify(friendRequests.value, null, 2));
+  } catch (error) {
+    console.error('Failed to fetch friend requests:', error);
   } finally {
     loading.value = false;
   }
@@ -129,21 +142,12 @@ const addFriend = async () => {
       await friendlistAPI.sendFriendRequest(newFriendNickname.value.trim());
       newFriendNickname.value = '';
       showAddFriend.value = false;
-      await fetchFriends();
+      await fetchFriendRequests();
     } catch (error) {
       console.error('Failed to add friend:', error);
     }
   }
 };
-
-const getRandomColor = (nickname: string) => {
-  let hash = 0;
-  for (let i = 0; i < nickname.length; i++) {
-    hash = nickname.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return `hsl(${hash % 360}, 70%, 60%)`;
-};
-
 
 </script>
 
@@ -292,7 +296,7 @@ const getRandomColor = (nickname: string) => {
   flex-grow: 1;
 }
 
-.friend-name {
+.friend-nickname {
   font-weight: bold;
 }
 

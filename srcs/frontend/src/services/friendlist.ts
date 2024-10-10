@@ -30,8 +30,8 @@ export default {
         return response.json();
     },
 
-    async sendFriendRequest(friendUsername: string): Promise<void> {
-        const response = await fetch(`${API_BASE_URL}/users/friendships/add?username=${encodeURIComponent(friendUsername)}`, {
+    async sendFriendRequest(friendNickname: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/users/friendships/add?nickname=${encodeURIComponent(friendNickname)}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -44,6 +44,34 @@ export default {
 
         if (!response.ok) {
             throw new Error('Failed to send friend request');
+        }
+    },
+
+    async acceptFriendRequest(friendId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/users/friendships/accept/${friendId}`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response data:', response);
+
+        if (!response.ok) {
+            throw new Error('Failed to accept friend request');
+        }
+    },
+
+    async denyFriendRequest(friendId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/users/friendships/deny/${friendId}`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response data:', response);
+
+        if (!response.ok) {
+            throw new Error('Failed to deny friend request');
         }
     },
 };

@@ -55,10 +55,10 @@
             <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
               <div class="friend-request-name">{{ request.nickname }}</div>
               <div class="friend-request-actions">
-                <button @click="acceptFriendRequest(request.id)" class="accept-button">
+                <button @click="acceptFriend(request.id)" class="accept-button">
                   <i class="fas fa-check"></i>
                 </button>
-                <button @click="denyFriendRequest(request.id)" class="deny-button">
+                <button @click="denyFriend(request.id)" class="deny-button">
                   <i class="fas fa-times"></i>
                 </button>
               </div>
@@ -146,6 +146,24 @@ const addFriend = async () => {
     } catch (error) {
       console.error('Failed to add friend:', error);
     }
+  }
+};
+
+const acceptFriend = async (requestId: string) => {
+  try {
+    await friendlistAPI.acceptFriendRequest(requestId);
+    await fetchFriendRequests();
+  } catch (error) {
+    console.error('Failed to accept friend request:', error);
+  }
+};
+
+const denyFriend = async (requestId: string) => {
+  try {
+    await friendlistAPI.denyFriendRequest(requestId);
+    await fetchFriendRequests();
+  } catch (error) {
+    console.error('Failed to deny friend request:', error);
   }
 };
 

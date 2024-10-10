@@ -14,6 +14,66 @@ func FriendShip(ctx *gin.RouterGroup) {
 	ctx.GET("/requests", GetFriendRequests)
 	ctx.POST("/add", AddFriend)
 	ctx.POST("/accept/:friendId", AcceptFriend)
+	ctx.POST("/deny/:friendId", DenyFriend)
+	ctx.POST("/delete/:friendId", RemoveFriend)
+}
+
+func RemoveFriend(ctx *gin.Context) {
+	friend := ctx.Param("friendId")
+	friendId, err := strconv.ParseUint(friend, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid format of friend id"})
+		return
+	}
+
+	userId, exists := ctx.Get("UserId")
+	id, ok := userId.(uint)
+	if exists == false || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
+
+	var friendship models.FriendShip
+	if err := database.DB.First(&friendship, "(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)", id, friendId, friendId, id).Error; err != nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": "Friendship does not exists"})
+		return
+	}
+
+	if err := database.DB.Delete(&friendship).Error; err != nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Succes": "Friendship deleted"})
+}
+
+func DenyFriend(ctx *gin.Context) {
+	friend := ctx.Param("friendId")
+	friendId, err := strconv.ParseUint(friend, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid format of friend id"})
+		return
+	}
+
+	userId, exists := ctx.Get("UserId")
+	id, ok := userId.(uint)
+	if exists == false || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
+
+	var friendship models.FriendShip
+	if err := database.DB.First(&friendship, "user_id = ? AND friend_id = ?", friendId, id).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Friendship does not exists"})
+		return
+	}
+
+	if err := database.DB.Delete(&friendship).Error; err != nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"Succes": "Friend denied"})
 }
 
 func AcceptFriend(ctx *gin.Context) {

@@ -39,6 +39,9 @@
         </div>
       </div>
 
+      <div v-if="successMessage && isEditing && !isDeleting" class="alert alert-success">{{ successMessage }}</div>
+      <div v-if="errorMessage && isEditing && !isDeleting" class="alert alert-error">{{ errorMessage }}</div>
+
       <div v-if="!deleted" class="account-actions">
         <button v-if="!isEditing" class="edit-button" @click="startEditing">Edit Profile</button>
         <button v-if="isEditing && !isDeleting" class="save-button" @click="saveProfile">Save Changes</button>
@@ -106,14 +109,26 @@ const startEditing = () => {
 
 const saveProfile = async () => {
   resetMessages()
+  if (editedUser.value.nickname.length < 3) {
+    errorMessage.value = "Nickname must be at least 3 characters long!";
+    return;
+  }
+
+  if (editedUser.value.displayname.length < 3) {
+    errorMessage.value = "Display Name must be at least 3 characters long!";
+    return;
+  }
   try {
     await api.updateUserProfile(editedUser.value, newAvatarFile.value)
     await fetchUserData()
-    isEditing.value = false
     successMessage.value = 'Profile updated successfully'
-  } catch (error) {
-    errorMessage.value = 'Error updating profile: ' + (error as Error).message
-    isEditing.value = false
+  } catch (error: any) {
+    const errorResponse = await error.response?.json();
+    if (errorResponse && errorResponse.error) {
+      errorMessage.value = errorResponse.error;
+    } else {
+      errorMessage.value = 'Error updating profile: ' + (error as Error).message;
+    }
   }
 }
 
@@ -307,10 +322,21 @@ button {
   border-color: #dc3545;
 }
 
+.cancel-button{
+  color: #fff;
+  background-color: #343a40;
+  border-color: #343a40;
+}
+
 .delete-button:hover,
-.confirm-delete-button:hover {
+.confirm-delete-button:hover{
   background-color: #c82333;
   border-color: #bd2130;
+}
+
+.cancel-button:hover {
+  background-color: #23272b;
+  border-color: #1d2124;
 }
 
 .edit-button,

@@ -63,23 +63,28 @@ func GetUser(ctx *gin.Context) {
 }
 
 func UpdateProfile(ctx *gin.Context) {
-	id, exists := ctx.Get("UserId")
+    id, exists := ctx.Get("UserId")
 
-	userId, ok := id.(uint)
-	if exists == false || !ok {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
-		return
-	}
+    userId, ok := id.(uint)
+    if exists == false || !ok {
+        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+        return
+    }
 
-	code, err := UpdateUser(ctx, userId)
-	if err != nil {
-		ctx.JSON(code, gin.H{"error": err.Error()})
-		return
-	}
+    code, err := UpdateUser(ctx, userId)
+    if err != nil {
+        // Gestion spécifique des erreurs de duplicata de clé unique
+        if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+            ctx.JSON(http.StatusBadRequest, gin.H{"error": "Nickname already exists, please choose another one."})
+            return
+        }
+        ctx.JSON(code, gin.H{"error": err.Error()})
+        return
+    }
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"success": "user profile updated successfully",
-	})
+    ctx.JSON(http.StatusOK, gin.H{
+        "success": "user profile updated successfully",
+    })
 }
 
 func UpdateUser(ctx *gin.Context, id uint) (int, error) {

@@ -19,15 +19,18 @@ export default {
         return response.json();
     },
 
-    async getFriendRequests(): Promise<Friend[]> {
-        const response = await fetch(`${API_BASE_URL}/users/friendships/requests`, {
-            method: 'GET',
+    async deleteFromFriendList(friendId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/users/friendships/delete/${friendId}`, {
+            method: 'POST',
             credentials: 'include',
         });
+
+        console.log('Response status:', response.status);
+        console.log('Response data:', response);
+
         if (!response.ok) {
-            throw new Error('Failed to fetch friend list');
+            throw new Error('Failed to delete from friend list');
         }
-        return response.json();
     },
 
     async sendFriendRequest(friendNickname: string): Promise<void> {
@@ -43,9 +46,23 @@ export default {
         console.log('Response data:', response);
 
         if (!response.ok) {
-            throw new Error('Failed to send friend request');
+            const error: any = new Error('Failed to send friend request'); 
+            error.status = response.status
+            throw error;
         }
     },
+
+    async getFriendRequests(): Promise<Friend[]> {
+        const response = await fetch(`${API_BASE_URL}/users/friendships/requests`, {
+            method: 'GET',
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch friend list');
+        }
+        return response.json();
+    },
+
 
     async acceptFriendRequest(friendId: string): Promise<void> {
         const response = await fetch(`${API_BASE_URL}/users/friendships/accept/${friendId}`, {

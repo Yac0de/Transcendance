@@ -30,6 +30,10 @@
           </div>
           <div class="friend-info">
             <div class="friend-nickname">{{ friend.nickname }}</div>
+            <div class="friend-actions">
+              <button class="friend-action-btn" @click="deleteFriendFromFriendList(friend.id)">DELETE</button>
+              <button class="friend-action-btn">CHAT</button>
+            </div>
           </div>
         </div>
       </div>
@@ -38,6 +42,8 @@
       <div class="add-friend-header">
         <h3>Add Friend</h3>
         <button @click="toggleAddFriend" class="close-button">&times;</button>
+        <div v-if="errorMessage" class="add-friend-error-message">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="add-friend-success-message">{{ successMessage }}</div>
       </div>
       <div class="add-friend-content">
         <input v-model="newFriendNickname" type="text" placeholder="Enter friend's name" class="friend-input" />
@@ -74,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import friendlistAPI from '../services/friendlist';
 
 const showFriendList = ref(false);
@@ -84,6 +90,16 @@ const friends = ref([]);
 const friendRequests = ref([]);
 const loading = ref(false);
 const showFriendRequests = ref(false);
+const errorMessage = ref('');
+const successMessage = ref('');
+
+watch(showAddFriend, (newValue) => {
+  if (!newValue) {
+    errorMessage.value = '';
+    successMessage.value = '';
+    newFriendNickname.value = '';
+  }
+});
 
 
 const toggleFriendList = async () => {
@@ -92,6 +108,15 @@ const toggleFriendList = async () => {
     showAddFriend.value = false;
     showFriendRequests.value = false;
     await fetchFriendList();
+  }
+};
+
+const deleteFriendFromFriendList = async (requestId: string) => {
+  try {
+    await friendlistAPI.deleteFromFriendList(requestId);
+    await fetchFriendList();
+  } catch (error) {
+    console.error('Failed to delete friend from friend list:', error);
   }
 };
 
@@ -136,19 +161,6 @@ const fetchFriendRequests = async () => {
   }
 };
 
-const addFriend = async () => {
-  if (newFriendNickname.value.trim()) {
-    try {
-      await friendlistAPI.sendFriendRequest(newFriendNickname.value.trim());
-      newFriendNickname.value = '';
-      showAddFriend.value = false;
-      await fetchFriendRequests();
-    } catch (error) {
-      console.error('Failed to add friend:', error);
-    }
-  }
-};
-
 const acceptFriend = async (requestId: string) => {
   try {
     await friendlistAPI.acceptFriendRequest(requestId);
@@ -164,6 +176,32 @@ const denyFriend = async (requestId: string) => {
     await fetchFriendRequests();
   } catch (error) {
     console.error('Failed to deny friend request:', error);
+  }
+};
+
+const addFriend = async () => {
+  if (newFriendNickname.value.trim()) {
+    try {
+      await friendlistAPI.sendFriendRequest(newFriendNickname.value.trim());
+      newFriendNickname.value = '';
+      await fetchFriendRequests();
+      successMessage.value = 'Friend request sent succesfully!';
+      errorMessage.value = '';
+    } catch (error: any) {
+      console.log('Failed to add friend:', error);
+      switch (error.status) {
+        case 409:
+          errorMessage.value = "This friendship already exists, you already sent a friend request to this user or you already have a friend request from this user";
+          break;
+        case 404:
+          errorMessage.value = "This nickname does not exist.";
+          break;
+        default:
+          errorMessage.value = "An unexpected error occured.";
+          break;
+      }
+      successMessage.value = '';
+    }
   }
 };
 
@@ -264,6 +302,7 @@ const denyFriend = async (requestId: string) => {
   align-items: center;
   padding: 10px 15px;
   border-bottom: 1px solid #e0e0e0;
+  position: relative;
 }
 
 .friend-list-header h3,
@@ -312,10 +351,32 @@ const denyFriend = async (requestId: string) => {
 .friend-info,
 .friend-request-name {
   flex-grow: 1;
+  display: flex;
+  align-items: center;
 }
 
 .friend-nickname {
   font-weight: bold;
+  margin-right: 10px;
+}
+
+.friend-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.friend-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 14px;
+  color: #666;
+  transition: color 0.3s;
+}
+
+.friend-action-btn:hover {
+  color: #007bff;
 }
 
 .friend-status {
@@ -403,6 +464,35 @@ const denyFriend = async (requestId: string) => {
   text-align: center;
   color: #666;
   padding: 20px 0;
+}
+
+.add-friend-error-message,
+.add-friend-success-message {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+  z-index: 1002;
+  margin-bottom: 8px;
+  max-height: none;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.add-friend-error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ef9a9a;
+}
+
+.add-friend-success-message {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  border: 1px solid #a5d6a7;
 }
 
 @media (max-width: 600px) {

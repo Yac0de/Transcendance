@@ -99,5 +99,20 @@ export default {
     async   isAuthenticated(): Promise<boolean> {
         const   userData = await this.getUserData();
         return userData !== null;
-    }
+    },
+
+    async deleteUserAccount(password: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/users/delete-account`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ password }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Account deletion failed');
+        }
+      }
 };

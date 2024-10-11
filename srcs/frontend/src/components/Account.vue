@@ -12,22 +12,37 @@
         <input type="file" @change="handleAvatarChange" accept="image/*" id="avatar-upload" class="avatar-upload"
           ref="avatarInput" />
       </div>
+
       <div class="account-info">
-        <div v-if="!isEditing">
+        <div v-if="!isEditing && !isDeleting">
           <p><strong>Nickname:</strong> {{ user?.nickname }}</p>
           <p><strong>Display Name:</strong> {{ user?.displayname }}</p>
         </div>
-        <div v-if="isEditing" class="edit-fields">
+        <div v-if="isEditing && !isDeleting" class="edit-fields">
           <label for="edit-nickname">Nickname:</label>
           <input id="edit-nickname" v-model="editedUser.nickname" type="text" />
           <label for="edit-displayname">Display Name:</label>
-          <input id="edit-displayname" v-model="editedUser.displayname" type="displayname" />
+          <input id="edit-displayname" v-model="editedUser.displayname" type="text" />
+          <button v-if="isEditing" class="delete-button" @click="confirmDeleteAccount">Delete account</button>
+        </div>
+
+        <div v-if="isDeleting" class="confirm-delete-container">
+          <p>Are you sure you want to delete your account?</p>
+          <p>Please enter your password to confirm:</p>
+          <input type="password" v-model="deletePassword" placeholder="Enter your password" />
+          <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
+          <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
+          <div v-if="!deleted" class="delete-actions">
+            <button class="confirm-delete-button" @click="deleteAccount">Confirm Delete</button>
+            <button class="cancel-delete-button" @click="cancelDelete">Cancel</button>
+          </div>
         </div>
       </div>
-      <div class="account-actions">
-        <button v-if="!isEditing" class="edit-button" @click="editProfile">Edit Profile</button>
-        <button v-if="isEditing" class="save-button" @click="saveProfile">Save Changes</button>
-        <button v-if="isEditing" class="cancel-button" @click="cancelEdit">Cancel</button>
+
+      <div v-if="!deleted" class="account-actions">
+        <button v-if="!isEditing" class="edit-button" @click="startEditing">Edit Profile</button>
+        <button v-if="isEditing && !isDeleting" class="save-button" @click="saveProfile">Save Changes</button>
+        <button v-if="isEditing && !isDeleting" class="cancel-button" @click="cancelEdit">Cancel</button>
       </div>
     </div>
   </div>
@@ -35,6 +50,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '../services/api'
 
 interface UserData {
@@ -45,22 +61,26 @@ interface UserData {
 
 const user = ref<UserData | null>(null)
 const isEditing = ref(false)
-const editedUser = ref<UserData>({
-  nickname: '',
-  displayname: '',
-  avatar: ''
-})
+const isDeleting = ref(false)
+const deleted = ref(false)
+const editedUser = ref<UserData>({ nickname: '', displayname: '', avatar: '' })
 const avatarInput = ref<HTMLInputElement | null>(null)
 const newAvatarFile = ref<File | null>(null)
+const deletePassword = ref('')
+const successMessage = ref('')
+const errorMessage = ref('')
+const router = useRouter()
+
+const resetMessages = () => {
+  successMessage.value = ''
+  errorMessage.value = ''
+}
 
 const avatarUrl = computed(() => {
   if (isEditing.value && newAvatarFile.value) {
     return URL.createObjectURL(newAvatarFile.value)
   }
-  if (editedUser.value.avatar) {
-    return api.getAvatarUrl(editedUser.value.avatar)
-  }
-  return api.getAvatarUrl("default.png")
+  return editedUser.value.avatar ? api.getAvatarUrl(editedUser.value.avatar) : api.getAvatarUrl('default.png')
 })
 
 const fetchUserData = async () => {
@@ -77,22 +97,22 @@ const fetchUserData = async () => {
   }
 }
 
-onMounted(() => {
-  fetchUserData()
-})
+onMounted(fetchUserData)
 
-const editProfile = () => {
+const startEditing = () => {
   isEditing.value = true
+  resetMessages()
 }
 
 const saveProfile = async () => {
+  resetMessages()
   try {
     await api.updateUserProfile(editedUser.value, newAvatarFile.value)
-    fetchUserData()
+    await fetchUserData()
     isEditing.value = false
-    console.log('Profile updated successfully')
+    successMessage.value = 'Profile updated successfully'
   } catch (error) {
-    console.error('Error updating profile:', (error as Error).message);
+    errorMessage.value = 'Error updating profile: ' + (error as Error).message
     isEditing.value = false
   }
 }
@@ -103,7 +123,40 @@ const cancelEdit = () => {
   }
   isEditing.value = false
   newAvatarFile.value = null
-};
+  resetMessages()
+}
+
+const cancelDelete = () => {
+  deletePassword.value = ''
+  isDeleting.value = false
+}
+
+const confirmDeleteAccount = () => {
+  isDeleting.value = true
+  resetMessages()
+}
+
+const deleteAccount = async () => {
+  resetMessages()
+  try {
+    if (!deletePassword.value) {
+      errorMessage.value = 'Password required to delete account'
+      return
+    }
+
+    await api.deleteUserAccount(deletePassword.value)
+    successMessage.value = 'Account deleted successfully'
+    deleted.value = true
+    isEditing.value = false
+    await api.signout()
+
+    setTimeout(() => {
+      router.push('/signin')
+    }, 2000)
+  } catch (error) {
+    errorMessage.value = 'Error deleting account: ' + (error as Error).message
+  }
+}
 
 const handleAvatarChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0]
@@ -219,16 +272,23 @@ h2 {
   font-weight: bold;
 }
 
-.edit-fields input {
+.edit-fields input,
+.confirm-delete-container input {
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
 }
 
-.account-actions {
+.delete-actions {
+  margin-top: 20px;
+}
+
+.account-actions,
+.delete-actions {
   display: flex;
   justify-content: space-between;
 }
+
 
 button {
   width: 45%;
@@ -241,21 +301,46 @@ button {
   transition: background-color 0.3s;
 }
 
+.delete-button,
+.confirm-delete-button {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.delete-button:hover,
+.confirm-delete-button:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
 .edit-button,
-.save-button {
+.save-button,
+.cancel-delete-button {
   background-color: #3498db;
 }
 
 .edit-button:hover,
-.save-button:hover {
+.save-button:hover,
+.cancel-delete-button:hover {
   background-color: #2980b9;
 }
 
-.cancel-button {
-  background-color: #95a5a6;
+.alert {
+  padding: 10px;
+  margin-bottom: 10px;
+  margin-top: 5px;
+  border-radius: 5px;
 }
 
-.cancel-button:hover {
-  background-color: #7f8c8d;
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 </style>

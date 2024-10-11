@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Users(ctx *gin.RouterGroup) {
@@ -22,6 +23,8 @@ func Users(ctx *gin.RouterGroup) {
 	ctx.GET("/:userId", GetUser)
 
 	ctx.PUT("/update-profile", UpdateProfile)
+
+	ctx.DELETE("/delete-account", DeleteAccount)
 }
 
 func GetAllUsers(ctx *gin.Context) {
@@ -143,4 +146,40 @@ func SaveAvatar(ctx *gin.Context, file *multipart.FileHeader) (string, error) {
 	}
 
 	return filename, nil
+}
+
+func DeleteAccount(ctx *gin.Context) {
+    var req struct {
+        Password string `json:"password"`
+    }
+
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+        return
+    }
+
+    id, exists := ctx.Get("UserId")
+	userId, ok := id.(uint)
+	if exists == false || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
+    var user models.User
+    if err := database.DB.First(&user, userId).Error; err != nil {
+        ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+    if err != nil {
+        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
+        return
+    }
+
+    if err := database.DB.Delete(&user).Error; err != nil {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete user"})
+        return
+    }
+
+    ctx.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
 }

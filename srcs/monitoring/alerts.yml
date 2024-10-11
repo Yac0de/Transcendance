@@ -1,0 +1,20 @@
+groups:
+- name: transcendance
+  rules:
+  - alert: HighRequestLatency
+    expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]) > 0.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: High request latency
+      description: "API request latency is above 500ms"
+
+  - alert: HighErrorRate
+    expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: High error rate
+      description: "Error rate is above 1%"

@@ -75,7 +75,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - transcendance_net
     depends_on:
@@ -89,6 +89,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
     networks:
       - transcendance_net
     depends_on:
@@ -96,6 +98,7 @@ services:
 
 volumes:
   db_data:
+  grafana-data:
 
 networks:
   transcendance_net:

@@ -15,12 +15,12 @@
           <label for="confirmPassword">Confirm Password:</label>
           <input type="password" id="confirmPassword" v-model="confirmPassword" required />
         </div>
+        <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
+        <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
         <button type="submit">Sign Up</button>
       </form>
       <button class="signin-button" @click="handleSignin">Back to sign in</button>
     </div>
-    <div v-if="error" class="error-message">{{ error }}</div>
-    <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
   </div>
 </template>
 
@@ -32,34 +32,39 @@ import api from '../services/api'
 const nickname = ref('')
 const password = ref('')
 const confirmPassword = ref('')
-const error = ref('')
+const errorMessage = ref('')
 const successMessage = ref('')
 const router = useRouter()
 
 const handleSubmit = async () => {
   if (password.value !== confirmPassword.value) {
-    error.value = "Passwords don't match!"
-    return
+    errorMessage.value = "Passwords don't match!";
+    return;
+  }
+
+  if (nickname.value.length < 3) {
+    errorMessage.value = "Nickname must be at least 3 characters long!";
+    return;
   }
 
   if (password.value.length < 6) {
-    error.value = "Password must be at least 6 characters long!"
-    return
+    errorMessage.value = "Password must be at least 6 characters long!";
+    return;
   }
 
   try {
-    error.value = ''
-    successMessage.value = ''
+    errorMessage.value = '';
+    successMessage.value = '';
     const user = await api.signup({
       nickname: nickname.value,
       password: password.value
-    })
-    console.log('Sign up successful', user)
-    successMessage.value = `Sign up successful! Welcome, ${nickname.value}!`
-    router.push('/signin')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An error occurred during sign up'
-    console.error('Sign up failed', err)
+    });
+    console.log('Sign up successful', user);
+    successMessage.value = `Sign up successful! Welcome, ${nickname.value}!`;
+    router.push('/signin');
+  } catch (err: any) {
+    errorMessage.value = err.message;
+    console.error('Sign up failed', err);
   }
 }
 
@@ -132,15 +137,22 @@ button:hover {
   background-color: #2980b9;
 }
 
-.error-message {
-  color: red;
-  margin-top: 10px;
-  text-align: center;
+.alert {
+  padding: 10px;
+  margin-bottom: 10px;
+  margin-top: 5px;
+  border-radius: 5px;
 }
 
-.success-message {
-  color: green;
-  margin-top: 10px;
-  text-align: center;
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 </style>

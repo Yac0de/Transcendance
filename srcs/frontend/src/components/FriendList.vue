@@ -1,10 +1,10 @@
 <template>
   <div class="friend-list-container">
     <div class="friend-icon-container">
-      <div class="friend-icon">
+      <div v-if="showFriendIcon" class="friend-icon" @click="toggleOnFriendMenu">
         <i class="fas fa-user-friends"></i>
       </div>
-      <div class="friend-icon-hover">
+      <div v-if="showFriendMenu">
         <button @click="toggleFriendList" class="icon-button list-button">
           <i class="fas fa-list"></i>
         </button>
@@ -13,8 +13,11 @@
         </button>
         <button @click="toggleFriendRequests" class="icon-button friend-requests-button">
           <i class="fas fa-bell"></i>
-          <span v-if="friendRequests && friendRequests.length" class="notification-badge">{{ friendRequests.length
-            }}</span>
+          <span v-if="friendRequests && friendRequests.length > 0" class="notification-badge"> {{
+            friendRequests.length }} </span>
+        </button>
+        <button @click="toggleOffFriendMenu" class="icon-button xmark-button">
+          <i class="fas fa-times"></i>
         </button>
       </div>
     </div>
@@ -26,13 +29,17 @@
       <div class="friend-list-content">
         <div v-for="friend in friends" :key="friend.id" class="friend-item">
           <div class="friend-avatar">
-            <img :src="friend.avatar" :alt="friend.nickname + '\'s avatar'" />
+            <img :src="api.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
           </div>
           <div class="friend-info">
             <div class="friend-nickname">{{ friend.nickname }}</div>
             <div class="friend-actions">
-              <button class="friend-action-btn" @click="deleteFriendFromFriendList(friend.id)">DELETE</button>
-              <button class="friend-action-btn">CHAT</button>
+              <button class="friend-action-btn delete-btn" @click="deleteFriendFromFriendList(friend.id)">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+              <button class="friend-action-btn">
+                <i class="fas fa-comment"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -82,16 +89,30 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import friendlistAPI from '../services/friendlist';
+import api from '../services/api'
 
+const showFriendIcon = ref(true);
+const showFriendMenu = ref(false);
 const showFriendList = ref(false);
 const showAddFriend = ref(false);
+const showFriendRequests = ref(false);
 const newFriendNickname = ref('');
 const friends = ref([]);
 const friendRequests = ref([]);
 const loading = ref(false);
-const showFriendRequests = ref(false);
 const errorMessage = ref('');
 const successMessage = ref('');
+
+const toggleOnFriendMenu = async () => {
+  await fetchFriendRequests();
+  showFriendMenu.value = !showFriendMenu.value;
+  showFriendIcon.value = false;
+}
+
+const toggleOffFriendMenu = () => {
+  showFriendMenu.value = !showFriendMenu.value;
+  showFriendIcon.value = true;
+}
 
 watch(showAddFriend, (newValue) => {
   if (!newValue) {
@@ -270,6 +291,15 @@ const addFriend = async () => {
   background-color: #0056b3;
 }
 
+.icon-button.xmark-button {
+  background-color: red;
+  color: white;
+}
+
+.icon-button.xmark-button:hover {
+  background-color: darkred;
+}
+
 .notification-badge {
   position: absolute;
   top: -5px;
@@ -340,43 +370,61 @@ const addFriend = async () => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  color: white;
+  overflow: hidden;
   margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.friend-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .friend-info,
-.friend-request-name {
+.friend-request-item {
   flex-grow: 1;
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
-.friend-nickname {
+.friend-nickname,
+.friend-request-name {
   font-weight: bold;
-  margin-right: 10px;
 }
 
-.friend-actions {
+.friend-actions,
+.friend-request-actions {
   display: flex;
-  gap: 5px;
+  gap: 10px;
 }
 
-.friend-action-btn {
+.friend-action-btn,
+.accept-button,
+.deny-button {
   background: none;
   border: none;
   cursor: pointer;
   padding: 5px;
-  font-size: 14px;
+  font-size: 16px;
   color: #666;
-  transition: color 0.3s;
+  transition: color 0.3s, background-color 0.3s;
 }
 
-.friend-action-btn:hover {
+.friend-action-btn:hover,
+.accept-button:hover,
+.deny-button:hover {
   color: #007bff;
+}
+
+.friend-action-btn.delete-btn:hover,
+.deny-button:hover {
+  color: #dc3545;
+}
+
+.accept-button:hover {
+  color: #28a745;
 }
 
 .friend-status {
@@ -425,39 +473,6 @@ const addFriend = async () => {
 
 .add-friend-btn:hover {
   background-color: #0056b3;
-}
-
-.friend-request-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.accept-button,
-.deny-button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.accept-button {
-  background-color: #28a745;
-  color: white;
-}
-
-.accept-button:hover {
-  background-color: #218838;
-}
-
-.deny-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.deny-button:hover {
-  background-color: #c82333;
 }
 
 .no-requests {

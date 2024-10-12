@@ -56,7 +56,6 @@ export default {
             }
             throw new Error('Fetching user data failed');
         }
-        console.log(response.data);
         return response.json();
     },
 
@@ -83,7 +82,9 @@ export default {
     },
 
     getAvatarUrl(avatarPath: string): string {
-        return `${API_BASE_URL}/users/avatar/${avatarPath}`;
+        const   defaultAvatarPath = 'default.png';
+        const   finalAvatarPath = avatarPath || defaultAvatarPath;
+        return `${API_BASE_URL}/users/avatar/${finalAvatarPath}`;
     },
 
     async   signout(): Promise<void> {

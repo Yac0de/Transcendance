@@ -27,34 +27,47 @@
         <button @click="toggleFriendList" class="close-button">&times;</button>
       </div>
       <div class="friend-list-content">
-        <div v-for="friend in friends" :key="friend.id" class="friend-item">
-          <div class="friend-avatar">
-            <img :src="api.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
+        <div v-if="loadingFriends" class="loading-spinner">Loading friends...</div>
+        <div v-else>
+          <div v-if="friends && friends.length === 0" class="no-friends-message">
+            <p>You have no friends yet 😢</p>
           </div>
-          <div class="friend-info">
-            <div class="friend-nickname">{{ friend.nickname }}</div>
-            <div class="friend-actions">
-              <button class="friend-action-btn delete-btn" @click="deleteFriendFromFriendList(friend.id)">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-              <button class="friend-action-btn">
-                <i class="fas fa-comment"></i>
-              </button>
+          <div v-else>
+            <div v-for="friend in friends" :key="friend.id" class="friend-item">
+              <div class="friend-avatar">
+                <img :src="api.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
+              </div>
+              <div class="friend-info">
+                <div class="friend-nickname">{{ friend.nickname }}</div>
+                <div class="friend-actions">
+                  <button class="friend-action-btn delete-btn" @click="deleteFriendFromFriendList(friend.id)">
+                    <i class="fas fa-trash-alt"></i>
+                    <span v-if="loadingDeleteFriend === friend.id" class="loading-spinner"></span>
+                  </button>
+                  <button class="friend-action-btn">
+                    <i class="fas fa-comment"></i>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  
     <div v-if="showAddFriend" class="add-friend-popover">
       <div class="add-friend-header">
         <h3>Add Friend</h3>
         <button @click="toggleAddFriend" class="close-button">&times;</button>
-        <div v-if="errorMessage" class="add-friend-error-message">{{ errorMessage }}</div>
-        <div v-if="successMessage" class="add-friend-success-message">{{ successMessage }}</div>
       </div>
       <div class="add-friend-content">
         <input v-model="newFriendNickname" type="text" placeholder="Enter friend's name" class="friend-input" />
-        <button @click="addFriend" class="add-friend-btn">Add Friend</button>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+        <button @click="addFriend" class="add-friend-btn" :disabled="loadingAddFriend">
+          <span v-if="loadingAddFriend">Adding...</span>
+          <span v-else>Add Friend</span>
+        </button>
       </div>
     </div>
     <div v-if="showFriendRequests" class="friend-requests-popover">
@@ -63,8 +76,9 @@
         <button @click="toggleFriendRequests" class="close-button">&times;</button>
       </div>
       <div class="friend-requests-content">
-        <template v-if="friendRequests">
-          <div v-if="friendRequests.length > 0">
+        <template v-if="friendRequests && friendRequests.length > 0">
+          <div v-if="loadingFriendRequests" class="loading-spinner">Loading friend requests...</div>
+          <div v-else>
             <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
               <div class="friend-request-name">{{ request.nickname }}</div>
               <div class="friend-request-actions">
@@ -78,9 +92,11 @@
             </div>
           </div>
         </template>
-        <div v-else class="error-message">
-          No pending friend requests
+        <div v-else>
+          <p>No pending friend requests</p>
         </div>
+        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       </div>
     </div>
   </div>
@@ -91,17 +107,29 @@ import { ref, watch } from 'vue';
 import friendlistAPI from '../services/friendlist';
 import api from '../services/api'
 
+interface Friend {
+  id: string;
+  nickname: string;
+  avatar: string;
+}
+
 const showFriendIcon = ref(true);
 const showFriendMenu = ref(false);
 const showFriendList = ref(false);
 const showAddFriend = ref(false);
 const showFriendRequests = ref(false);
 const newFriendNickname = ref('');
-const friends = ref([]);
-const friendRequests = ref([]);
-const loading = ref(false);
+const friends = ref<Friend[]>([]);
+const friendRequests = ref<Friend[]>([]);
+const friendsLoaded = ref(false);
+const friendRequestsLoaded = ref(false);
 const errorMessage = ref('');
 const successMessage = ref('');
+
+const loadingFriends = ref(false);
+const loadingFriendRequests = ref(false);
+const loadingAddFriend = ref(false);
+const loadingDeleteFriend = ref<string | null>(null);
 
 const toggleOnFriendMenu = async () => {
   await fetchFriendRequests();
@@ -110,9 +138,16 @@ const toggleOnFriendMenu = async () => {
 }
 
 const toggleOffFriendMenu = () => {
-  showFriendMenu.value = !showFriendMenu.value;
+  showFriendMenu.value = false;
   showFriendIcon.value = true;
-}
+  showFriendList.value = false;
+  showAddFriend.value = false;
+  showFriendRequests.value = false;
+
+  // Reset states to force reloading next time
+  friendsLoaded.value = false;
+  friendRequestsLoaded.value = false;
+};
 
 watch(showAddFriend, (newValue) => {
   if (!newValue) {
@@ -122,34 +157,22 @@ watch(showAddFriend, (newValue) => {
   }
 });
 
-
 const toggleFriendList = async () => {
   showFriendList.value = !showFriendList.value;
   if (showFriendList.value) {
     showAddFriend.value = false;
     showFriendRequests.value = false;
-    await fetchFriendList();
+    await fetchFriendList(); // Load only when necessary
   }
 };
 
-const deleteFriendFromFriendList = async (requestId: string) => {
-  try {
-    await friendlistAPI.deleteFromFriendList(requestId);
-    await fetchFriendList();
-  } catch (error) {
-    console.error('Failed to delete friend from friend list:', error);
-  }
-};
-
-const toggleAddFriend = () => {
-  showAddFriend.value = !showAddFriend.value;
-  if (showAddFriend.value) {
-    showFriendList.value = false;
-    showFriendRequests.value = false;
-  }
+const resetMessages = () => {
+  errorMessage.value = '';
+  successMessage.value = '';
 };
 
 const toggleFriendRequests = async () => {
+  resetMessages();
   showFriendRequests.value = !showFriendRequests.value;
   if (showFriendRequests.value) {
     showFriendList.value = false;
@@ -158,35 +181,69 @@ const toggleFriendRequests = async () => {
   }
 };
 
-const fetchFriendList = async () => {
-  loading.value = true;
+const deleteFriendFromFriendList = async (friendId: string) => {
+  loadingDeleteFriend.value = friendId;
   try {
-    friends.value = await friendlistAPI.getFriendList();
-    //console.log("JSON response:", JSON.stringify(friends.value, null, 2));
+    await friendlistAPI.deleteFromFriendList(friendId);
+    friends.value = friends.value.filter(friend => friend.id !== friendId);
+    successMessage.value = 'Friend successfully deleted!';
+  } catch (error) {
+    console.error('Failed to delete friend from friend list:', error);
+    errorMessage.value = 'Failed to delete friend. Please try again.';
+    await fetchFriendList();
+  } finally {
+    loadingDeleteFriend.value = null;
+  }
+};
+
+const toggleAddFriend = () => {
+  resetMessages();
+  showAddFriend.value = !showAddFriend.value;
+  if (showAddFriend.value) {
+    showFriendList.value = false;
+    showFriendRequests.value = false;
+  }
+};
+
+const fetchFriendList = async () => {
+  loadingFriends.value = true;
+  try {
+    const fetchedFriends = await friendlistAPI.getFriendList();
+    if (fetchedFriends) {
+      friends.value = fetchedFriends;
+      friendsLoaded.value = true;
+    }
   } catch (error) {
     console.error('Failed to fetch friend list:', error);
+    errorMessage.value = 'Failed to fetch friend list.';
   } finally {
-    loading.value = false;
+    loadingFriends.value = false;
   }
 };
 
 const fetchFriendRequests = async () => {
-  loading.value = true;
+  if (friendRequestsLoaded.value) return; // Do not recharge if already charged
+
+  loadingFriendRequests.value = true;
   try {
     friendRequests.value = await friendlistAPI.getFriendRequests();
-    //console.log("JSON response:", JSON.stringify(friendRequests.value, null, 2));
+    friendRequestsLoaded.value = true; // Mark requests as loaded
   } catch (error) {
     console.error('Failed to fetch friend requests:', error);
   } finally {
-    loading.value = false;
+    loadingFriendRequests.value = false;
   }
 };
 
-const acceptFriend = async (requestId: string) => {
+const acceptFriend = async (friendId: string) => {
   try {
-    await friendlistAPI.acceptFriendRequest(requestId);
+    await friendlistAPI.acceptFriendRequest(friendId);
+    friendRequests.value = friendRequests.value.filter(request => request.id !== friendId);
+    await fetchFriendList();
     await fetchFriendRequests();
+    successMessage.value = 'Friend request accepted!';
   } catch (error) {
+    errorMessage.value = 'Failed to accept friend request';
     console.error('Failed to accept friend request:', error);
   }
 };
@@ -194,38 +251,64 @@ const acceptFriend = async (requestId: string) => {
 const denyFriend = async (requestId: string) => {
   try {
     await friendlistAPI.denyFriendRequest(requestId);
+
+    friendRequests.value = friendRequests.value.filter(request => request.id !== requestId);
+
+    successMessage.value = 'Friend request denied!';
     await fetchFriendRequests();
+    toggleFriendRequests();
   } catch (error) {
+    errorMessage.value = 'Failed to deny friend request';
     console.error('Failed to deny friend request:', error);
   }
 };
 
 const addFriend = async () => {
-  if (newFriendNickname.value.trim()) {
-    try {
-      await friendlistAPI.sendFriendRequest(newFriendNickname.value.trim());
-      newFriendNickname.value = '';
-      await fetchFriendRequests();
-      successMessage.value = 'Friend request sent succesfully!';
-      errorMessage.value = '';
-    } catch (error: any) {
-      console.log('Failed to add friend:', error);
-      switch (error.status) {
-        case 409:
-          errorMessage.value = "This friendship already exists, you already sent a friend request to this user or you already have a friend request from this user";
-          break;
-        case 404:
-          errorMessage.value = "This nickname does not exist.";
-          break;
-        default:
-          errorMessage.value = "An unexpected error occured.";
-          break;
-      }
-      successMessage.value = '';
-    }
+  resetMessages();
+
+  if (newFriendNickname.value.trim() === "") {
+    errorMessage.value = "Please enter a friend's name.";
+    return;
+  }
+
+  if (newFriendNickname.value.length < 3) {
+    errorMessage.value = "Friend's nickname must be at least 3 characters long.";
+    return;
+  }
+
+  loadingAddFriend.value = true;
+  try {
+    await friendlistAPI.sendFriendRequest(newFriendNickname.value.trim());
+    newFriendNickname.value = '';
+    await fetchFriendRequests();
+    successMessage.value = 'Friend request sent successfully!';
+    errorMessage.value = '';
+  } catch (error: any) {
+    handleFriendRequestError(error);
+  } finally {
+    loadingAddFriend.value = false;
   }
 };
 
+const handleFriendRequestError = (error: any) => {
+  if (error.status) {
+    switch (error.status) {
+      case 409:
+        errorMessage.value = "This friendship already exists. You already sent a friend request to this user, or you have a pending request from them.";
+        break;
+      case 404:
+        errorMessage.value = "The user with this nickname does not exist.";
+        break;
+      case 400:
+        errorMessage.value = "Invalid request. Please check the nickname.";
+        break;
+      default:
+        errorMessage.value = "An unexpected error occurred. Please try again.";
+    }
+  } else {
+    errorMessage.value = "Network error or server is unreachable.";
+  }
+};
 </script>
 
 <style scoped>
@@ -259,14 +342,9 @@ const addFriend = async () => {
 }
 
 .friend-icon-hover {
-  display: none;
   position: absolute;
   bottom: 0;
   right: 0;
-}
-
-.friend-icon-container:hover .friend-icon {
-  display: none;
 }
 
 .friend-icon-container:hover .friend-icon-hover {
@@ -481,9 +559,9 @@ const addFriend = async () => {
   padding: 20px 0;
 }
 
-.add-friend-error-message,
-.add-friend-success-message {
-  position: absolute;
+.error-message,
+.success-message {
+  position: relative;
   bottom: 100%;
   left: 0;
   right: 0;
@@ -498,13 +576,13 @@ const addFriend = async () => {
   word-wrap: break-word;
 }
 
-.add-friend-error-message {
+.error-message {
   background-color: #ffebee;
   color: #d32f2f;
   border: 1px solid #ef9a9a;
 }
 
-.add-friend-success-message {
+.success-message {
   background-color: #e8f5e9;
   color: #388e3c;
   border: 1px solid #a5d6a7;

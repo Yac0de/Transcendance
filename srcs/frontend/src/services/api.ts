@@ -26,10 +26,12 @@ export default {
             credentials: "include",
             body: JSON.stringify(credentials),
         });
+        const result = await response.json();
+
         if (!response.ok) {
-            throw new Error('Sign in failed');
+            throw new Error(result.error || 'Sign in failed');
         }
-        return response.json();
+        return result;
     },
 
     async signup(userData: SignUpData): Promise<any> {
@@ -40,16 +42,18 @@ export default {
             },
             body: JSON.stringify(userData),
         });
+        const result = await response.json();
+
         if (!response.ok) {
-            throw new Error('Signup failed');
+            throw new Error(result.error || 'Signup failed');
         }
-        return response.json();
+        return result;
     },
 
     async getUserData(): Promise<UserData | null> {
         const response = await fetch(`${API_BASE_URL}/users`, {
             credentials: "include",
-        })
+        });
         if (!response.ok) {
             if (response.status === 401) {
                 return null;
@@ -73,12 +77,12 @@ export default {
             credentials: "include",
             body: formData,
         });
+        const result = await response.json();
 
         if (!response.ok) {
-            throw new Error('Profile update failed');
+            throw new Error(result.error || 'Profile update failed');
         }
-
-        return response.json();
+        return result;
     },
 
     getAvatarUrl(avatarPath: string): string {
@@ -100,5 +104,20 @@ export default {
     async   isAuthenticated(): Promise<boolean> {
         const   userData = await this.getUserData();
         return userData !== null;
-    }
+    },
+
+    async deleteUserAccount(password: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/users/delete-account`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ password }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Account deletion failed');
+        }
+      }
 };

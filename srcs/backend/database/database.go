@@ -18,6 +18,7 @@ var DB *gorm.DB
 func New() {
 	DB = initDB()
 	createMockUsers()
+	addFriendsToUsers()
 }
 
 func initDB() *gorm.DB {
@@ -38,7 +39,7 @@ func initDB() *gorm.DB {
 		log.Fatalln(err)
 	}
 
-	database.AutoMigrate(&models.User{})
+	database.AutoMigrate(&models.User{}, &models.FriendShip{})
 
 	return database
 }
@@ -61,4 +62,41 @@ func createMockUsers() {
 			log.Printf("Created mock user: %s", users[i].Nickname)
 		}
 	}
+}
+
+func addFriendsToUsers() {
+	friendships := map[string][]string{
+		"hichame": {"maxime"},
+		"yanis":   {"omar"},
+	}
+
+	for nickname, friends := range friendships {
+		var user models.User
+
+		if err := DB.First(&user, "nickname = ?", nickname).Error; err != nil {
+			log.Printf("Failed to get user %s to add friends: %v", nickname, err)
+			continue
+		}
+
+		for _, friendNickname := range friends {
+			var friend models.User
+			if err := DB.First(&friend, "nickname = ?", friendNickname).Error; err != nil {
+				log.Printf("Failed to get user %s to add in %s friends list: %v", friendNickname, user.Nickname, err.Error())
+				continue
+			}
+
+			friendsRelation := models.FriendShip{
+				UserID:        user.ID,
+				FriendID:      friend.ID,
+				MutualFriends: true,
+			}
+
+			if err := DB.Create(&friendsRelation).Error; err != nil {
+				log.Printf("Failed to add friend %s to user %s: %v", friendNickname, user.Nickname, err.Error())
+			} else {
+				log.Printf("Added friend %s to user %s", friendNickname, nickname)
+			}
+		}
+	}
+
 }

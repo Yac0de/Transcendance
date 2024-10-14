@@ -35,7 +35,7 @@
           <div v-else>
             <div v-for="friend in friends" :key="friend.id" class="friend-item">
               <div class="friend-avatar">
-                <img :src="api.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
+                <img :src="api.user.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
               </div>
               <div class="friend-info">
                 <div class="friend-nickname">{{ friend.nickname }}</div>
@@ -104,7 +104,6 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import friendlistAPI from '../services/friendlist';
 import api from '../services/api'
 
 interface Friend {
@@ -184,7 +183,7 @@ const toggleFriendRequests = async () => {
 const deleteFriendFromFriendList = async (friendId: string) => {
   loadingDeleteFriend.value = friendId;
   try {
-    await friendlistAPI.deleteFromFriendList(friendId);
+    await api.friendlist.deleteFromFriendList(friendId);
     friends.value = friends.value.filter(friend => friend.id !== friendId);
     successMessage.value = 'Friend successfully deleted!';
   } catch (error) {
@@ -208,7 +207,7 @@ const toggleAddFriend = () => {
 const fetchFriendList = async () => {
   loadingFriends.value = true;
   try {
-    const fetchedFriends = await friendlistAPI.getFriendList();
+    const fetchedFriends = await api.friendlist.getFriendList();
     if (fetchedFriends) {
       friends.value = fetchedFriends;
       friendsLoaded.value = true;
@@ -226,7 +225,7 @@ const fetchFriendRequests = async () => {
 
   loadingFriendRequests.value = true;
   try {
-    friendRequests.value = await friendlistAPI.getFriendRequests();
+    friendRequests.value = await api.friendlist.getFriendRequests();
     friendRequestsLoaded.value = true; // Mark requests as loaded
   } catch (error) {
     console.error('Failed to fetch friend requests:', error);
@@ -237,7 +236,7 @@ const fetchFriendRequests = async () => {
 
 const acceptFriend = async (friendId: string) => {
   try {
-    await friendlistAPI.acceptFriendRequest(friendId);
+    await api.friendlist.acceptFriendRequest(friendId);
     friendRequests.value = friendRequests.value.filter(request => request.id !== friendId);
     await fetchFriendList();
     await fetchFriendRequests();
@@ -250,7 +249,7 @@ const acceptFriend = async (friendId: string) => {
 
 const denyFriend = async (requestId: string) => {
   try {
-    await friendlistAPI.denyFriendRequest(requestId);
+    await api.friendlist.denyFriendRequest(requestId);
 
     friendRequests.value = friendRequests.value.filter(request => request.id !== requestId);
 
@@ -278,7 +277,7 @@ const addFriend = async () => {
 
   loadingAddFriend.value = true;
   try {
-    await friendlistAPI.sendFriendRequest(newFriendNickname.value.trim());
+    await api.friendlist.sendFriendRequest(newFriendNickname.value.trim());
     newFriendNickname.value = '';
     await fetchFriendRequests();
     successMessage.value = 'Friend request sent successfully!';

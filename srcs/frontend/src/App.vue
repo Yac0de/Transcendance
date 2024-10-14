@@ -35,7 +35,7 @@ const isAuthenticated = ref(false);
 const router = useRouter();
 
 const checkAuth = async () => {
-  const userData = await api.getUserData();
+  const userData = await api.user.getUserData();
   isAuthenticated.value = userData !== null;
 };
 
@@ -45,7 +45,7 @@ const handleSigninSuccess = () => {
 }
 
 const handleSignout = async () => {
-  await api.signout();
+  await api.auth.signout();
   isAuthenticated.value = false;
   router.push('/');
 };

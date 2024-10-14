@@ -48,7 +48,7 @@ const handleSubmit = async () => {
   try {
     errorMessage.value = '';
     successMessage.value = '';
-    user.value = await api.signin({ nickname: nickname.value, password: password.value });
+    user.value = await api.auth.signin({ nickname: nickname.value, password: password.value });
     
     console.log('Sign in successful', user.value);
     successMessage.value = 'Sign in successful!';

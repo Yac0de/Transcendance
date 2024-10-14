@@ -18,3 +18,21 @@ groups:
     annotations:
       summary: High error rate  # Résumé de l'alerte
       description: "Error rate is above 1%"  # Description détaillée de l'alerte
+
+  - alert: HighCPUUsage
+  expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+  for: 5m
+  labels:
+    severity: warning
+  annotations:
+    summary: High CPU usage
+    description: "CPU usage is above 80% for 5 minutes"
+
+- alert: HighMemoryUsage
+  expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+  for: 5m
+  labels:
+    severity: warning
+  annotations:
+    summary: High memory usage
+    description: "Memory usage is above 90% for 5 minutes"

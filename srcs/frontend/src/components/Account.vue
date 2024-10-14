@@ -83,12 +83,12 @@ const avatarUrl = computed(() => {
   if (isEditing.value && newAvatarFile.value) {
     return URL.createObjectURL(newAvatarFile.value)
   }
-  return editedUser.value.avatar ? api.getAvatarUrl(editedUser.value.avatar) : api.getAvatarUrl('default.png')
+  return editedUser.value.avatar ? api.user.getAvatarUrl(editedUser.value.avatar) : api.user.getAvatarUrl('default.png')
 })
 
 const fetchUserData = async () => {
   try {
-    const userData = await api.getUserData()
+    const userData = await api.user.getUserData()
     if (userData) {
       user.value = userData
       editedUser.value = { ...userData }
@@ -119,7 +119,7 @@ const saveProfile = async () => {
     return;
   }
   try {
-    await api.updateUserProfile(editedUser.value, newAvatarFile.value)
+    await api.user.updateUserProfile(editedUser.value, newAvatarFile.value)
     await fetchUserData()
     successMessage.value = 'Profile updated successfully'
   } catch (error: any) {
@@ -159,11 +159,11 @@ const deleteAccount = async () => {
       return
     }
 
-    await api.deleteUserAccount(deletePassword.value)
+    await api.user.deleteUserAccount(deletePassword.value)
     successMessage.value = 'Account deleted successfully'
     deleted.value = true
     isEditing.value = false
-    await api.signout()
+    await api.auth.signout()
 
     setTimeout(() => {
       router.push('/signin')

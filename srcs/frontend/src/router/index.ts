@@ -40,26 +40,25 @@ const router = createRouter({
 
 // Navigation Guard (executé avant chaque changement de route)
 router.beforeEach(async (to, _from, next) => {
-  const isAuthenticated = await api.isAuthenticated() // Vérifie si l'utilisateur est connecté
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  const requiresGuest = to.matched.some(record => record.meta.requiresGuest);
 
-  // Si la route nécessite une authentification et que l'utilisateur n'est pas connecté
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (requiresAuth) {
+    const isAuthenticated = await api.auth.isAuthenticated();
     if (!isAuthenticated) {
-      next('/signin') // Redirige vers la page de connexion
-    } else {
-      next() // Continue vers la route demandée
+      return next('/signin'); // Redirige vers la page de connexion
     }
   }
-  // Si la route nécessite d'être un invité (non connecté) et que l'utilisateur est connecté
-  else if (to.matched.some(record => record.meta.requiresGuest)) {
+
+  if (requiresGuest) {
+    const isAuthenticated = await api.auth.isAuthenticated();
     if (isAuthenticated) {
-      next('/account') // Redirige vers la page du compte si l'utilisateur est connecté
-    } else {
-      next() // Continue vers la route demandée
+      return next('/account'); // Redirige vers la page du compte si l'utilisateur est connecté
     }
-  } else {
-    next() // Si aucune condition spéciale, continue
   }
-})
+
+  next(); // Si aucune condition spéciale, continue vers la route demandée
+});
+
 
 export default router

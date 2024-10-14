@@ -55,7 +55,7 @@ const handleSubmit = async () => {
   try {
     errorMessage.value = '';
     successMessage.value = '';
-    const user = await api.signup({
+    const user = await api.auth.signup({
       nickname: nickname.value,
       password: password.value
     });

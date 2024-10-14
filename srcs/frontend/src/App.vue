@@ -21,13 +21,15 @@
     <div class="content">
       <router-view @signin-success="handleSigninSuccess"></router-view>
     </div>
+    <FriendList v-if="isAuthenticated" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import api from './services/api'
+import api from './services/api';
+import FriendList from './components/FriendList.vue';
 
 const isAuthenticated = ref(false);
 const router = useRouter();

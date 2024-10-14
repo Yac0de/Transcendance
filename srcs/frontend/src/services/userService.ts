@@ -14,7 +14,19 @@ export default {
             if ((error as any).message === 'Unauthorized') {
                 return null;
             }
-            throw new Error('Fetching user data failed');
+            throw new Error('Fetching current user data failed');
+        }
+    },
+
+    async getProfileData(): Promise<UserData | null> {
+        console.log("GPD")
+        try {
+            return await apiRequest(`/account/${encodeURIComponent(nickname)}`, {credentials: "include" });
+        } catch (error: unknown) {
+            if ((error as any).message === 'Unauthorized') {
+                return null;
+            }
+            throw new Error('Fetching other user data failed');
         }
     },
 

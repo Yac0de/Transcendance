@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, routeRecordRaw } from 'vue-router'
 import HomeView from '../components/HomeView.vue'
 import SignInForm from '../components/SignInForm.vue'
 import SignUpForm from '../components/SignUpForm.vue'
@@ -23,9 +23,10 @@ const routes = [
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
   },
   { 
-    path: '/account', 
+    path: '/account/:nickname', 
     component: Account, 
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
+    props: true 
   },
   {
     path: '/:pathMatch(.*)*', 

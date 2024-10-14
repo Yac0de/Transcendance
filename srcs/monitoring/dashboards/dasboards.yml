@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+     - name: 'default'  # Nom du fournisseur de dashboards
+       orgId: 1  # ID de l'organisation
+       folder: ''  # Dossier pour organiser les dashboards
+       type: file  # Type de fournisseur
+       disableDeletion: false  # Autorise la suppression des dashboards
+       updateIntervalSeconds: 10  # Intervalle de mise à jour des dashboards
+       allowUiUpdates: true  # Autorise les mises à jour via l'interface utilisateur
+       options:
+         path: /etc/grafana/provisioning/dashboards  # Chemin pour les dashboards
+         foldersFromFilesStructure: true  # Utilise la structure des fichiers pour les dossiers

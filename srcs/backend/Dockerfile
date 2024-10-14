@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copier seulement les fichiers nécessaires pour les dépendances
 COPY go.mod go.sum ./
+
 RUN go mod download
 
 # Copier tout le code source dans le conteneur

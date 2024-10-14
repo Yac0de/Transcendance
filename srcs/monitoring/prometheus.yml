@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s  # Intervalle pour récupérer les métriques
+  evaluation_interval: 15s  # Intervalle pour évaluer les règles d'alerte
+
+rule_files:
+  - "alerts.yml"  # Fichier contenant les règles d'alerte
+
+scrape_configs:
+  - job_name: 'transcendance-api'  # Nom du travail pour la récupération des métriques
+    static_configs:
+      - targets: ['backend:4000']  # Cible des métriques de l'API backend
+    metrics_path: '/metrics'  # Chemin pour récupérer les métriques
+
+  - job_name: 'prometheus'  # Nom du travail pour la récupération des métriques de Prometheus
+    static_configs:
+      - targets: ['localhost:9090']  # Cible des métriques de l'instance Prometheus
+  
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']

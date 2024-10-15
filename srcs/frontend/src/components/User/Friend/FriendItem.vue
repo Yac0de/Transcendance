@@ -1,0 +1,100 @@
+<template>
+    <div class="friend-item">
+      <div class="friend-avatar">
+        <img :src="api.user.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
+      </div>
+      <div class="friend-info">
+        <div class="friend-nickname">{{ friend.nickname }}</div>
+        <div class="friend-actions">
+          <button class="friend-action-btn delete-btn" @click="deleteFriend">
+            <i class="fas fa-trash-alt"></i>
+            <span v-if="loadingDeleteFriend" class="loading-spinner"></span>
+          </button>
+          <button class="friend-action-btn">
+            <i class="fas fa-comment"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <script setup lang="ts">
+  import { ref } from 'vue';
+  import api from '../../../services/api';
+  
+  const props = defineProps({
+    friend: Object,
+    deleteFriendFromList: Function,
+  });
+  
+  const loadingDeleteFriend = ref(false);
+  
+  const deleteFriend = async () => {
+    loadingDeleteFriend.value = true;
+    try {
+      await props.deleteFriendFromList(props.friend.id);
+    } catch (error) {
+      console.error('Failed to delete friend', error);
+    } finally {
+      loadingDeleteFriend.value = false;
+    }
+  };
+  </script>
+  
+  <style scoped>
+  .friend-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .friend-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+  }
+  
+  .friend-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .friend-info {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .friend-nickname {
+    font-weight: bold;
+  }
+  
+  .friend-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .friend-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 16px;
+    color: #666;
+    transition: color 0.3s;
+  }
+  
+  .friend-action-btn:hover {
+    color: #007bff;
+  }
+  
+  .friend-action-btn.delete-btn:hover {
+    color: #dc3545;
+  }
+  </style>
+  

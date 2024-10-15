@@ -55,7 +55,8 @@ const handleSubmit = async () => {
     emit('signin-success');
     router.push('/');
   } catch (err: any) {
-    errorMessage.value = err.message || 'An error occurred during sign in';
+    console.log(err);
+    errorMessage.value = err.error || 'An error occurred during sign in';
   }
 };
 

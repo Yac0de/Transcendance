@@ -56,7 +56,7 @@ const handleSubmit = async () => {
     successMessage.value = `Sign up successful! Welcome, ${nickname.value}!`;
     router.push('/signin');
   } catch (err: any) {
-    errorMessage.value = err.message || 'An error occurred during sign up';
+    errorMessage.value = err.error || 'An error occurred during sign up';
   }
 };
 

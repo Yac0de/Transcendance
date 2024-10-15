@@ -6,6 +6,7 @@ import (
 	"api/utils"
 	"net/http"
 	"strings"
+	"api/prometheus"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -20,6 +21,7 @@ func Auth(ctx *gin.RouterGroup) {
 func SignOut(ctx *gin.Context) {
 	ctx.SetCookie("access_token", "", 0, "/", "", false, true)
 	ctx.JSON(http.StatusCreated, gin.H{"succes": "Logout successfully"})
+	prometheus.DecrementActiveUsers()
 }
 
 func SignUp(ctx *gin.Context) {
@@ -74,7 +76,8 @@ func SignIn(ctx *gin.Context) {
     if err != nil {
         ctx.JSON(http.StatusBadRequest, gin.H{
             "error": "Invalid input data. Please check the fields and try again.",
-        })
+		})
+		prometheus.RecordLoginAttempt(false)
         return
     }
 
@@ -83,24 +86,30 @@ func SignIn(ctx *gin.Context) {
     if result.Error != nil {
         if result.RowsAffected == 0 {
             ctx.JSON(http.StatusNotFound, gin.H{"error": "User does not exist. Please check your nickname."})
-            return
+            prometheus.RecordLoginAttempt(false)
+			return
         }
         ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while checking the user. Please try again later."})
-        return
+        prometheus.RecordLoginAttempt(false)
+		return
     }
 
     err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
     if err != nil {
         ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password. Please try again."})
-        return
+        prometheus.RecordLoginAttempt(false)
+		return
     }
 
     token, err := utils.CreateToken(user.ID)
     if err != nil {
         ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while generating the token. Please try again."})
+		prometheus.RecordLoginAttempt(false)
         return
     }
 
     ctx.SetCookie("access_token", token, 0, "/", "", false, true)
     ctx.JSON(http.StatusAccepted, gin.H{"success": "User connected"})
+	prometheus.RecordLoginAttempt(true)
+    prometheus.IncrementActiveUsers()
 }

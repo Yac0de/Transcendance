@@ -104,7 +104,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import api from '../services/api'
+import api from '../../services/api'
 
 interface Friend {
   id: string;

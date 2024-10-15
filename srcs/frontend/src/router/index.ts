@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../components/HomeView.vue'
-import SignInForm from '../components/SignInForm.vue'
-import SignUpForm from '../components/SignUpForm.vue'
-import PongGame from '../components/PongGame.vue'
-import Account from '../components/Account.vue'
-import NotFound from '../components/NotFound.vue'
+import SignInForm from '../components/Auth/SignInForm.vue'
+import SignUpForm from '../components/Auth/SignUpForm.vue'
+import HomeView from '../components/General/HomeView.vue'
+import NotFound from '../components/General/NotFound.vue'
+import Account from '../components/User/Account.vue'
+import PongGame from '../components/Game/PongGame.vue'
 import api from '../services/api'
 
 const routes = [

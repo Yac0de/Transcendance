@@ -29,7 +29,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from './services/api';
-import FriendList from './components/FriendList.vue';
+import FriendList from './components/User/FriendList.vue';
 
 const isAuthenticated = ref(false);
 const router = useRouter();

@@ -9,10 +9,14 @@ interface Friend {
 
 export default {
     async getFriendList(): Promise<Friend[]> {
-        return apiRequest('/users/friendships/list', {
-            method: 'GET',
-            credentials: 'include',
+        const response = await apiRequest('/users/friendships/list', {
+          method: 'GET',
+          credentials: 'include',
         });
+        if (!response || !Array.isArray(response)) {
+          return [];
+        }
+        return response;
     },
 
     async deleteFromFriendList(friendId: string): Promise<void> {

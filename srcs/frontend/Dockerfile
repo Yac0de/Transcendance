@@ -11,6 +11,8 @@ RUN npm install -g npm@latest
 COPY package*.json ./
 RUN npm install
 
+RUN npm install pinia
+
 # Copier tout le code source dans le conteneur
 COPY . .
 

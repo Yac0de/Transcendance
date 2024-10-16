@@ -1,5 +1,5 @@
 <template>
-  <div class="account-container">
+  <div v-if="userExists" class="account-container">
     <div class="account-content">
       <h2>Account Details</h2>
       <div class="avatar-container">
@@ -15,14 +15,14 @@
 
       <div class="account-info">
         <div v-if="!isEditing && !isDeleting">
-          <p><strong>Nickname:</strong> {{ user?.nickname }}</p>
-          <p><strong>Display Name:</strong> {{ user?.displayname }}</p>
+          <p><strong>Nickname:</strong> {{ userToDisplay.nickname }}</p>
+          <p><strong>Display Name:</strong> {{ userToDisplay.displayname }}</p>
         </div>
         <div v-if="isEditing && !isDeleting" class="edit-fields">
           <label for="edit-nickname">Nickname:</label>
-          <input id="edit-nickname" v-model="editedUser.nickname" type="text" />
+          <input id="edit-nickname" v-model="userToDisplay.nickname" type="text" />
           <label for="edit-displayname">Display Name:</label>
-          <input id="edit-displayname" v-model="editedUser.displayname" type="text" />
+          <input id="edit-displayname" v-model="userToDisplay.displayname" type="text" />
           <button v-if="isEditing" class="delete-button" @click="confirmDeleteAccount">Delete account</button>
         </div>
 
@@ -55,6 +55,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../../services/api'
+import { useUserStore } from '../../stores/user';
+import { storeToRefs } from 'pinia';
 
 interface UserData {
   nickname: string;
@@ -62,11 +64,10 @@ interface UserData {
   avatar: string;
 }
 
-const user = ref<UserData | null>(null)
 const isEditing = ref(false)
 const isDeleting = ref(false)
 const deleted = ref(false)
-const editedUser = ref<UserData>({ nickname: '', displayname: '', avatar: '' })
+const userToDisplay = ref<UserData>({ nickname: '', displayname: '', avatar: '' })
 const avatarInput = ref<HTMLInputElement | null>(null)
 const newAvatarFile = ref<File | null>(null)
 const deletePassword = ref('')
@@ -75,6 +76,9 @@ const errorMessage = ref('')
 const router = useRouter()
 const route = useRoute()
 const isOwnProfile = ref(false)
+const userStore = useUserStore()
+const { nickname, displayname, avatar } = storeToRefs(userStore)
+const userExists = ref(true);
 
 const props = defineProps<{
   nickname: string
@@ -88,9 +92,7 @@ const resetMessages = () => {
 
 const checkOwnProfile = async () => {
   try {
-    const currentUserData = await api.user.getUserData()
-    const routeNickname = route.params.nickname as string
-    isOwnProfile.value = currentUserData?.nickname === routeNickname
+    isOwnProfile.value = userStore.getNickname === route.params.nickname
     console.log(isOwnProfile.value)
   } catch (error) {
     console.error('Error checking if own profile:', error)
@@ -103,28 +105,41 @@ const avatarUrl = computed(() => {
   if (isEditing.value && newAvatarFile.value) {
     return URL.createObjectURL(newAvatarFile.value)
   }
-  return editedUser.value.avatar ? api.user.getAvatarUrl(editedUser.value.avatar) : api.user.getAvatarUrl('default.png')
+  return userStore.getAvatarPath ? api.user.getAvatarUrl(userToDisplay.value.avatar) : api.user.getAvatarUrl('default.png')
 })
 
-const fetchUserData = async () => {
-  console.log("fetch user data")
+const fetchUserData = async (nickname: string) => {
+  console.log("fetch user data", nickname, userStore.getNickname)
+  resetMessages();
+  userExists.value = true;
+
   try {
-    const userData = await api.user.getProfileData(props.nickname)
-    if (userData) {
-      user.value = userData
-      editedUser.value = { ...userData }
+    let userData: UserData
+
+    if (nickname === userStore.getNickname) {
+      console.log("user logged in")
+      userData = {
+        nickname: userStore.getNickname,
+        displayname: userStore.getDisplayName,
+        avatar: userStore.getAvatarPath
+      }
     } else {
-      user.value = null
+      userData = await api.user.getProfileData(nickname)
+      if (!userData) {
+        throw new Error("User not found!")
+      }
     }
+    userToDisplay.value = { ...userData }
   } catch (error) {
-    console.error('Error fetching user data:', error)
+    console.log("in error catch", error.message)
+    userExists.value = false;
   }
 }
 
 onMounted(async () => {
   console.log("Component mounted")
   await checkOwnProfile()
-  await fetchUserData()
+  await fetchUserData(route.params.nickname)
 })
 
 const startEditing = () => {
@@ -134,18 +149,18 @@ const startEditing = () => {
 
 const saveProfile = async () => {
   resetMessages()
-  if (editedUser.value.nickname.length < 3) {
+  if (userToDisplay.value.nickname.length < 3) {
     errorMessage.value = "Nickname must be at least 3 characters long!";
     return;
   }
 
-  if (editedUser.value.displayname.length < 3) {
+  if (userToDisplay.value.displayname.length < 3) {
     errorMessage.value = "Display Name must be at least 3 characters long!";
     return;
   }
   try {
-    await api.user.updateUserProfile(editedUser.value, newAvatarFile.value)
-    await fetchUserData()
+    await api.user.updateUserProfile(userToDisplay.value, newAvatarFile.value)
+    await userStore.fetchUser()
     successMessage.value = 'Profile updated successfully'
   } catch (error: any) {
     const errorResponse = await error.response?.json();
@@ -159,7 +174,7 @@ const saveProfile = async () => {
 
 const cancelEdit = () => {
   if (user.value) {
-    editedUser.value = { ...user.value }
+    userToDisplay.value = { ...user.value }
   }
   isEditing.value = false
   newAvatarFile.value = null
@@ -202,7 +217,7 @@ const handleAvatarChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
     newAvatarFile.value = file
-    editedUser.value.avatar = file.name // This is temporary, just for display
+    userToDisplay.value.avatar = file.name // This is temporary, just for display
   }
 }
 

@@ -19,7 +19,6 @@ export default {
     },
 
     async getProfileData(nickname: string): Promise<UserData | null> {
-        console.log("GPD")
         const params = new URLSearchParams({ nickname }).toString();
         try {
             return await apiRequest(`/users/?${params}`, { credentials: "include" });

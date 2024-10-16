@@ -67,6 +67,7 @@ interface UserData {
 const isEditing = ref(false)
 const isDeleting = ref(false)
 const deleted = ref(false)
+
 const userToDisplay = ref<UserData>({ nickname: '', displayname: '', avatar: '' })
 const avatarInput = ref<HTMLInputElement | null>(null)
 const newAvatarFile = ref<File | null>(null)
@@ -79,10 +80,6 @@ const isOwnProfile = ref(false)
 const userStore = useUserStore()
 const { nickname, displayname, avatar } = storeToRefs(userStore)
 const userExists = ref(true);
-
-const props = defineProps<{
-  nickname: string
-}>()
 
 const resetMessages = () => {
   successMessage.value = ''
@@ -133,6 +130,7 @@ const fetchUserData = async (nickname: string) => {
   } catch (error) {
     console.log("in error catch", error.message)
     userExists.value = false;
+    //router.push('/notfound');
   }
 }
 

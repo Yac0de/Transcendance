@@ -6,13 +6,13 @@
           <router-link to="/" class="nav-button home-button">Home</router-link>
         </div>
         <div class="nav-right">
-          <template v-if="!userStore.isLoggedIn">
+          <template v-if="!userStore.isSignedIn">
             <router-link to="/signin" class="nav-button">Sign In</router-link>
             <router-link to="/signup" class="nav-button">Sign Up</router-link>
           </template>
           <template v-else>
             <router-link to="/pong" class="nav-button">Play Pong</router-link>
-            <router-link :to="`/account/${userStore.username}`" class="nav-button">Account</router-link>
+            <router-link :to="`/account/${userStore.nickname}`" class="nav-button">Account</router-link>
             <button @click="handleSignout" class="nav-button">Sign Out</button>
           </template>
         </div>
@@ -21,7 +21,7 @@
     <div class="content">
       <router-view></router-view>
     </div>
-    <FriendList v-if="userStore.isLoggedIn" />
+    <FriendList v-if="userStore.isSignedIn" />
   </div>
 </template>
 

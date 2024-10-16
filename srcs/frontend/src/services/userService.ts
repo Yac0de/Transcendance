@@ -18,10 +18,11 @@ export default {
         }
     },
 
-    async getProfileData(): Promise<UserData | null> {
+    async getProfileData(nickname: string): Promise<UserData | null> {
         console.log("GPD")
+        const params = new URLSearchParams({ nickname }).toString();
         try {
-            return await apiRequest(`/account/${encodeURIComponent(nickname)}`, {credentials: "include" });
+            return await apiRequest(`/users/?${params}`, { credentials: "include" });
         } catch (error: unknown) {
             if ((error as any).message === 'Unauthorized') {
                 return null;

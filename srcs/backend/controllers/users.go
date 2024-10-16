@@ -18,8 +18,9 @@ import (
 )
 
 func Users(ctx *gin.RouterGroup) {
-	ctx.GET("", GetUser)
 	ctx.GET("/all", GetAllUsers)
+	ctx.GET("/", GetUserByNickname)
+	ctx.GET("", GetUser)
 
 	ctx.PUT("/update-profile", UpdateProfile)
 
@@ -61,29 +62,52 @@ func GetUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
+func GetUserByNickname(ctx *gin.Context) {
+	nickname := ctx.Query("nickname")
+	if nickname == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	var user models.UserResponse
+	result := database.DB.Raw("SELECT id, display_name, nickname, avatar FROM users WHERE nickname = ?", nickname).Scan(&user)
+
+	if result.Error != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
 func UpdateProfile(ctx *gin.Context) {
-    id, exists := ctx.Get("UserId")
+	id, exists := ctx.Get("UserId")
 
-    userId, ok := id.(uint)
-    if exists == false || !ok {
-        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
-        return
-    }
+	userId, ok := id.(uint)
+	if exists == false || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
 
-    code, err := UpdateUser(ctx, userId)
-    if err != nil {
-        // Gestion spécifique des erreurs de duplicata de clé unique
-        if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-            ctx.JSON(http.StatusBadRequest, gin.H{"error": "Nickname already exists, please choose another one."})
-            return
-        }
-        ctx.JSON(code, gin.H{"error": err.Error()})
-        return
-    }
+	code, err := UpdateUser(ctx, userId)
+	if err != nil {
+		// Gestion spécifique des erreurs de duplicata de clé unique
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Nickname already exists, please choose another one."})
+			return
+		}
+		ctx.JSON(code, gin.H{"error": err.Error()})
+		return
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{
-        "success": "user profile updated successfully",
-    })
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": "user profile updated successfully",
+	})
 }
 
 func UpdateUser(ctx *gin.Context, id uint) (int, error) {
@@ -153,37 +177,38 @@ func SaveAvatar(ctx *gin.Context, file *multipart.FileHeader) (string, error) {
 }
 
 func DeleteAccount(ctx *gin.Context) {
-    var req struct {
-        Password string `json:"password"`
-    }
+	var req struct {
+		Password string `json:"password"`
+	}
 
-    if err := ctx.ShouldBindJSON(&req); err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-        return
-    }
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
 
-    id, exists := ctx.Get("UserId")
+	id, exists := ctx.Get("UserId")
 	userId, ok := id.(uint)
 	if exists == false || !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
 		return
 	}
-    var user models.User
-    if err := database.DB.First(&user, userId).Error; err != nil {
-        ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-        return
-    }
+	var user models.User
+	if err := database.DB.First(&user, userId).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
 
-    err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
-    if err != nil {
-        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
-        return
-    }
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
+		return
+	}
 
-    if err := database.DB.Delete(&user).Error; err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete user"})
-        return
-    }
+	if err := database.DB.Delete(&user).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete user"})
+		return
+	}
 
-    ctx.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
 }
+

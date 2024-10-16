@@ -22,7 +22,7 @@ func RemoveFriend(ctx *gin.Context) {
 	friend := ctx.Param("friendId")
 	friendId, err := strconv.ParseUint(friend, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid format of friend id"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid format of friend id"})
 		return
 	}
 

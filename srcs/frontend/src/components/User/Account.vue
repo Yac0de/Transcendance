@@ -43,7 +43,7 @@
       <div v-if="errorMessage && isEditing && !isDeleting" class="alert alert-error">{{ errorMessage }}</div>
 
       <div v-if="!deleted" class="account-actions">
-        <button v-if="!isEditing" class="edit-button" @click="startEditing">Edit Profile</button>
+        <button v-if="!isEditing && isOwnProfile" class="edit-button" @click="startEditing">Edit Profile</button>
         <button v-if="isEditing && !isDeleting" class="save-button" @click="saveProfile">Save Changes</button>
         <button v-if="isEditing && !isDeleting" class="cancel-button" @click="cancelEdit">Cancel</button>
       </div>
@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import api from '../../services/api'
 
 interface UserData {
@@ -73,10 +73,30 @@ const deletePassword = ref('')
 const successMessage = ref('')
 const errorMessage = ref('')
 const router = useRouter()
+const route = useRoute()
+const isOwnProfile = ref(false)
+
+const props = defineProps<{
+  nickname: string
+}>()
 
 const resetMessages = () => {
   successMessage.value = ''
   errorMessage.value = ''
+}
+
+
+const checkOwnProfile = async () => {
+  try {
+    const currentUserData = await api.user.getUserData()
+    const routeNickname = route.params.nickname as string
+    isOwnProfile.value = currentUserData?.nickname === routeNickname
+    console.log(isOwnProfile.value)
+  } catch (error) {
+    console.error('Error checking if own profile:', error)
+    isOwnProfile.value = false
+    console.log("not own profile")
+  }
 }
 
 const avatarUrl = computed(() => {
@@ -87,8 +107,9 @@ const avatarUrl = computed(() => {
 })
 
 const fetchUserData = async () => {
+  console.log("fetch user data")
   try {
-    const userData = await api.user.getUserData()
+    const userData = await api.user.getProfileData(props.nickname)
     if (userData) {
       user.value = userData
       editedUser.value = { ...userData }
@@ -100,7 +121,11 @@ const fetchUserData = async () => {
   }
 }
 
-onMounted(fetchUserData)
+onMounted(async () => {
+  console.log("Component mounted")
+  await checkOwnProfile()
+  await fetchUserData()
+})
 
 const startEditing = () => {
   isEditing.value = true
@@ -322,14 +347,14 @@ button {
   border-color: #dc3545;
 }
 
-.cancel-button{
+.cancel-button {
   color: #fff;
   background-color: #343a40;
   border-color: #343a40;
 }
 
 .delete-button:hover,
-.confirm-delete-button:hover{
+.confirm-delete-button:hover {
   background-color: #c82333;
   border-color: #bd2130;
 }

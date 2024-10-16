@@ -14,7 +14,20 @@ export default {
             if ((error as any).message === 'Unauthorized') {
                 return null;
             }
-            throw new Error('Fetching user data failed');
+            throw new Error('Fetching current user data failed');
+        }
+    },
+
+    async getProfileData(nickname: string): Promise<UserData | null> {
+        console.log("GPD")
+        const params = new URLSearchParams({ nickname }).toString();
+        try {
+            return await apiRequest(`/users/?${params}`, { credentials: "include" });
+        } catch (error: unknown) {
+            if ((error as any).message === 'Unauthorized') {
+                return null;
+            }
+            throw new Error('Fetching other user data failed');
         }
     },
 

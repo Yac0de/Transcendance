@@ -1,10 +1,10 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, routeRecordRaw } from 'vue-router'
+import HomeView from '../components/General/HomeView.vue'
 import SignInForm from '../components/Auth/SignInForm.vue'
 import SignUpForm from '../components/Auth/SignUpForm.vue'
-import HomeView from '../components/General/HomeView.vue'
-import NotFound from '../components/General/NotFound.vue'
-import Account from '../components/User/Account.vue'
 import PongGame from '../components/Game/PongGame.vue'
+import Account from '../components/User/Account.vue'
+import NotFound from '../components/General/NotFound.vue'
 import api from '../services/api'
 
 const routes = [
@@ -23,9 +23,10 @@ const routes = [
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
   },
   { 
-    path: '/account', 
+    path: '/account/:nickname', 
     component: Account, 
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
+    props: true 
   },
   {
     path: '/:pathMatch(.*)*', 

@@ -5,7 +5,7 @@ import SignUpForm from '../components/Auth/SignUpForm.vue'
 import PongGame from '../components/Game/PongGame.vue'
 import Account from '../components/User/Account.vue'
 import NotFound from '../components/General/NotFound.vue'
-import api from '../../services/api'
+import api from '../services/api'
 
 const routes = [
   { path: '/', component: HomeView },

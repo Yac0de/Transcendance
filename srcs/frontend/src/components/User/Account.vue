@@ -49,6 +49,7 @@
       </div>
     </div>
   </div>
+  <NotFound v-else />
 </template>
 
 <script setup lang="ts">
@@ -57,6 +58,7 @@ import { useRouter, useRoute } from 'vue-router'
 import api from '../../services/api'
 import { useUserStore } from '../../stores/user';
 import { storeToRefs } from 'pinia';
+import NotFound from '../General/NotFound.vue'
 
 interface UserData {
   nickname: string;

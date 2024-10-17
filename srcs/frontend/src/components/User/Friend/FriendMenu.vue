@@ -15,6 +15,7 @@
     </div>
 
     <FriendListPopover v-if="showFriendList" :toggleFriendList="toggleFriendList" />
+    <FriendListPopover v-if="showFriendList" :toggleFriendList="toggleFriendList" />
 
     <AddFriendPopover v-if="showAddFriend"
     :toggleAddFriend="toggleAddFriend"

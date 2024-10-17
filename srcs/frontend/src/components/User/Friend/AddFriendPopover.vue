@@ -52,48 +52,29 @@ const addFriend = async () => {
   try {
     await api.friendlist.sendFriendRequest(newFriendNickname.value.trim());
     newFriendNickname.value = '';
-    await props.fetchFriendRequests();
+    props.fetchFriendRequests();
     successMessage.value = 'Friend request sent successfully!';
     errorMessage.value = '';
   } catch (error: any) {
-    handleFriendRequestError(error);
+    // Affichage direct du message d'erreur provenant du backend
+    errorMessage.value = error.error || "An unexpected error occurred. Please try again.";
   } finally {
     loadingAddFriend.value = false;
   }
 };
 
-const handleFriendRequestError = (error: any) => {
-  if (error.status) {
-    switch (error.status) {
-      case 409:
-        errorMessage.value = "This friendship already exists. You already sent a friend request to this user, or you have a pending request from them.";
-        break;
-      case 404:
-        errorMessage.value = "The user with this nickname does not exist.";
-        break;
-      case 400:
-        errorMessage.value = "Invalid request. Please check the nickname.";
-        break;
-      default:
-        errorMessage.value = "An unexpected error occurred. Please try again.";
-    }
-  } else {
-    errorMessage.value = "Network error or server is unreachable.";
-  }
-};
 </script>
   
 <style scoped>
 .add-friend-popover {
   position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  bottom: 70px;
-  right: 10px;
-  width: calc(100% - 20px);
-  max-width: 300px;
 }
 
 .add-friend-header {
@@ -119,13 +100,16 @@ const handleFriendRequestError = (error: any) => {
 }
 
 .add-friend-content {
+  display: flex;
+  flex-direction: column;
   padding: 15px;
   max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .friend-input {
-  width: 100%;
+  width: 93%;
   padding: 8px;
   margin-bottom: 10px;
   border: 1px solid #ccc;

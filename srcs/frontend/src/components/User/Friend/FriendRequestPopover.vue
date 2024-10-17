@@ -1,0 +1,190 @@
+<template>
+  <div class="friend-requests-popover">
+    <div class="friend-requests-header">
+      <h3>Friend Requests</h3>
+      <button @click="toggleFriendRequests" class="close-button">&times;</button>
+    </div>
+    <div class="friend-requests-content">
+      <div v-if="friendRequests && friendRequests.length > 0">
+        <div v-if="loadingFriendRequests" class="loading-spinner">Loading friend requests...</div>
+        <div v-else>
+          <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
+            <div class="friend-request-name">{{ request.nickname }}</div>
+            <div class="friend-request-actions">
+              <button @click="acceptFriend(request.id)" class="accept-button">
+                <i class="fas fa-check"></i>
+              </button>
+              <button @click="denyFriend(request.id)" class="deny-button">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else>
+        <p>No pending friend requests</p>
+      </div>
+      <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+    </div>
+  </div>
+</template>
+  
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import api from '../../../services/api';
+
+const { toggleFriendRequests, fetchFriendRequests, friendRequests } = defineProps<{
+  toggleFriendRequests: () => void;
+  fetchFriendRequests: () => void;
+  friendRequests: Array<{ id: string; nickname: string }>;
+}>();
+
+const loadingFriendRequests = ref(false);
+const successMessage = ref('');
+const errorMessage = ref('');
+
+const acceptFriend = async (friendId: string) => {
+    try {
+        await api.friendlist.acceptFriendRequest(friendId);
+        successMessage.value = 'Friend request accepted!';
+        fetchFriendRequests();
+    } catch (error) {
+        errorMessage.value = 'Failed to accept friend request';
+    }
+};
+
+const denyFriend = async (requestId: string) => {
+    try {
+        await api.friendlist.denyFriendRequest(requestId);
+        successMessage.value = 'Friend request denied!';
+        fetchFriendRequests();
+    } catch (error) {
+        errorMessage.value = 'Failed to deny friend request';
+    }
+};
+
+onMounted(fetchFriendRequests);
+</script>
+
+<style scoped>
+
+.friend-requests-popover {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.friend-requests-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+}
+
+.friend-requests-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.friend-requests-content {
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.friend-request-item {
+  display: flex;
+  flex-grow: 1;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.friend-request-name {
+  font-weight: bold;
+}
+
+.friend-request-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.accept-button,
+.deny-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 16px;
+  color: #666;
+  transition: color 0.3s, background-color 0.3s;
+}
+
+.accept-button:hover,
+.deny-button:hover {
+  color: #007bff;
+}
+
+.deny-button:hover {
+  color: #dc3545;
+}
+
+.accept-button:hover {
+  color: #28a745;
+}
+
+.error-message,
+.success-message {
+  position: relative;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+  z-index: 1002;
+  margin-bottom: 8px;
+  max-height: none;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ef9a9a;
+}
+
+.success-message {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  border: 1px solid #a5d6a7;
+}
+
+@media (max-width: 600px) {
+.friend-requests-popover {
+  bottom: 70px;
+  right: 10px;
+  width: calc(100% - 20px);
+  max-width: 300px;
+}
+}
+</style>

@@ -6,48 +6,47 @@
           <router-link to="/" class="nav-button home-button">Home</router-link>
         </div>
         <div class="nav-right">
-          <template v-if="!isAuthenticated">
+          <template v-if="!userStore.isSignedIn">
             <router-link to="/signin" class="nav-button">Sign In</router-link>
             <router-link to="/signup" class="nav-button">Sign Up</router-link>
           </template>
           <template v-else>
             <router-link to="/pong" class="nav-button">Play Pong</router-link>
-            <router-link to="/account" class="nav-button">Account</router-link>
+            <router-link :to="`/account/${userStore.nickname}`" class="nav-button">Account</router-link>
             <button @click="handleSignout" class="nav-button">Sign Out</button>
           </template>
         </div>
       </div>
     </nav>
     <div class="content">
-      <router-view @signin-success="handleSigninSuccess"></router-view>
+      <router-view></router-view>
     </div>
-    <FriendList v-if="isAuthenticated" />
+    <FriendList v-if="userStore.isSignedIn" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from './stores/user';
 import api from './services/api';
 import FriendList from './components/User/Friend/FriendMenu.vue';
 
-const isAuthenticated = ref(false);
+const userStore = useUserStore();
 const router = useRouter();
 
 const checkAuth = async () => {
-  const userData = await api.user.getUserData();
-  isAuthenticated.value = userData !== null;
+  await userStore.fetchUser();
 };
 
-const handleSigninSuccess = () => {
-  isAuthenticated.value = true;
-  checkAuth();
-}
-
 const handleSignout = async () => {
-  await api.auth.signout();
-  isAuthenticated.value = false;
-  router.push('/');
+  try {
+    await api.auth.signout();
+    userStore.clearUser();
+    router.push('/');
+  } catch (error) {
+    console.error('Error signing out:', error);
+  }
 };
 
 onMounted(checkAuth);

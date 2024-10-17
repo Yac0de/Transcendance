@@ -1,5 +1,6 @@
 import { apiRequest } from './apiUtils';
 import userService from './userService';
+import { useUserStore } from '../stores/user';
 
 interface Credentials {
     nickname: string;
@@ -36,14 +37,7 @@ export default {
     },
 
     async isAuthenticated(): Promise<boolean> {
-        try {
-            const userData = await userService.getUserData();
-            return userData !== null;
-        } catch (error: any) {
-            if (error.response && error.response.status === 401) {
-                return false;
-            }
-            return false;
-        }
+        const   userStore = useUserStore();
+        return userStore.isSignedIn;
     }
 };

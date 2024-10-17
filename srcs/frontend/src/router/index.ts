@@ -46,7 +46,6 @@ router.beforeEach(async (to, _from, next) => {
 
   if (requiresAuth) {
     const isAuthenticated = await api.auth.isAuthenticated();
-    console.log("IS AUTH ? = ", isAuthenticated)
     if (!isAuthenticated) {
       return next('/signin'); // Redirige vers la page de connexion
     }
@@ -54,7 +53,6 @@ router.beforeEach(async (to, _from, next) => {
 
   if (requiresGuest) {
     const isAuthenticated = await api.auth.isAuthenticated();
-    console.log("IS AUTH ? PUSH TO ACC = ", isAuthenticated)
     if (isAuthenticated) {
       return next('/account'); // Redirige vers la page du compte si l'utilisateur est connecté
     }

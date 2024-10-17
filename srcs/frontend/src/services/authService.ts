@@ -38,7 +38,6 @@ export default {
 
     async isAuthenticated(): Promise<boolean> {
         const   userStore = useUserStore();
-        console.log("T = ", userStore.getNickname);
         return userStore.isSignedIn;
     }
 };

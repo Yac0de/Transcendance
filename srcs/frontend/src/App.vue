@@ -37,7 +37,6 @@ const router = useRouter();
 
 const checkAuth = async () => {
   await userStore.fetchUser();
-  console.log(userStore.getNickname);
 };
 
 const handleSignout = async () => {

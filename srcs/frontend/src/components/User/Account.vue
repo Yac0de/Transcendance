@@ -90,11 +90,9 @@ const resetMessages = () => {
 const checkOwnProfile = async () => {
   try {
     isOwnProfile.value = userStore.getNickname === route.params.nickname
-    console.log(isOwnProfile.value)
   } catch (error) {
     console.error('Error checking if own profile:', error)
     isOwnProfile.value = false
-    console.log("not own profile")
   }
 }
 
@@ -106,7 +104,6 @@ const avatarUrl = computed(() => {
 })
 
 const fetchUserData = async (nickname: string) => {
-  console.log("fetch user data", nickname, userStore.getNickname)
   resetMessages();
   userExists.value = true;
 
@@ -114,7 +111,6 @@ const fetchUserData = async (nickname: string) => {
     let userData: UserData
 
     if (nickname === userStore.getNickname) {
-      console.log("user logged in")
       userData = {
         nickname: userStore.getNickname,
         displayname: userStore.getDisplayName,
@@ -128,9 +124,7 @@ const fetchUserData = async (nickname: string) => {
     }
     userToDisplay.value = { ...userData }
   } catch (error) {
-    console.log("in error catch", error.message)
     userExists.value = false;
-    //router.push('/notfound');
   }
 }
 

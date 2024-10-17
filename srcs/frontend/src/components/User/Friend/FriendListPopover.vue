@@ -7,7 +7,7 @@
     <div class="friend-list-content">
       <div v-if="loadingFriends" class="loading-spinner">Loading friends...</div>
       <div v-else>
-        <div v-if="friends && friends.length === 0" class="no-friends-message">
+        <div v-if="friends.length === 0" class="no-friends-message">
           <p>You have no friends yet 😢</p>
         </div>
         <div v-else>
@@ -28,17 +28,26 @@ import { ref, onMounted } from 'vue';
 import api from '../../../services/api';
 import FriendItem from './FriendItem.vue';
 
-const props = defineProps({
-  toggleFriendList: Function,
-});
+interface Friend {
+  id: string;
+  avatar: string;
+  nickname: string;
+}
 
-const friends = ref([]);
+const { toggleFriendList } = defineProps<{
+  toggleFriendList: () => void;
+}>();
+
+const friends = ref<Friend[]>([]);
 const loadingFriends = ref(false);
 
 const fetchFriendList = async () => {
   loadingFriends.value = true;
   try {
-    friends.value = await api.friendlist.getFriendList();
+    const fetchedFriends = await api.friendlist.getFriendList();
+    if (fetchedFriends) {
+      friends.value = fetchedFriends;
+    }
   } catch (error) {
     console.error('Failed to fetch friend list', error);
   } finally {
@@ -58,45 +67,43 @@ const deleteFriendFromList = async (friendId: string) => {
 onMounted(fetchFriendList);
 </script>
   
-  <style scoped>
-  .friend-list-popover {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    width: 300px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-  }
+<style scoped>
+.friend-list-popover {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
 
-  .friend-list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    border-bottom: 1px solid #e0e0e0;
-    position: relative;
-  }
-  
-  .friend-list-header h3 {
-    margin: 0;
-    font-size: 18px;
-  }
+.friend-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+}
 
-  .close-button {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #666;
-  }
+.friend-list-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
 
-  .friend-list-content {
-    padding: 15px;
-    max-height: 400px;
-    overflow-y: auto;
-  }
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
 
+.friend-list-content {
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+}
   </style>
-  

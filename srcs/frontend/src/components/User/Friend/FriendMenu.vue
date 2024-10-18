@@ -125,6 +125,8 @@ const toggleAddFriend = () => {
 };
 
 const fetchFriendList = async () => {
+if (friendRequestsLoaded.value) return;
+
 loadingFriends.value = true;
 try {
   const fetchedFriends = await api.friendlist.getFriendList();

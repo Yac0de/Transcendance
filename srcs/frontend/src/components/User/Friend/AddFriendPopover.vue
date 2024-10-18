@@ -1,21 +1,21 @@
-  <template>
-    <div class="add-friend-popover">
-      <div class="add-friend-header">
-        <h3>Add Friend</h3>
-        <button @click="toggleAddFriend" class="close-button">&times;</button>
-      </div>
-      <div class="add-friend-content">
-        <input v-model="newFriendNickname" type="text" placeholder="Enter friend's name" class="friend-input" />
-        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
-        <button @click="addFriend" class="add-friend-btn" :disabled="loadingAddFriend">
-          <span v-if="loadingAddFriend">Adding...</span>
-          <span v-else>Add Friend</span>
-        </button>
-      </div>
+<template>
+  <div class="add-friend-popover">
+    <div class="add-friend-header"> 
+      <h3>Add Friend</h3>
+      <button @click="toggleAddFriend" class="close-button">&times;</button>
     </div>
-  </template>
-
+    <div class="add-friend-content">
+      <input v-model="newFriendNickname" type="text" placeholder="Enter friend's name" class="friend-input" />
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+      <button @click="addFriend" class="add-friend-btn" :disabled="loadingAddFriend">
+        <span v-if="loadingAddFriend">Adding...</span>
+        <span v-else>Add Friend</span>
+      </button>
+    </div>
+  </div>
+</template>
+    
 <script setup lang="ts">
 import { ref } from 'vue';
 import api from '../../../services/api';
@@ -25,10 +25,10 @@ const errorMessage = ref('');
 const successMessage = ref('');
 const loadingAddFriend = ref(false);
 
-const props = defineProps({
-  toggleAddFriend: Function,
-  fetchFriendRequests: Function
-});
+const props = defineProps<{
+toggleAddFriend: (event: MouseEvent) => void;
+fetchFriendRequests: () => void;
+}>();
 
 const resetMessages = () => {
   errorMessage.value = '';
@@ -52,48 +52,29 @@ const addFriend = async () => {
   try {
     await api.friendlist.sendFriendRequest(newFriendNickname.value.trim());
     newFriendNickname.value = '';
-    await props.fetchFriendRequests();
+    props.fetchFriendRequests();
     successMessage.value = 'Friend request sent successfully!';
     errorMessage.value = '';
   } catch (error: any) {
-    handleFriendRequestError(error);
+    // Affichage direct du message d'erreur provenant du backend
+    errorMessage.value = error.error || "An unexpected error occurred. Please try again.";
   } finally {
     loadingAddFriend.value = false;
   }
 };
 
-const handleFriendRequestError = (error: any) => {
-  if (error.status) {
-    switch (error.status) {
-      case 409:
-        errorMessage.value = "This friendship already exists. You already sent a friend request to this user, or you have a pending request from them.";
-        break;
-      case 404:
-        errorMessage.value = "The user with this nickname does not exist.";
-        break;
-      case 400:
-        errorMessage.value = "Invalid request. Please check the nickname.";
-        break;
-      default:
-        errorMessage.value = "An unexpected error occurred. Please try again.";
-    }
-  } else {
-    errorMessage.value = "Network error or server is unreachable.";
-  }
-};
 </script>
-
+  
 <style scoped>
 .add-friend-popover {
   position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 300px;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  bottom: 70px;
-  right: 10px;
-  width: calc(100% - 20px);
-  max-width: 300px;
 }
 
 .add-friend-header {
@@ -119,13 +100,16 @@ const handleFriendRequestError = (error: any) => {
 }
 
 .add-friend-content {
+  display: flex;
+  flex-direction: column;
   padding: 15px;
   max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .friend-input {
-  width: 100%;
+  width: 93%;
   padding: 8px;
   margin-bottom: 10px;
   border: 1px solid #ccc;
@@ -178,4 +162,4 @@ const handleFriendRequestError = (error: any) => {
   border: 1px solid #a5d6a7;
 }
 </style>
-
+  

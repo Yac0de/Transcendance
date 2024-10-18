@@ -128,18 +128,25 @@ func AddFriend(ctx *gin.Context) {
 	}
 	var friendUser models.User
 	if err := database.DB.First(&friendUser, "nickname = ?", friendNickname).Error; err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Friend not found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "The user with this nickname does not exist."})
 		return
 	}
 
 	if friendUser.ID == id {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Invalid request (same user id as requester)"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "You cannot add yourself as a friend."})
 		return
 	}
 
 	var existingFriend models.FriendShip
-	if err := database.DB.First(&existingFriend, "(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)", id, friendUser.ID, friendUser.ID, id).Error; err == nil {
-		ctx.JSON(http.StatusConflict, gin.H{"error": "Friendship already exists"})
+	err := database.DB.First(&existingFriend, "(user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)", id, friendUser.ID, friendUser.ID, id).Error
+	if err == nil {
+		if existingFriend.MutualFriends {
+			ctx.JSON(http.StatusConflict, gin.H{"error": "You are already friends with this user."})
+		} else if existingFriend.UserID == id {
+			ctx.JSON(http.StatusConflict, gin.H{"error": "Friend request already sent to this user."})
+		} else {
+			ctx.JSON(http.StatusConflict, gin.H{"error": "This user has already sent you a friend request. Please accept it."})
+		}
 		return
 	}
 

@@ -14,12 +14,14 @@
       />
     </div>
 
-    <FriendListPopover v-if="showFriendList" :toggleFriendList="toggleFriendList" />
-    <FriendListPopover v-if="showFriendList" :toggleFriendList="toggleFriendList" />
+    <FriendListPopover v-if="showFriendList"
+    :toggleFriendList="toggleFriendList"
+    />
 
     <AddFriendPopover v-if="showAddFriend"
     :toggleAddFriend="toggleAddFriend"
-    :fetch-friend-requests="fetchFriendRequests" />
+    :fetch-friend-requests="fetchFriendRequests"
+    />
 
     <FriendRequestPopover v-if="showFriendRequests"
     :toggleFriendRequests="toggleFriendRequests"
@@ -47,6 +49,7 @@ interface Friend {
 interface FriendRequest {
   id: string;
   nickname: string;
+  avatar: string;
 }
 
 const showFriendIcon = ref(true);

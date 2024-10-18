@@ -9,6 +9,9 @@
         <div v-if="loadingFriendRequests" class="loading-spinner">Loading friend requests...</div>
         <div v-else>
           <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
+            <div class="friend-avatar">
+              <img :src="api.user.getAvatarUrl(request.avatar)" :alt="request.nickname + '\'s avatar'" />
+            </div>
             <div class="friend-request-name">{{ request.nickname }}</div>
             <div class="friend-request-actions">
               <button @click="acceptFriend(request.id)" class="accept-button">
@@ -37,7 +40,7 @@ import api from '../../../services/api';
 const { toggleFriendRequests, fetchFriendRequests, friendRequests } = defineProps<{
   toggleFriendRequests: () => void;
   fetchFriendRequests: () => void;
-  friendRequests: Array<{ id: string; nickname: string }>;
+  friendRequests: Array<{ id: string; nickname: string; avatar: string}>;
 }>();
 
 const loadingFriendRequests = ref(false);
@@ -121,6 +124,20 @@ onMounted(fetchFriendRequests);
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid #e0e0e0;
+}
+
+.friend-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 10px;
+}
+
+.friend-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .friend-request-name {

@@ -94,6 +94,17 @@ const startEditing = () => {
 
 const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) => {
   resetMessages()
+
+  if (updatedUser.nickname.length < 3) {
+    errorMessage.value = "Nickname must be at least 3 characters long!";
+    return;
+  }
+
+  if (updatedUser.displayname.length < 3) {
+    errorMessage.value = "Displayname must be at least 3 characters long!";
+    return;
+  }
+
   try {
     await api.user.updateUserProfile(updatedUser, newAvatarFile)
     await userStore.fetchUser()

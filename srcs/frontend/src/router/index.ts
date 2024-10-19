@@ -45,9 +45,8 @@ router.beforeEach(async (to, _from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest);
 
-  // Utiliser le store Pinia pour accéder au nickname de l'utilisateur
   const userStore = useUserStore();
-  const nickname = userStore.nickname;
+  const nickname = userStore.getNickname;
 
   if (requiresAuth) {
     const isAuthenticated = await api.auth.isAuthenticated();

@@ -3,7 +3,7 @@ import HomeView from '../components/General/HomeView.vue'
 import SignInForm from '../components/Auth/SignInForm.vue'
 import SignUpForm from '../components/Auth/SignUpForm.vue'
 import PongGame from '../components/Game/PongGame.vue'
-import Account from '../components/User/Account.vue'
+import Account from '../components/User/Account/Account.vue'
 import NotFound from '../components/General/NotFound.vue'
 import api from '../services/api'
 

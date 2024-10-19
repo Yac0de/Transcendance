@@ -2,12 +2,24 @@
   <div v-if="userExists" class="account-container">
     <div class="account-content">
       <h2>Account Details</h2>
-      <AccountView v-if="!isEditing && !isDeleting" :user="userToDisplay" :isOwnProfile="isOwnProfile"
-        @startEditing="startEditing" />
-      <AccountEdit v-if="isEditing && !isDeleting" :user="userToDisplay" @saveProfile="saveProfile"
-        @cancelEdit="cancelEdit" @confirmDeleteAccount="confirmDeleteAccount" />
-      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted" @deleteAccount="deleteAccount"
-        @cancelDelete="cancelDelete" />
+      <AccountView v-if="!isEditing && !isDeleting"
+      :user="userToDisplay"
+      :isOwnProfile="isOwnProfile"
+      @startEditing="startEditing"
+      />
+      <AccountEdit
+      v-if="isEditing && !isDeleting"
+      :user="userToDisplay"
+      :errorMessage="errorMessage"
+      @saveProfile="saveProfile"
+      @cancelEdit="cancelEdit"
+      @confirmDeleteAccount="confirmDeleteAccount"
+      @updateErrorMessage="errorMessage = $event"
+      />
+      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted"
+      @deleteAccount="deleteAccount"
+      @cancelDelete="cancelDelete"
+      />
       <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
       <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
     </div>

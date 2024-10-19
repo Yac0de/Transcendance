@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, routeRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../components/General/HomeView.vue'
 import SignInForm from '../components/Auth/SignInForm.vue'
 import SignUpForm from '../components/Auth/SignUpForm.vue'
@@ -6,6 +6,7 @@ import PongGame from '../components/Game/PongGame.vue'
 import Account from '../components/User/Account/Account.vue'
 import NotFound from '../components/General/NotFound.vue'
 import api from '../services/api'
+import { useUserStore } from '../stores/user'
 
 const routes = [
   { path: '/', component: HomeView },
@@ -23,7 +24,7 @@ const routes = [
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
   },
   { 
-    path: '/account/:nickname', 
+    path: '/:nickname', 
     component: Account, 
     meta: { requiresAuth: true },
     props: true 
@@ -44,22 +45,25 @@ router.beforeEach(async (to, _from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest);
 
+  // Utiliser le store Pinia pour accéder au nickname de l'utilisateur
+  const userStore = useUserStore();
+  const nickname = userStore.nickname;
+
   if (requiresAuth) {
     const isAuthenticated = await api.auth.isAuthenticated();
     if (!isAuthenticated) {
-      return next('/signin'); // Redirige vers la page de connexion
+      return next('/signin');
     }
   }
 
   if (requiresGuest) {
     const isAuthenticated = await api.auth.isAuthenticated();
     if (isAuthenticated) {
-      return next('/account'); // Redirige vers la page du compte si l'utilisateur est connecté
+      return next(`/${nickname}`);
     }
   }
 
-  next(); // Si aucune condition spéciale, continue vers la route demandée
+  next();
 });
 
-
-export default router
+export default router;

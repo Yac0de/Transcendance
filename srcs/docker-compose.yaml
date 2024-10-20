@@ -79,6 +79,12 @@ services:
     container_name: prometheus
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
@@ -112,10 +118,12 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1m
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards
       - ./monitoring/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana.ini:/etc/grafana/grafana.ini
     networks:
       - transcendance_net
     depends_on:
@@ -124,6 +132,7 @@ services:
 volumes:
   db_data:
   grafana-data:
+  prometheus_data:
 
 networks:
   transcendance_net:

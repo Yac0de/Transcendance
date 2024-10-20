@@ -554,7 +554,7 @@
 		"steppedLine": false,
 		"targets": [
 		  {
-			"expr": "sum(rate(http_requests_total[5m]))",
+			"expr": "http_requests_total",
 			"interval": "",
 			"legendFormat": "Total Requests",
 			"refId": "A"

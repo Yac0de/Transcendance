@@ -23,6 +23,7 @@ func Users(ctx *gin.RouterGroup) {
 	ctx.GET("", GetUser)
 
 	ctx.PUT("/update-profile", UpdateProfile)
+	ctx.POST("/change-password", ChangePassword)
 
 	FriendShip(ctx.Group("/friendships")) // /users/friends/...
 	ctx.DELETE("/delete-account", DeleteAccount)
@@ -212,3 +213,56 @@ func DeleteAccount(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
 }
 
+func ChangePassword(ctx *gin.Context) {
+	// Struct to capture the incoming request data (current and new password)
+    var req struct {
+        CurrentPassword string `json:"currentPassword"`
+        NewPassword     string `json:"newPassword"`
+    }
+
+	// Bind the incoming JSON request to the struct and check for errors in the request body
+    if err := ctx.ShouldBindJSON(&req); err != nil {
+		fmt.Println("Error in request body: ", err)
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+        return
+    }
+
+	// Get the user ID from the context (retrieved during authentication) and check if it's valid
+    id, exists := ctx.Get("UserId")
+    userId, ok := id.(uint)
+    if !exists || !ok {
+        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+        return
+    }
+
+	// Retrieve the user from the database using the userId
+    var user models.User
+    if err := database.DB.First(&user, userId).Error; err != nil {
+        ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+
+    // Check if the current password provided by the user matches the stored hashed password
+    err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword))
+    if err != nil {
+        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Current password is incorrect"})
+        return
+    }
+
+    // Hash the new password using bcrypt with a default cost
+    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+    if err != nil {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not hash the new password"})
+        return
+    }
+
+    // Update the user's password in the database with the newly hashed password
+    user.Password = string(hashedPassword)
+    if err := database.DB.Save(&user).Error; err != nil {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update password"})
+        return
+    }
+
+	// Respond with success if everything was completed without errors
+    ctx.JSON(http.StatusOK, gin.H{"message": "Password updated successfully"})
+}

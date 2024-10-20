@@ -13,9 +13,9 @@
 
     <div class="edit-fields">
       <label for="edit-nickname">Nickname:</label>
-      <input id="edit-nickname" v-model="editedUser.nickname" type="text" />
+      <input id="edit-nickname" v-model="editedUser.nickname" type="text" maxlength="20"/>
       <label for="edit-displayname">Display Name:</label>
-      <input id="edit-displayname" v-model="editedUser.displayname" type="text" />
+      <input id="edit-displayname" v-model="editedUser.displayname" type="text" maxlength="30"/>
 
       <div class="password-toggle">
         <label for="change-password" class="toggle-label">Change password</label>
@@ -28,13 +28,13 @@
       <div v-if="changePassword" class="change-password">
         <div class="current-password">
           <label for="current-password">Current Password:</label>
-          <input id="current-password" v-model="currentPassword" type="password" placeholder="Enter current password" />
+          <input id="current-password" v-model="currentPassword" type="password" placeholder="Enter current password" maxlength="50" />
         </div>
         <div class="new-password">
           <label for="new-password">New Password:</label>
-          <input id="new-password" v-model="newPassword" type="password" placeholder="New password" />
+          <input id="new-password" v-model="newPassword" type="password" placeholder="New password" maxlength="50"/>
 
-          <input id="confirm-password" v-model="confirmPassword" type="password" placeholder="Confirm new password" />
+          <input id="confirm-password" v-model="confirmPassword" type="password" placeholder="Confirm new password" maxlength="50"/>
         </div>
       </div>
     </div>

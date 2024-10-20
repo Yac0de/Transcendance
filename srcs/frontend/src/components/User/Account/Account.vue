@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../../../services/api'
 import { useUserStore } from '../../../stores/user'
@@ -86,6 +86,14 @@ onMounted(async () => {
   await checkOwnProfile()
   await fetchUserData(route.params.nickname as string)
 })
+
+watch(
+  () => route.params.nickname,
+  async (newNickname) => {
+    await checkOwnProfile()
+    await fetchUserData(newNickname as string)
+  }
+)
 
 const startEditing = () => {
   isEditing.value = true

@@ -4,7 +4,7 @@
       <img :src="api.user.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
     </div>
     <div class="friend-info" v-if="friend">
-      <div class="friend-nickname">{{ friend.nickname }}</div>
+      <router-link :to="`/${friend.nickname}`" class="friend-nickname">{{ friend.nickname }}</router-link>
       <div class="friend-actions">
         <button class="friend-action-btn delete-btn" @click="deleteFriend">
           <i class="fas fa-trash-alt"></i>
@@ -79,6 +79,8 @@ const deleteFriend = async () => {
 
 .friend-nickname {
   font-weight: bold;
+  text-decoration: none;
+  color: black;
 }
 
 .friend-actions {

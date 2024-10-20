@@ -20,8 +20,8 @@ const userStore = useUserStore();
 
 // Form fields
 const fields = ref([
-  { label: 'Nickname', model: nickname, type: 'text', required: true },
-  { label: 'Password', model: password, type: 'password', required: true },
+  { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 20 },
+  { label: 'Password', model: password, type: 'password', required: true, maxlength: 50 },
 ]);
 
 const handleSubmit = async () => {

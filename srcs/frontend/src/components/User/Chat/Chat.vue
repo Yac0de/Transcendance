@@ -23,8 +23,10 @@
 						<div class="messages">
 							<div v-for="message in currentDiscussion.messages"
 								:key="message.id"
-								:class="['message', message.sender === 'user' ? 'user-message' : 'receiver-message']">
-								{{ message.content }}
+								:class="['message-wrapper', message.sender === 'user' ? 'user-message' : 'receiver-message']">
+								<div class="message-content">
+									{{ message.content }}
+								</div>
 							</div>
 						</div>
 						<div class="message-input">
@@ -142,10 +144,15 @@ const sendMessage = () => {
 .chat-content {
 	display: flex;
 	height: 100%;
+	overflow: hidden;
+	/* Prevent content from expanding beyond container */
 }
 
 .discussion-list {
 	width: 200px;
+	/* Fixed width */
+	flex-shrink: 0;
+	/* Prevent shrinking */
 	border-right: 1px solid #dee2e6;
 	overflow-y: auto;
 }
@@ -153,6 +160,7 @@ const sendMessage = () => {
 .discussion-list ul {
 	list-style-type: none;
 	padding: 0;
+	margin: 0;
 }
 
 .discussion-list li {
@@ -166,32 +174,59 @@ const sendMessage = () => {
 
 .current-discussion {
 	flex-grow: 1;
+	min-width: 0;
+	/* Allow shrinking if necessary */
 	display: flex;
 	flex-direction: column;
 	padding: 10px;
+	overflow-x: hidden;
+}
+
+.current-discussion h4 {
+	margin-top: 0;
+	margin-bottom: 10px;
 }
 
 .messages {
 	flex-grow: 1;
 	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
 }
 
-.message {
+.message-wrapper {
+	display: flex;
 	margin-bottom: 10px;
-	padding: 5px 10px;
-	border-radius: 4px;
+	width: 100%;
 }
 
 .user-message {
-	background-color: #007bff;
-	color: white;
-	align-self: flex-end;
+	justify-content: flex-end;
 }
 
 .receiver-message {
+	justify-content: flex-start;
+}
+
+.message-content {
+	max-width: calc(100% - 20px);
+	/* Adjust for padding */
+	padding: 5px 10px;
+	border-radius: 4px;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	hyphens: auto;
+}
+
+.user-message .message-content {
+	background-color: #007bff;
+	color: white;
+}
+
+.receiver-message .message-content {
 	background-color: #f1f3f5;
 	color: black;
-	align-self: flex-start;
 }
 
 .message-input {

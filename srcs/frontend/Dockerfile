@@ -12,6 +12,7 @@ COPY package*.json ./
 RUN npm install
 
 RUN npm install pinia
+RUN npm install socket.io-client
 
 # Copier tout le code source dans le conteneur
 COPY . .

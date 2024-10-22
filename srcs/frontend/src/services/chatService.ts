@@ -18,7 +18,7 @@ export  class   WebSocketService {
     public  connect(): void {
         try {
             console.log(`ws://${API_BASE_URL}/ws?=${this.clientId}`);
-            this.ws = new WebSocket(`ws://${API_BASE_URL}/ws?${this.clientId}`);
+            this.ws = new WebSocket(`ws://${API_BASE_URL}/ws?=${this.clientId}`);
 
             this.ws.onopen = () => {
                 console.log('Websocket connected!');

@@ -7,51 +7,66 @@ interface   ChatMessage {
     timestamp: string;
 }
 
-class   ChatService {
-    private socket: Socket | null = null;
+export  class   WebSocketService {
+    private ws: WebSocket | null = null;
+    private clientId: string;
 
-    public  connectToWebsocket(): void {
-        this.socket = io(API_BASE_URL, {
-        transports: ['websocket'],
-        autoConnect: false
-        });
+    constructor(clientId: string) {
+        this.clientId = clientId;
+    }
 
-        this.socket.on('connect', this.onConnect); 
-        this.socket.on('disconnect', this.onDisconnect); 
-        this.socket.on('chat message', this.onChatMessage); 
+    public  connect(): void {
+        try {
+            console.log(`ws://${API_BASE_URL}/ws?=${this.clientId}`);
+            this.ws = new WebSocket(`ws://${API_BASE_URL}/ws?${this.clientId}`);
 
-        this.socket.connect();
+            this.ws.onopen = () => {
+                console.log('Websocket connected!');
+            };
+
+            this.ws.onclose = (event) => {
+                console.log('Disconnected to Websocket!, ', event.reason);
+            };
+
+            this.ws.onerror = (error) => {
+                console.error('Websocket error, ', error);
+            };
+
+            this.ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log('');
+                } catch (e) {
+                    console.error('Error parsing message, invalid format ?', e); 
+                }
+            };
+
+        } catch (error) {
+                console.error('Could not connect to the ws: ', error);
+        }
     }
 
     public  sendMessage(content: string): void {
-        if (this.socket?.connected) {
-            const   message: ChatMessage = {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message = ChatMessage = {
                 sender: 'User',
                 content: content,
                 timestamp: new Date().toISOString()
-            }
-            this.socket.emit('chat message');
+            };
+            this.ws.send(JSON.stringify(message));
         } else {
-            console.log("Socket is not connected"); 
+            console.warn("Can't send a message, ws is not connected");
         }
     }
 
     public  disconnect(): void {
-        if (this.socket) {
-            this.socket.close();
-            this.socket = null;
+        if (this.ws) {
+            this.ws.close();
+            this.ws = null;
         }
     }
 
-    private onConnect = (): void => {
-        console.log('Connected to the server !');
-    };
-
-    private onDisconnect = (reason: string): void => {
-        console.log('Disconnected from the server:  !', reason);
-    };
-
-    private onChatMessage = (message: string): void => {
-        console.log('Received message: ', message);
-    };
+    public  isConnected(): bool {
+        return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+    }
 }

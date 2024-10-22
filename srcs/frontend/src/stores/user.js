@@ -9,6 +9,7 @@ export const useUserStore = defineStore('user', {
     avatar: null,
   }),
   getters: {
+    getId: (state) => state.id,
     getNickname: (state) => state.nickname,
     getDisplayName: (state) => state.displayname,
     getAvatarPath: (state) => state.avatar,

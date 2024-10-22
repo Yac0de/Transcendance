@@ -16,8 +16,8 @@ services:
       - transcendance_net
     healthcheck:
       test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_PASSWORD}
-      interval: 3s
-      timeout: 3s
+      interval: 5s
+      timeout: 5s
       retries: 3
 
   # Adminer for DB management

@@ -48,40 +48,83 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { WebSocketService, ChatMessage } from '../../../services/chatService';
+import { API_BASE_URL } from './apiUtils';
+import { useUserStore } from '../../../stores/user'
 
 const showChatInterface = ref(false);
 const currentDiscussionId = ref(null);
 const newMessage = ref('');
+const userStore = useUserStore();
 
-// Mock data for discussions
+const webSocketService = new WebSocketService(userStore.getId);
+
+// MODIFIED: Updated mock data structure to match ChatMessage interface
 const discussions = ref([
-	{ id: 1, name: 'General Chat', messages: [{ id: 1, content: 'Welcome to the general chat!', sender: 'system' }] },
-	{ id: 2, name: 'Support', messages: [{ id: 1, content: 'How can we help you?', sender: 'system' }] },
+	{ id: 1, name: 'General Chat', messages: [] as ChatMessage[] },
+	{ id: 2, name: 'Support', messages: [] as ChatMessage[] },
 ]);
 
 const currentDiscussion = computed(() =>
 	discussions.value.find(d => d.id === currentDiscussionId.value)
 );
 
+const handleWebSocketMessage = (message: ChatMessage) => {
+	if (currentDiscussionId.value) {
+		const discussion = discussion.value.find(d => d.id === currentDiscussionId.value);
+		if (discussion) {
+			discussion.messages.push(message);
+		}
+	}
+}
+
 const toggleChatInterface = () => {
 	showChatInterface.value = !showChatInterface.value;
 };
 
-const selectDiscussion = (id) => {
+const selectDiscussion = (id: number) => {
 	currentDiscussionId.value = id;
 };
 
 const sendMessage = () => {
-	if (newMessage.value.trim() && currentDiscussion.value) {
-		currentDiscussion.value.messages.push({
-			id: currentDiscussion.value.messages.length + 1,
+	if (newMessage.value.trim() && currentDiscussionId.value) {
+		const message: ChatMessage = {
+			sender: 'User', //security here ?
 			content: newMessage.value,
-			sender: 'user'
-		});
-		newMessage.value = '';
+			timestamps: new Date().toISOString()
+		};
+
+		if (webSocketService.isConnected()) {
+			webSocketService.sendMessage(newMessage.value);
+			const discussion = discussions.value.find(
+				d => d.id === currentDiscussionId.value
+			);
+			if (discussion) {
+				discussion.message.push(message);
+			}
+
+			newMessage.value = '';
+		} else {
+			console.error('Websocket is not connected');
+		}
 	}
 };
+
+onMounted(() => {
+	webSocketService.connect();
+
+	if (webSocketService['ws']) {
+		webSocketService['ws'].onMessage = (event) => {
+			try {
+				const message = JSON.parse(event.data);
+				handleWebSocketMessage(message);
+			} catch (error) {
+				console.error('Error parsing the mess', error);
+			}
+		};
+	}
+});
 </script>
 
 <style scoped>

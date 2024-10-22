@@ -1,13 +1,19 @@
 import { io, Socket } from 'socket.io-client';
-import { API_BASE_URL } from './apiUtils';
 
-interface   ChatMessage {
+interface ChatMessage {
     sender: string;
     content: string;
     timestamp: string;
 }
 
-export  class   WebSocketService {
+type Event = {
+    type: string
+    senderId: number
+    receiverId: number
+    data: { text: string }
+}
+
+export class WebSocketService {
     private ws: WebSocket | null = null;
     private clientId: string;
 
@@ -15,10 +21,11 @@ export  class   WebSocketService {
         this.clientId = clientId;
     }
 
-    public  connect(): void {
+    public connect(): void {
         try {
-            console.log(`ws://${API_BASE_URL}/ws?=${this.clientId}`);
-            this.ws = new WebSocket(`ws://${API_BASE_URL}/ws?=${this.clientId}`);
+            const url = `ws://localhost:4001/ws?id=${this.clientId}`
+            console.log(url);
+            this.ws = new WebSocket(url);
 
             this.ws.onopen = () => {
                 console.log('Websocket connected!');
@@ -35,18 +42,27 @@ export  class   WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    console.log('');
+                    console.log(message);
                 } catch (e) {
-                    console.error('Error parsing message, invalid format ?', e); 
+                    console.error('Error parsing message, invalid format ?', e);
                 }
             };
 
         } catch (error) {
-                console.error('Could not connect to the ws: ', error);
+            console.error('Could not connect to the ws: ', error);
         }
     }
 
-    public  sendMessage(content: string): void {
+
+    public sendMessage(content: string): void {
+        //const message: Event = {
+        //    type: "message",
+        //    senderId: parseInt(this.clientId),
+        //    receiverId: -1, // Get receiver id from args of this function
+        //    data: {
+        //        text: content
+        //    }
+        //}
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message = ChatMessage = {
                 sender: 'User',
@@ -59,14 +75,14 @@ export  class   WebSocketService {
         }
     }
 
-    public  disconnect(): void {
+    public disconnect(): void {
         if (this.ws) {
             this.ws.close();
             this.ws = null;
         }
     }
 
-    public  isConnected(): bool {
+    public isConnected(): bool {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }
 }

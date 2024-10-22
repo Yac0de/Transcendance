@@ -74,6 +74,16 @@ services:
         max-size: "200k"
         max-file: "10"
 
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    container_name: websocket
+    ports:
+      - '4001:4001'
+    networks:
+      - transcendance_net
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -120,6 +130,7 @@ services:
       - transcendance_net
     depends_on:
       - prometheus
+
 
 volumes:
   db_data:

@@ -1,38 +1,54 @@
+apiVersion: 1
 groups:
-- name: transcendance  # Nom du groupe d'alertes
-  rules:  # Liste des règles d'alerte
-  - alert: HighRequestLatency  # Nom de l'alerte pour une latence élevée
-    expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]) > 0.5  # Expression pour calculer la latence
-    for: 1m  # Condition pour que l'alerte soit déclenchée pendant 1 minute
-    labels:
-      severity: warning  # Niveau de gravité de l'alerte
-    annotations:
-      summary: High request latency  # Résumé de l'alerte
-      description: "API request latency is above 500ms"  # Description détaillée de l'alerte
-
-  - alert: HighErrorRate  # Nom de l'alerte pour un taux d'erreur élevé
-    expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01  # Expression pour calculer le taux d'erreur
-    for: 1m  # Condition pour que l'alerte soit déclenchée pendant 1 minute
-    labels:
-      severity: critical  # Niveau de gravité de l'alerte
-    annotations:
-      summary: High error rate  # Résumé de l'alerte
-      description: "Error rate is above 1%"  # Description détaillée de l'alerte
-
-  - alert: HighCPUUsage
-  expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-  for: 5m
-  labels:
-    severity: warning
-  annotations:
-    summary: High CPU usage
-    description: "CPU usage is above 80% for 5 minutes"
-
-- alert: HighMemoryUsage
-  expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
-  for: 5m
-  labels:
-    severity: warning
-  annotations:
-    summary: High memory usage
-    description: "Memory usage is above 90% for 5 minutes"
+  - name: System Alerts
+    folder: System
+    interval: 1m
+    rules:
+      - title: High CPU Usage
+        condition: avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) < 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High CPU usage detected
+          description: CPU usage is above 80% for 5 minutes
+          
+      - title: High Memory Usage
+        condition: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High memory usage detected
+          description: Memory usage is above 90% for 5 minutes
+          
+  - name: Application Alerts
+    folder: Application
+    interval: 1m
+    rules:
+      - title: High Error Rate
+        condition: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate detected
+          description: Error rate is above 1% in the last 5 minutes
+          
+      - title: API Latency
+        condition: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: High API latency detected
+          description: 95th percentile of API response time is above 500ms
+          
+      - title: User Connection Spike
+        condition: delta(active_users[5m]) > 100
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Sudden increase in user connections
+          description: More than 100 new users connected in the last 5 minutes

@@ -1,16 +1,10 @@
 import { io, Socket } from 'socket.io-client';
 
 interface ChatMessage {
-    sender: string;
-    content: string;
-    timestamp: string;
-}
-
-type Event = {
-    type: string
-    senderId: number
-    receiverId: number
-    data: { text: string }
+    Type: string;
+    Data: string;
+    SenderID: string;
+    ReceiverID: string;
 }
 
 export class WebSocketService {
@@ -54,21 +48,15 @@ export class WebSocketService {
     }
 
 
-    public sendMessage(content: string): void {
-        //const message: Event = {
-        //    type: "message",
-        //    senderId: parseInt(this.clientId),
-        //    receiverId: -1, // Get receiver id from args of this function
-        //    data: {
-        //        text: content
-        //    }
-        //}
+    public sendMessage(content: string, senderID: string, receiverID: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message = ChatMessage = {
-                sender: 'User',
-                content: content,
-                timestamp: new Date().toISOString()
+            const message: ChatMessage = {
+                Type: 'CHAT',
+                Data: content,
+                SenderID: senderID,
+                ReceiverID: receiverID
             };
+            console.log("MESSAGE = ", message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -82,7 +70,7 @@ export class WebSocketService {
         }
     }
 
-    public isConnected(): bool {
+    public isConnected(): boolean {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }
 }

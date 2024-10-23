@@ -34,6 +34,7 @@ func (h *Hub) run() {
 			}
 		case message := <-h.broadcast:
 			var event Event
+			log.Printf("received a message: %s", string(message))
 			if err := json.Unmarshal(message, &event); err != nil {
 				log.Printf("error parsing message: %v", err)
 			}

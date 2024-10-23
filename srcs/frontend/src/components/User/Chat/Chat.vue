@@ -8,22 +8,26 @@
 
 		<div v-if="showChatInterface" class="chat-interface">
 			<div class="chat-content">
-				<div class="discussion-list">
-					<ul>
-						<li v-for="discussion in discussions" :key="discussion.id"
-							@click="selectDiscussion(discussion.id)"
-							:class="{ 'active': currentDiscussionId === discussion.id }">
-							{{ discussion.name }}
-						</li>
-					</ul>
+				<div class="friend-list">
+					<div class="friend-list-header">
+						<h3>Friends</h3>
+					</div>
+					<div class="friend-list-content">
+						<ul>
+							<li v-for="friend in friends" :key="friend.id"
+								:class="['friend-item', { 'active': currentFriendId === friend.id }]"
+								@click="selectFriend(friend.id)">
+								{{ friend.nickname }}
+							</li>
+						</ul>
+					</div>
 				</div>
 				<div class="current-discussion">
-					<template v-if="currentDiscussion">
-						<h4>{{ currentDiscussion.name }}</h4>
+					<template v-if="currentFriend">
+						<h4>{{ currentFriend.nickname }}</h4>
 						<div class="messages">
-							<div v-for="message in currentDiscussion.messages"
-								:key="message.id"
-								:class="['message-wrapper', message.sender === 'user' ? 'user-message' : 'receiver-message']">
+							<div v-for="message in currentDiscussion" :key="message.id"
+								:class="['message-wrapper', message.senderId === userStore.getId ? 'user-message' : 'receiver-message']">
 								<div class="message-content">
 									{{ message.content }}
 								</div>
@@ -36,7 +40,7 @@
 						</div>
 					</template>
 					<template v-else>
-						<p>Select a discussion to start chatting</p>
+						<p>Select a friend to start chatting</p>
 					</template>
 				</div>
 			</div>
@@ -48,81 +52,128 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { WebSocketService, ChatMessage } from '../../../services/chatService';
-import { API_BASE_URL } from './apiUtils';
 import { useUserStore } from '../../../stores/user'
+import api from '../../../services/api';
+
+interface Friend {
+	id: string;
+	avatar: string;
+	nickname: string;
+}
+
+interface Message {
+	id: string;
+	content: string;
+	senderId: string;
+	receiverId: string;
+	timestamp: string;
+}
 
 const showChatInterface = ref(false);
-const currentDiscussionId = ref(null);
+const currentFriendId = ref<string | null>(null);
 const newMessage = ref('');
 const userStore = useUserStore();
+const friends = ref<Friend[]>([]);
+const discussions = ref<{ [key: string]: Message[] }>({});
 
 const webSocketService = new WebSocketService(userStore.getId);
 
-// MODIFIED: Updated mock data structure to match ChatMessage interface
-const discussions = ref([
-	{ id: 1, name: 'General Chat', messages: [] as ChatMessage[] },
-	{ id: 2, name: 'Support', messages: [] as ChatMessage[] },
-]);
-
-const currentDiscussion = computed(() =>
-	discussions.value.find(d => d.id === currentDiscussionId.value)
+const currentFriend = computed(() =>
+	friends.value.find(f => f.id === currentFriendId.value)
 );
 
-const handleWebSocketMessage = (message: ChatMessage) => {
-	if (currentDiscussionId.value) {
-		const discussion = discussion.value.find(d => d.id === currentDiscussionId.value);
-		if (discussion) {
-			discussion.messages.push(message);
-		}
+const currentDiscussion = computed(() =>
+	currentFriendId.value ? discussions.value[currentFriendId.value] || [] : []
+);
+
+const handleWebSocketMessage = (message: Message) => {
+	const friendId = message.senderId === userStore.getId
+		? message.receiverId
+		: message.senderId;
+
+	if (!discussions.value[friendId]) {
+		discussions.value[friendId] = [];
 	}
-}
+
+	discussions.value[friendId].push(message);
+};
 
 const toggleChatInterface = () => {
 	showChatInterface.value = !showChatInterface.value;
 };
 
-const selectDiscussion = (id: number) => {
-	currentDiscussionId.value = id;
+const selectFriend = async (friendId: string) => {
+	currentFriendId.value = friendId;
+	if (!discussions.value[friendId]) {
+		await loadFriendDiscussion(friendId);
+	}
+};
+
+const loadFriendDiscussion = async (friendId: string) => {
+	try {
+		//const messages = await api.chat.getDiscussionHistory(friendId);
+		//discussions.value[friendId] = messages;
+	} catch (error) {
+		console.error('Failed to load discussion history', error);
+		discussions.value[friendId] = [];
+	}
 };
 
 const sendMessage = () => {
-	if (newMessage.value.trim() && currentDiscussionId.value) {
-		const message: ChatMessage = {
-			sender: 'User', //security here ?
-			content: newMessage.value,
-			timestamps: new Date().toISOString()
-		};
-
+	if (newMessage.value.trim() && currentFriendId.value) {
 		if (webSocketService.isConnected()) {
-			webSocketService.sendMessage(newMessage.value);
-			const discussion = discussions.value.find(
-				d => d.id === currentDiscussionId.value
+			webSocketService.sendMessage(
+				newMessage.value,
+				userStore.getId,
+				currentFriendId.value
 			);
-			if (discussion) {
-				discussion.message.push(message);
-			}
 
+			const localMessage: Message = {
+				id: crypto.randomUUID(),
+				content: newMessage.value,
+				senderId: userStore.getId,
+				receiverId: currentFriendId.value,
+				timestamp: new Date().toISOString()
+			};
+
+			if (!discussions.value[currentFriendId.value]) {
+				discussions.value[currentFriendId.value] = [];
+			}
+			discussions.value[currentFriendId.value].push(localMessage);
 			newMessage.value = '';
 		} else {
-			console.error('Websocket is not connected');
+			console.error('WebSocket is not connected');
 		}
+	}
+};
+
+const fetchFriendList = async () => {
+	try {
+		const fetchedFriends = await api.friendlist.getFriendList();
+		if (fetchedFriends) {
+			friends.value = fetchedFriends;
+		}
+	} catch (error) {
+		console.error('Failed to fetch friend list', error);
 	}
 };
 
 onMounted(() => {
 	webSocketService.connect();
-
+	fetchFriendList();
 	if (webSocketService['ws']) {
 		webSocketService['ws'].onMessage = (event) => {
 			try {
-				const message = JSON.parse(event.data);
-				handleWebSocketMessage(message);
+				const { type, data } = JSON.parse(event.data);
+				if (type === 'PRIVATE_MESSAGE') {
+					handleWebSocketMessage(data);
+				}
 			} catch (error) {
-				console.error('Error parsing the mess', error);
+				console.error('Error parsing the message', error);
 			}
-		};
+		}
 	}
 });
 </script>
@@ -149,11 +200,12 @@ onMounted(() => {
 	align-items: center;
 	cursor: pointer;
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	transition: background-color 0.3s;
+	transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .chat-icon:hover {
 	background-color: #218838;
+	transform: scale(1.05);
 }
 
 .chat-icon i {
@@ -166,12 +218,13 @@ onMounted(() => {
 	bottom: 60px;
 	left: 0;
 	width: 600px;
-	height: 400px;
+	height: 500px;
 	background-color: white;
-	border-radius: 8px;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 }
 
 .close-button {
@@ -182,65 +235,137 @@ onMounted(() => {
 	border: none;
 	cursor: pointer;
 	font-size: 18px;
+	color: #666;
+	padding: 8px;
+	border-radius: 50%;
+	transition: background-color 0.2s ease;
+}
+
+.close-button:hover {
+	background-color: #f0f0f0;
+	color: #333;
 }
 
 .chat-content {
 	display: flex;
 	height: 100%;
 	overflow: hidden;
-	/* Prevent content from expanding beyond container */
 }
 
-.discussion-list {
-	width: 200px;
-	/* Fixed width */
+.friend-list {
+	width: 250px;
 	flex-shrink: 0;
-	/* Prevent shrinking */
-	border-right: 1px solid #dee2e6;
+	border-right: 1px solid #e0e0e0;
+	background-color: white;
+	display: flex;
+	flex-direction: column;
+}
+
+.friend-list-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 16px;
+	border-bottom: 1px solid #e0e0e0;
+	background-color: #f8f9fa;
+}
+
+.friend-list-header h3 {
+	margin: 0;
+	font-size: 18px;
+	color: #333;
+	font-weight: 600;
+}
+
+.friend-list-content {
+	padding: 12px;
+	flex-grow: 1;
 	overflow-y: auto;
 }
 
-.discussion-list ul {
+.friend-list-content::-webkit-scrollbar {
+	width: 6px;
+}
+
+.friend-list-content::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+.friend-list-content::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 3px;
+}
+
+.friend-list-content ul {
 	list-style-type: none;
 	padding: 0;
 	margin: 0;
 }
 
-.discussion-list li {
-	padding: 10px;
+.friend-item {
+	padding: 12px 16px;
+	margin-bottom: 8px;
+	background-color: #f8f9fa;
+	border-radius: 8px;
 	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: 14px;
+	color: #333;
 }
 
-.discussion-list li.active {
+.friend-item:hover {
 	background-color: #e9ecef;
+	transform: translateX(2px);
+}
+
+.friend-item.active {
+	background-color: #e2e8f0;
+	font-weight: 500;
+	color: #1a73e8;
 }
 
 .current-discussion {
 	flex-grow: 1;
-	min-width: 0;
-	/* Allow shrinking if necessary */
 	display: flex;
 	flex-direction: column;
-	padding: 10px;
-	overflow-x: hidden;
+	background-color: #fff;
 }
 
 .current-discussion h4 {
-	margin-top: 0;
-	margin-bottom: 10px;
+	margin: 0;
+	padding: 16px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #333;
+	border-bottom: 1px solid #e0e0e0;
+	background-color: #f8f9fa;
 }
 
 .messages {
 	flex-grow: 1;
 	overflow-y: auto;
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
-	padding: 10px;
+	gap: 8px;
+}
+
+.messages::-webkit-scrollbar {
+	width: 6px;
+}
+
+.messages::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+.messages::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 3px;
 }
 
 .message-wrapper {
 	display: flex;
-	margin-bottom: 10px;
+	margin-bottom: 4px;
 	width: 100%;
 }
 
@@ -253,47 +378,83 @@ onMounted(() => {
 }
 
 .message-content {
-	max-width: calc(100% - 20px);
-	/* Adjust for padding */
-	padding: 5px 10px;
-	border-radius: 4px;
+	max-width: 70%;
+	padding: 8px 16px;
+	border-radius: 16px;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 	hyphens: auto;
+	font-size: 14px;
+	line-height: 1.4;
 }
 
 .user-message .message-content {
-	background-color: #007bff;
+	background-color: #1a73e8;
 	color: white;
+	border-bottom-right-radius: 4px;
 }
 
 .receiver-message .message-content {
-	background-color: #f1f3f5;
-	color: black;
+	background-color: #f1f3f4;
+	color: #333;
+	border-bottom-left-radius: 4px;
 }
 
 .message-input {
+	padding: 16px;
+	border-top: 1px solid #e0e0e0;
 	display: flex;
-	margin-top: 10px;
+	gap: 8px;
+	background-color: #fff;
 }
 
 .message-input input {
 	flex-grow: 1;
-	padding: 5px;
-	border: 1px solid #ced4da;
-	border-radius: 4px 0 0 4px;
+	padding: 10px 16px;
+	border: 1px solid #e0e0e0;
+	border-radius: 24px;
+	font-size: 14px;
+	transition: all 0.2s ease;
+	background-color: #f8f9fa;
+}
+
+.message-input input:focus {
+	outline: none;
+	border-color: #1a73e8;
+	background-color: #fff;
+	box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
 }
 
 .message-input button {
-	padding: 5px 10px;
-	background-color: #28a745;
+	padding: 10px 20px;
+	background-color: #1a73e8;
 	color: white;
 	border: none;
-	border-radius: 0 4px 4px 0;
+	border-radius: 24px;
 	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.2s ease;
 }
 
-@media (max-width: 600px) {
+.message-input button:hover {
+	background-color: #1557b0;
+	transform: translateY(-1px);
+}
+
+.message-input button:active {
+	transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+	.chat-interface {
+		width: 100vw;
+		height: 100vh;
+		bottom: 0;
+		left: 0;
+		border-radius: 0;
+	}
+
 	.chat-icon {
 		width: 40px;
 		height: 40px;
@@ -303,14 +464,31 @@ onMounted(() => {
 		font-size: 20px;
 	}
 
-	.chat-interface {
+	.friend-list {
 		width: 100%;
-		height: calc(100% - 80px);
-		position: fixed;
-		bottom: 70px;
-		left: 0;
-		right: 0;
-		border-radius: 0;
+		max-width: 100%;
+		border-right: none;
+	}
+
+	.chat-content {
+		flex-direction: column;
+	}
+
+	.friend-list {
+		height: 30%;
+		min-height: 200px;
+	}
+
+	.current-discussion {
+		height: 70%;
+	}
+
+	.message-input {
+		padding: 12px;
+	}
+
+	.message-input input {
+		font-size: 16px;
 	}
 }
 </style>

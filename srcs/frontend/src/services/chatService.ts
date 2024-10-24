@@ -15,6 +15,12 @@ export class WebSocketService {
         this.clientId = clientId;
     }
 
+    private messageHandler: ((message: any) => void) | null = null; 
+
+    public  setMessageHandler(handler: (message:any) => void) : void {
+        this.messageHandler = handler;
+    }
+
     public connect(): void {
         try {
             const url = `ws://localhost:4001/ws?id=${this.clientId}`
@@ -23,7 +29,8 @@ export class WebSocketService {
 
             this.ws.onopen = () => {
                 console.log('Websocket connected!');
-            };
+                console.log('WS ready state: ', this.ws.readyState);
+             };
 
             this.ws.onclose = (event) => {
                 console.log('Disconnected to Websocket!, ', event.reason);
@@ -36,7 +43,11 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    console.log(message);
+                    console.log("Message returned from the server: ", message);
+
+                    if (this.messageHandler) {
+                        this.messageHandler(message);
+                    }
                 } catch (e) {
                     console.error('Error parsing message, invalid format ?', e);
                 }
@@ -56,7 +67,7 @@ export class WebSocketService {
                 SenderID: senderID,
                 ReceiverID: receiverID
             };
-            console.log("MESSAGE = ", message);
+            console.log("MESSAGE SENT = ", message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

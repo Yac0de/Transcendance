@@ -26,7 +26,7 @@
 					<template v-if="currentFriend">
 						<h4>{{ currentFriend.nickname }}</h4>
 						<div class="messages">
-							<div v-for="message in currentDiscussion" :key="message.id"
+							<div v-for="message in messages" :key="message.id"
 								:class="['message-wrapper', message.senderId === userStore.getId ? 'user-message' : 'receiver-message']">
 								<div class="message-content">
 									{{ message.content }}
@@ -77,6 +77,7 @@ const newMessage = ref('');
 const userStore = useUserStore();
 const friends = ref<Friend[]>([]);
 const discussions = ref<{ [key: string]: Message[] }>({});
+const messages = ref<any[]>([]);
 
 const webSocketService = new WebSocketService(userStore.getId);
 
@@ -89,6 +90,7 @@ const currentDiscussion = computed(() =>
 );
 
 const handleWebSocketMessage = (message: Message) => {
+	console.log("CALLBACK FROM THE SEVER: ", message);
 	const friendId = message.senderId === userStore.getId
 		? message.receiverId
 		: message.senderId;
@@ -130,18 +132,9 @@ const sendMessage = () => {
 				currentFriendId.value
 			);
 
-			const localMessage: Message = {
-				id: crypto.randomUUID(),
-				content: newMessage.value,
-				senderId: userStore.getId,
-				receiverId: currentFriendId.value,
-				timestamp: new Date().toISOString()
-			};
-
 			if (!discussions.value[currentFriendId.value]) {
 				discussions.value[currentFriendId.value] = [];
 			}
-			discussions.value[currentFriendId.value].push(localMessage);
 			newMessage.value = '';
 		} else {
 			console.error('WebSocket is not connected');
@@ -160,22 +153,23 @@ const fetchFriendList = async () => {
 	}
 };
 
+webSocketService.setMessageHandler((message) => {
+	console.log("MSG RECEIEVED IN THE HANDLER");
+	if (message.Type === 'CHAT') {
+		messages.value.push({
+			type: message.Type,
+			content: message.Data,
+			senderId: message.SenderID,
+			receiverId: message.ReceiverID
+		});
+	}
+});
+
 onMounted(() => {
 	webSocketService.connect();
 	fetchFriendList();
-	if (webSocketService['ws']) {
-		webSocketService['ws'].onMessage = (event) => {
-			try {
-				const { type, data } = JSON.parse(event.data);
-				if (type === 'PRIVATE_MESSAGE') {
-					handleWebSocketMessage(data);
-				}
-			} catch (error) {
-				console.error('Error parsing the message', error);
-			}
-		}
-	}
 });
+
 </script>
 
 <style scoped>

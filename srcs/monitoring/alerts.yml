@@ -1,54 +1,40 @@
-apiVersion: 1
 groups:
-  - name: System Alerts
-    folder: System
-    interval: 1m
+  - name: TranscendenceAlerts
     rules:
-      - title: High CPU Usage
-        condition: avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) < 0.2
+      # Alertes système
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: High CPU usage detected
-          description: CPU usage is above 80% for 5 minutes
-          
-      - title: High Memory Usage
-        condition: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for 5 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: High memory usage detected
-          description: Memory usage is above 90% for 5 minutes
-          
-  - name: Application Alerts
-    folder: Application
-    interval: 1m
-    rules:
-      - title: High Error Rate
-        condition: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.01
-        for: 2m
-        labels:
-          severity: critical
-        annotations:
-          summary: High error rate detected
-          description: Error rate is above 1% in the last 5 minutes
-          
-      - title: API Latency
-        condition: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
-        for: 2m
-        labels:
-          severity: warning
-        annotations:
-          summary: High API latency detected
-          description: 95th percentile of API response time is above 500ms
-          
-      - title: User Connection Spike
-        condition: delta(active_users[5m]) > 100
+          summary: "High memory usage detected"
+          description: "Memory usage is above 80% for 5 minutes"
+
+      # Alertes Base de données
+      - alert: PostgresqlHighConnections
+        expr: pg_stat_activity_count > 50
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: Sudden increase in user connections
-          description: More than 100 new users connected in the last 5 minutes
+          summary: "High number of PostgreSQL connections"
+          description: "More than 50 connections active"
+
+      - alert: HighLoginFailures
+        expr: increase(login_attempts_total{status="failure"}[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Multiple login failures detected"
+          description: "More than 5 failed login attempts in 5 minutes"

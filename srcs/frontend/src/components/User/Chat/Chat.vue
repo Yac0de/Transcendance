@@ -26,7 +26,7 @@
 					<template v-if="currentFriend">
 						<h4>{{ currentFriend.nickname }}</h4>
 						<div class="messages">
-							<div v-for="message in messages" :key="message.id"
+							<div v-for="message in currentFriendMessages" :key="message.id"
 								:class="['message-wrapper', message.senderId === userStore.getId ? 'user-message' : 'receiver-message']">
 								<div class="message-content">
 									{{ message.content }}
@@ -64,7 +64,6 @@ interface Friend {
 }
 
 interface Message {
-	id: string;
 	content: string;
 	senderId: string;
 	receiverId: string;
@@ -76,8 +75,7 @@ const currentFriendId = ref<string | null>(null);
 const newMessage = ref('');
 const userStore = useUserStore();
 const friends = ref<Friend[]>([]);
-const discussions = ref<{ [key: string]: Message[] }>({});
-const messages = ref<any[]>([]);
+const messagesByFriend = ref<{ [friendId: string]: Message[] }>({});
 
 const webSocketService = new WebSocketService(userStore.getId);
 
@@ -85,8 +83,10 @@ const currentFriend = computed(() =>
 	friends.value.find(f => f.id === currentFriendId.value)
 );
 
-const currentDiscussion = computed(() =>
-	currentFriendId.value ? discussions.value[currentFriendId.value] || [] : []
+const currentFriendMessages = computed(() =>
+	currentFriendId.value
+		? messagesByFriend.value[currentFriendId.value] || []
+		: []
 );
 
 const handleWebSocketMessage = (message: Message) => {
@@ -94,12 +94,6 @@ const handleWebSocketMessage = (message: Message) => {
 	const friendId = message.senderId === userStore.getId
 		? message.receiverId
 		: message.senderId;
-
-	if (!discussions.value[friendId]) {
-		discussions.value[friendId] = [];
-	}
-
-	discussions.value[friendId].push(message);
 };
 
 const toggleChatInterface = () => {
@@ -108,18 +102,16 @@ const toggleChatInterface = () => {
 
 const selectFriend = async (friendId: string) => {
 	currentFriendId.value = friendId;
-	if (!discussions.value[friendId]) {
-		await loadFriendDiscussion(friendId);
-	}
+
+	await loadFriendDiscussion(friendId);
 };
 
 const loadFriendDiscussion = async (friendId: string) => {
 	try {
-		//const messages = await api.chat.getDiscussionHistory(friendId);
+		//const messages = await api.chat.getChatHistory(friendId);
 		//discussions.value[friendId] = messages;
 	} catch (error) {
 		console.error('Failed to load discussion history', error);
-		discussions.value[friendId] = [];
 	}
 };
 
@@ -132,9 +124,6 @@ const sendMessage = () => {
 				currentFriendId.value
 			);
 
-			if (!discussions.value[currentFriendId.value]) {
-				discussions.value[currentFriendId.value] = [];
-			}
 			newMessage.value = '';
 		} else {
 			console.error('WebSocket is not connected');
@@ -156,12 +145,28 @@ const fetchFriendList = async () => {
 webSocketService.setMessageHandler((message) => {
 	console.log("MSG RECEIEVED IN THE HANDLER");
 	if (message.Type === 'CHAT') {
-		messages.value.push({
-			type: message.Type,
+		const messageToPush = {
 			content: message.Data,
 			senderId: message.SenderID,
-			receiverId: message.ReceiverID
-		});
+			receiverId: message.ReceiverID,
+			timestamp: new Date().toISOString()
+		};
+
+		//This computes the id of the friend who you are discussing with (even when the message
+		//is your own message, returned by the server.
+		const conversationId = messageToPush.senderId === userStore.getId
+			? messageToPush.receiverId
+			: messageToPush.senderId;
+
+		console.log("C ID = ", conversationId);
+
+		if (!messagesByFriend.value[conversationId]) {
+			messagesByFriend.value[conversationId] = [];
+		}
+
+		messagesByFriend.value[conversationId].push(messageToPush);
+		console.log("MTP = ", messageToPush.content);
+		console.log("All messages = ", messagesByFriend.value[conversationId].map(msg => msg.content));
 	}
 });
 

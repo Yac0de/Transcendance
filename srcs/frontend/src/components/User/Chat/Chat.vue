@@ -366,6 +366,7 @@ onMounted(() => {
 	display: flex;
 	margin-bottom: 4px;
 	width: 100%;
+	min-width: 0;
 }
 
 .user-message {
@@ -377,14 +378,17 @@ onMounted(() => {
 }
 
 .message-content {
-	max-width: 70%;
+	max-width: 50%;
+	min-width: 0;
 	padding: 8px 16px;
 	border-radius: 16px;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
+	word-break: break-word;
 	hyphens: auto;
 	font-size: 14px;
 	line-height: 1.4;
+	white-space: pre-wrap;
 }
 
 .user-message .message-content {

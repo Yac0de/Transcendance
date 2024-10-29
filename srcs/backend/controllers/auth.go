@@ -38,11 +38,10 @@ func SignUp(ctx *gin.Context) {
 	}
 
 	var existingUser models.User
-    if err := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&existingUser).Error; err == nil {
-        // Nickname already exists
-        ctx.JSON(http.StatusConflict, gin.H{"error": "Nickname already taken"})
-        return
-    }
+	if err := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&existingUser).Error; err == nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": "Nickname already taken"})
+		return
+	}
 
 	newUser := models.User{
 		Nickname:    strings.ToLower(input.Nickname),
@@ -68,39 +67,40 @@ func SignUp(ctx *gin.Context) {
 }
 
 func SignIn(ctx *gin.Context) {
-    var input models.SignInDto
+	var input models.SignInDto
 
-    err := ctx.ShouldBindJSON(&input)
-    if err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "error": "Invalid input data. Please check the fields and try again.",
-        })
-        return
-    }
+	err := ctx.ShouldBindJSON(&input)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid input data. Please check the fields and try again.",
+		})
+		return
+	}
 
-    var user models.User
-    result := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&user)
-    if result.Error != nil {
-        if result.RowsAffected == 0 {
-            ctx.JSON(http.StatusNotFound, gin.H{"error": "User does not exist. Please check your nickname."})
-            return
-        }
-        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while checking the user. Please try again later."})
-        return
-    }
+	var user models.User
+	result := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&user)
+	if result.Error != nil {
+		if result.RowsAffected == 0 {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User does not exist. Please check your nickname."})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while checking the user. Please try again later."})
+		return
+	}
 
-    err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
-    if err != nil {
-        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password. Please try again."})
-        return
-    }
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password. Please try again."})
+		return
+	}
 
-    token, err := utils.CreateToken(user.ID)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while generating the token. Please try again."})
-        return
-    }
+	token, err := utils.CreateToken(user.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while generating the token. Please try again."})
+		return
+	}
 
-    ctx.SetCookie("access_token", token, 0, "/", "", false, true)
-    ctx.JSON(http.StatusAccepted, gin.H{"success": "User connected"})
+	ctx.SetCookie("access_token", token, 0, "/", "", false, true)
+	ctx.JSON(http.StatusAccepted, gin.H{"success": "User connected"})
 }
+

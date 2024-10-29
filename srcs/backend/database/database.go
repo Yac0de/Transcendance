@@ -116,12 +116,27 @@ func GetMockedMessages() []models.Message {
 		SenderID:   1,
 		ReceiverID: 4,
 		Content:    "Salut ID 4 !",
-		CreatedAt:  time.Now(),
+		CreatedAt:  time.Now().Add(time.Hour * (-4)),
 	}, {
 		SenderID:   4,
 		ReceiverID: 1,
-		Content:    "Hey salut l ID 1",
-		CreatedAt:  time.Now(),
+		Content:    "Hey salut ID 1",
+		CreatedAt:  time.Now().Add(time.Hour * (-3)),
+	}, {
+		SenderID:   4,
+		ReceiverID: 1,
+		Content:    "Comment vas tu ?",
+		CreatedAt:  time.Now().Add(time.Hour*(-3) + time.Minute*2),
+	}, {
+		SenderID:   1,
+		ReceiverID: 4,
+		Content:    "Bien et toi ?",
+		CreatedAt:  time.Now().Add(time.Hour * (-2)),
+	}, {
+		SenderID:   1,
+		ReceiverID: 4,
+		Content:    "Super !",
+		CreatedAt:  time.Now().Add(time.Hour * (-1)),
 	}}
 }
 

@@ -9,6 +9,7 @@ import (
 func main() {
 	hub := newHub()
 	go hub.run()
+
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		values := r.URL.Query().Get("id")
 		_, err := strconv.ParseUint(values, 10, 64)

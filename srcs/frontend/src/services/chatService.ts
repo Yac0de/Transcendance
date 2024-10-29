@@ -15,9 +15,9 @@ export class WebSocketService {
         this.clientId = clientId;
     }
 
-    private messageHandler: ((message: any) => void) | null = null; 
+    private messageHandler: ((message: any) => void) | null = null;
 
-    public  setMessageHandler(handler: (message:any) => void) : void {
+    public setMessageHandler(handler: (message: any) => void): void {
         this.messageHandler = handler;
     }
 
@@ -30,7 +30,7 @@ export class WebSocketService {
             this.ws.onopen = () => {
                 console.log('Websocket connected!');
                 console.log('WS ready state: ', this.ws.readyState);
-             };
+            };
 
             this.ws.onclose = (event) => {
                 console.log('Disconnected to Websocket!, ', event.reason);

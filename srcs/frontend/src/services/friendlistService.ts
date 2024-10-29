@@ -10,18 +10,18 @@ interface Friend {
 export default {
     async getFriendList(): Promise<Friend[]> {
         const response = await apiRequest('/users/friendships/list', {
-          method: 'GET',
-          credentials: 'include',
+            method: 'GET',
+            credentials: 'include',
         });
         if (!response || !Array.isArray(response)) {
-          return [];
+            return [];
         }
         return response;
     },
 
     async deleteFromFriendList(friendId: string): Promise<void> {
         return apiRequest(`/users/friendships/delete/${friendId}`, {
-            method: 'POST',
+            method: 'DELETE',
             credentials: 'include',
         });
     },
@@ -45,14 +45,14 @@ export default {
 
     async acceptFriendRequest(friendId: string): Promise<void> {
         return apiRequest(`/users/friendships/accept/${friendId}`, {
-            method: 'POST',
+            method: 'PUT',
             credentials: 'include',
         });
     },
 
     async denyFriendRequest(friendId: string): Promise<void> {
         return apiRequest(`/users/friendships/deny/${friendId}`, {
-            method: 'POST',
+            method: 'PUT',
             credentials: 'include',
         });
     },

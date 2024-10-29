@@ -13,9 +13,9 @@ func FriendShip(ctx *gin.RouterGroup) {
 	ctx.GET("/list", GetFriendList)
 	ctx.GET("/requests", GetFriendRequests)
 	ctx.POST("/add", AddFriend)
-	ctx.POST("/accept/:friendId", AcceptFriend)
-	ctx.POST("/deny/:friendId", DenyFriend)
-	ctx.POST("/delete/:friendId", RemoveFriend)
+	ctx.PUT("/accept/:friendId", AcceptFriend)
+	ctx.PUT("/deny/:friendId", DenyFriend)
+	ctx.DELETE("/delete/:friendId", RemoveFriend)
 }
 
 func RemoveFriend(ctx *gin.Context) {

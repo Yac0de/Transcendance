@@ -6,7 +6,7 @@
 			<div class="chat-content">
 				<FriendList :friends="friends" :currentFriendId="currentFriendId"
 					@select-friend="selectFriend" />
-				<ChatDiscussion :currentFriend="currentFriend" :messages="currentFriendMessages"
+				<ChatDiscussion :currentFriend="currentFriend" :messages="currentConversation"
 					:userId="userStore.getId" @send-message="sendMessage" />
 			</div>
 			<button @click="toggleChatInterface" class="close-button">
@@ -42,7 +42,8 @@ const showChatInterface = ref(false);
 const currentFriendId = ref<string | null>(null);
 const userStore = useUserStore();
 const friends = ref<Friend[]>([]);
-const messagesByFriend = ref<{ [friendId: string]: Message[] }>({});
+const fetchedConversationsTracker = ref<Set<string>>(new Set());
+const conversations = ref<{ [friendId: string]: Message[] }>({});
 
 const webSocketService = new WebSocketService(userStore.getId);
 
@@ -50,9 +51,9 @@ const currentFriend = computed(() =>
 	friends.value.find(f => f.id === currentFriendId.value)
 );
 
-const currentFriendMessages = computed(() =>
+const currentConversation = computed(() =>
 	currentFriendId.value
-		? messagesByFriend.value[currentFriendId.value] || []
+		? conversations.value[currentFriendId.value] || []
 		: []
 );
 
@@ -66,9 +67,22 @@ const selectFriend = async (friendId: string) => {
 };
 
 const loadFriendDiscussion = async (friendId: string) => {
+	if (fetchedConversationsTracker.value.has(friendId)) {
+		return;
+	}
+
 	try {
-		//const messages = await api.chat.getChatHistory(friendId);
-		//discussions.value[friendId] = messages;
+		const messages = await api.chat.getChatHistory(friendId);
+		const formattedMessages = messages.conversation.map(msg => ({
+			content: msg.content,
+			senderId: msg.senderId,
+			receiverId: msg.receiverId,
+			timestamp: msg.createdAt
+		}));
+
+		const conversationId = friendId;
+		conversations.value[conversationId] = formattedMessages;
+		fetchedConversationsTracker.value.add(friendId);
 	} catch (error) {
 		console.error('Failed to load discussion history', error);
 	}
@@ -105,18 +119,17 @@ webSocketService.setMessageHandler((message) => {
 			content: message.Data,
 			senderId: message.SenderID,
 			receiverId: message.ReceiverID,
-			timestamp: new Date().toISOString()
 		};
 
 		const conversationId = messageToPush.senderId === userStore.getId
 			? messageToPush.receiverId
 			: messageToPush.senderId;
 
-		if (!messagesByFriend.value[conversationId]) {
-			messagesByFriend.value[conversationId] = [];
+		if (!conversations.value[conversationId]) {
+			conversations.value[conversationId] = [];
 		}
 
-		messagesByFriend.value[conversationId].push(messageToPush);
+		conversations.value[conversationId].push(messageToPush);
 	}
 });
 

@@ -68,7 +68,7 @@ func CreateMockUsers() {
 
 func AddFriendsToUsers() {
 	friendships := map[string][]string{
-		"hichame": {"maxime"},
+		"hichame": {"maxime", "omar"},
 		"yanis":   {"omar"},
 	}
 

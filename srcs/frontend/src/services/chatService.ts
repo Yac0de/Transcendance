@@ -1,10 +1,24 @@
 import { io, Socket } from 'socket.io-client';
+import { apiRequest, API_BASE_URL } from './apiUtils';
 
 interface ChatMessage {
     Type: string;
     Data: string;
     SenderID: string;
     ReceiverID: string;
+}
+
+export default {
+    async getChatHistory(friendId: string): Promise<ChatMessage | null> {
+        try {
+            return await apiRequest(`/conversation/${friendId}`, { credentials: "include" });
+        } catch (error: unknown) {
+            if ((error as any).message === 'Unauthorized') {
+                return null;
+            }
+            throw new Error('Fetching chat history failed');
+        }
+    },
 }
 
 export class WebSocketService {

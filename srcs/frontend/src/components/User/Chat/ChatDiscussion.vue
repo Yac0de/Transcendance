@@ -2,7 +2,7 @@
 	<div class="current-discussion">
 		<template v-if="currentFriend">
 			<h4>{{ currentFriend.nickname }}</h4>
-			<div class="messages">
+			<div class="messages" ref="messageContainer">
 				<div v-for="message in messages" :key="message.id"
 					:class="['message-wrapper', message.senderId === userId ? 'user-message' : 'receiver-message']">
 					<div class="message-content">
@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue';
+import { ref, watch, nextTick } from 'vue';
 
 interface Friend {
 	id: string;
@@ -34,7 +35,17 @@ interface Message {
 	timestamp: string;
 }
 
-defineProps<{
+const messageContainer = ref<HTMLElement | null>(null);
+
+const scrollToBottom = () => {
+	nextTick(() => {
+		if (messageContainer.value) {
+			messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+		}
+	});
+};
+
+const props = defineProps<{
 	currentFriend: Friend | undefined;
 	messages: Message[];
 	userId: number;
@@ -47,6 +58,11 @@ const emit = defineEmits<{
 const handleSend = (message: string) => {
 	emit('send-message', message);
 };
+
+watch(() => props.messages, () => {
+	scrollToBottom();
+}, { deep: true });
+
 </script>
 
 <style scoped>

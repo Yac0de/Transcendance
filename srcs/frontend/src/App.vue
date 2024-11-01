@@ -12,7 +12,7 @@
           </template>
           <template v-else>
             <router-link to="/pong" class="nav-button">Play Pong</router-link>
-            <router-link :to="`/account/${userStore.nickname}`" class="nav-button">Account</router-link>
+            <router-link :to="`/${userStore.nickname}`" class="nav-button">Account</router-link>
             <button @click="handleSignout" class="nav-button">Sign Out</button>
           </template>
         </div>

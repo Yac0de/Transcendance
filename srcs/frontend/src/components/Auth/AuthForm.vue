@@ -10,6 +10,7 @@
               :id="field.label"
               v-model="field.model"
               :required="field.required"
+              :maxlength="field.maxlength"
             />
           </div>
           <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>

@@ -2,12 +2,31 @@
   <div v-if="userExists" class="account-container">
     <div class="account-content">
       <h2>Account Details</h2>
-      <AccountView v-if="!isEditing && !isDeleting" :user="userToDisplay" :isOwnProfile="isOwnProfile"
-        @startEditing="startEditing" />
-      <AccountEdit v-if="isEditing && !isDeleting" :user="userToDisplay" @saveProfile="saveProfile"
-        @cancelEdit="cancelEdit" @confirmDeleteAccount="confirmDeleteAccount" />
-      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted" @deleteAccount="deleteAccount"
-        @cancelDelete="cancelDelete" />
+      <AccountView v-if="!isViewingStats && !isEditing && !isDeleting"
+        :user="userToDisplay"
+        :isOwnProfile="isOwnProfile"
+        @startEditing="startEditing"
+      />
+      <AccountEdit v-if="isEditing && !isDeleting"
+        :user="userToDisplay"
+        :errorMessage="errorMessage"
+        @saveProfile="saveProfile"
+        @cancelEdit="cancelEdit"
+        @confirmDeleteAccount="confirmDeleteAccount"
+        @updateErrorMessage="errorMessage = $event"
+      />
+      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted"
+        @deleteAccount="deleteAccount"
+        @cancelDelete="cancelDelete"
+      />
+
+      <AccountStats v-if="isViewingStats" />
+      <div v-if="!isEditing && !isDeleting">
+        <button @click="toggleStats" class="toggle-button">
+          {{ isViewingStats ? 'Back to Account' : 'View Statistics' }}
+        </button>
+      </div>
+
       <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
       <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
     </div>
@@ -16,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '../../../services/api'
 import { useUserStore } from '../../../stores/user'
@@ -24,6 +43,7 @@ import NotFound from '../../General/NotFound.vue'
 import AccountView from './AccountView.vue'
 import AccountEdit from './AccountEdit.vue'
 import DeleteAccountPrompt from './DeleteAccountPrompt.vue'
+import AccountStats from './AccountStats.vue'
 
 interface UserData {
   nickname: string;
@@ -33,6 +53,7 @@ interface UserData {
 
 const isEditing = ref(false)
 const isDeleting = ref(false)
+const isViewingStats = ref(false)
 const deleted = ref(false)
 const userToDisplay = ref<UserData>({ nickname: '', displayname: '', avatar: '' })
 const successMessage = ref('')
@@ -87,9 +108,21 @@ onMounted(async () => {
   await fetchUserData(route.params.nickname as string)
 })
 
+watch(
+  () => route.params.nickname,
+  async (newNickname) => {
+    await checkOwnProfile()
+    await fetchUserData(newNickname as string)
+  }
+)
+
 const startEditing = () => {
   isEditing.value = true
   resetMessages()
+}
+
+const toggleStats = () => {
+  isViewingStats.value = !isViewingStats.value
 }
 
 const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) => {
@@ -193,5 +226,21 @@ h2 {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
+}
+
+.toggle-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.toggle-button:hover {
+  background-color: #0056b3;
 }
 </style>

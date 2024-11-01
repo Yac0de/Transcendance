@@ -25,6 +25,21 @@ var (
 		},
 		[]string{"method", "endpoint"}, // Labels for method and endpoint
 	)
+
+	activeUsers = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "active_users",
+			Help: "Number of currently connected users",
+		},
+	)
+
+	loginAttempts = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "login_attempts_total",
+			Help: "Total number of login attempts",
+		},
+		[]string{"status"},
+	)
 )
 
 // PrometheusMiddleware records metrics for HTTP requests
@@ -38,5 +53,21 @@ func PrometheusMiddleware() gin.HandlerFunc {
 		// Record metrics
 		httpRequests.WithLabelValues(c.Request.Method, c.FullPath(), string(rune(status))).Inc() // Increment request counter
 		httpDuration.WithLabelValues(c.Request.Method, c.FullPath()).Observe(duration.Seconds()) // Observe request duration
+	}
+}
+
+func IncrementActiveUsers() {
+	activeUsers.Inc()
+}
+
+func DecrementActiveUsers() {
+	activeUsers.Dec()
+}
+
+func RecordLoginAttempt(success bool) {
+	if success {
+		loginAttempts.WithLabelValues("success").Inc()
+	}else{
+		loginAttempts.WithLabelValues("failure").Inc()
 	}
 }

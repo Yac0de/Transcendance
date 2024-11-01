@@ -84,18 +84,37 @@ services:
     networks:
       - transcendance_net
 
+  alertmanager:
+    image: prom/alertmanager
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/config.yml
+    networks:
+      - transcendance_net
+      
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
     networks:
       - transcendance_net
     depends_on:
       - backend
 
+  
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -113,7 +132,19 @@ services:
      - 9100
     networks:
      - transcendance_net
-
+    
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - transcendance_net
+    depends_on:
+      - db
+  
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -122,10 +153,12 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1m
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards
       - ./monitoring/datasources:/etc/grafana/provisioning/datasources
+      - ./monitoring/grafana.ini:/etc/grafana/grafana.ini
     networks:
       - transcendance_net
     depends_on:
@@ -135,6 +168,7 @@ services:
 volumes:
   db_data:
   grafana-data:
+  prometheus_data:
 
 networks:
   transcendance_net:

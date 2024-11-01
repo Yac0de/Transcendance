@@ -40,11 +40,10 @@ func SignUp(ctx *gin.Context) {
 	}
 
 	var existingUser models.User
-    if err := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&existingUser).Error; err == nil {
-        // Nickname already exists
-        ctx.JSON(http.StatusConflict, gin.H{"error": "Nickname already taken"})
-        return
-    }
+	if err := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&existingUser).Error; err == nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": "Nickname already taken"})
+		return
+	}
 
 	newUser := models.User{
 		Nickname:    strings.ToLower(input.Nickname),

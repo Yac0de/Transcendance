@@ -4,34 +4,22 @@
       <div v-if="showFriendIcon" class="friend-icon" @click="toggleOnFriendMenu">
         <i class="fas fa-user-friends"></i>
       </div>
-      <FriendMenuActions
-        :toggleFriendList="toggleFriendList"
-        :toggleAddFriend="toggleAddFriend"
-        :toggleFriendRequests="toggleFriendRequests"
-        :toggleOffFriendMenu="toggleOffFriendMenu"
-        :showFriendMenu="showFriendMenu"
-        :friendRequests="friendRequests || []"
-      />
+      <FriendMenuActions :toggleFriendList="toggleFriendList" :toggleAddFriend="toggleAddFriend"
+        :toggleFriendRequests="toggleFriendRequests" :toggleOffFriendMenu="toggleOffFriendMenu"
+        :showFriendMenu="showFriendMenu" :friendRequests="friendRequests || []" />
     </div>
 
-    <FriendListPopover v-if="showFriendList"
-    :toggleFriendList="toggleFriendList"
-    />
+    <FriendListPopover v-if="showFriendList" :toggleFriendList="toggleFriendList" />
 
-    <AddFriendPopover v-if="showAddFriend"
-    :toggleAddFriend="toggleAddFriend"
-    :fetch-friend-requests="fetchFriendRequests"
-    />
+    <AddFriendPopover v-if="showAddFriend" :toggleAddFriend="toggleAddFriend"
+      :fetch-friend-requests="fetchFriendRequests" />
 
-    <FriendRequestPopover v-if="showFriendRequests"
-    :toggleFriendRequests="toggleFriendRequests"
-    :fetch-friend-requests="fetchFriendRequests"
-    :friendRequests="friendRequests"
-    />
+    <FriendRequestPopover v-if="showFriendRequests" :toggleFriendRequests="toggleFriendRequests"
+      :fetch-friend-requests="fetchFriendRequests" :friendRequests="friendRequests" />
   </div>
 </template>
 
-  
+
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import FriendListPopover from './FriendListPopover.vue';
@@ -128,21 +116,21 @@ const toggleAddFriend = () => {
 };
 
 const fetchFriendList = async () => {
-if (friendRequestsLoaded.value) return;
+  if (friendRequestsLoaded.value) return;
 
-loadingFriends.value = true;
-try {
-  const fetchedFriends = await api.friendlist.getFriendList();
-  if (fetchedFriends) {
-    friends.value = fetchedFriends;
-    friendsLoaded.value = true;
+  loadingFriends.value = true;
+  try {
+    const fetchedFriends = await api.friendlist.getFriendList();
+    if (fetchedFriends) {
+      friends.value = fetchedFriends;
+      friendsLoaded.value = true;
+    }
+  } catch (error) {
+    console.error('Failed to fetch friend list:', error);
+    errorMessage.value = 'Failed to fetch friend list.';
+  } finally {
+    loadingFriends.value = false;
   }
-} catch (error) {
-  console.error('Failed to fetch friend list:', error);
-  errorMessage.value = 'Failed to fetch friend list.';
-} finally {
-  loadingFriends.value = false;
-}
 };
 
 const fetchFriendRequests = async () => {
@@ -160,7 +148,7 @@ const fetchFriendRequests = async () => {
 };
 
 </script>
-  
+
 <style scoped>
 .friend-list-container {
   position: fixed;

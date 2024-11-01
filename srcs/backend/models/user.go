@@ -9,12 +9,6 @@ type User struct {
 	Friends     []*User `gorm:"many2many:friendShip;"`
 }
 
-type FriendShip struct {
-	UserID        uint `gorm:"primaryKey"`
-	FriendID      uint `gorm:"primaryKey"`
-	MutualFriends bool `gorm:"not null"`
-}
-
 type UserResponse struct {
 	ID          uint   `json:"id"`
 	DisplayName string `json:"displayname"`

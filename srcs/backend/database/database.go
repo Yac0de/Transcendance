@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
@@ -17,8 +18,8 @@ var DB *gorm.DB
 
 func New() {
 	DB = initDB()
-	createMockUsers()
-	addFriendsToUsers()
+	CreateMockUsers()
+	CreateMockConversation()
 }
 
 func initDB() *gorm.DB {
@@ -39,12 +40,12 @@ func initDB() *gorm.DB {
 		log.Fatalln(err)
 	}
 
-	database.AutoMigrate(&models.User{}, &models.FriendShip{})
+	database.AutoMigrate(&models.User{}, &models.FriendShip{}, &models.Message{})
 
 	return database
 }
 
-func createMockUsers() {
+func CreateMockUsers() {
 	users := []models.User{
 		{Nickname: "Hichame", DisplayName: "hichame", Password: "hichame42LH"},
 		{Nickname: "Maxime", DisplayName: "maxime", Password: "maxime42LH"},
@@ -62,11 +63,12 @@ func createMockUsers() {
 			log.Printf("Created mock user: %s", users[i].Nickname)
 		}
 	}
+	AddFriendsToUsers()
 }
 
-func addFriendsToUsers() {
+func AddFriendsToUsers() {
 	friendships := map[string][]string{
-		"hichame": {"maxime"},
+		"hichame": {"maxime", "omar"},
 		"yanis":   {"omar"},
 	}
 
@@ -99,4 +101,50 @@ func addFriendsToUsers() {
 		}
 	}
 
+}
+
+//	type Message struct {
+//		ID         uint      `json:"id" gorm:"primaryKey;autoIncrement"`
+//		SenderID   uint      `json:"senderId" gorm:"not null"`
+//		ReceiverID uint      `json:"receiverId" gorm:"not null"`
+//		Message    string    `json:"message"`
+//		CreatedAt  time.Time `json:"createdAt" gorm:"autoCreateTime"`
+//	}
+
+func GetMockedMessages() []models.Message {
+	return []models.Message{{
+		SenderID:   1,
+		ReceiverID: 4,
+		Content:    "Salut ID 4 !",
+		CreatedAt:  time.Now().Add(time.Hour * (-4)),
+	}, {
+		SenderID:   4,
+		ReceiverID: 1,
+		Content:    "Hey salut ID 1",
+		CreatedAt:  time.Now().Add(time.Hour * (-3)),
+	}, {
+		SenderID:   4,
+		ReceiverID: 1,
+		Content:    "Comment vas tu ?",
+		CreatedAt:  time.Now().Add(time.Hour*(-3) + time.Minute*2),
+	}, {
+		SenderID:   1,
+		ReceiverID: 4,
+		Content:    "Bien et toi ?",
+		CreatedAt:  time.Now().Add(time.Hour * (-2)),
+	}, {
+		SenderID:   1,
+		ReceiverID: 4,
+		Content:    "Super !",
+		CreatedAt:  time.Now().Add(time.Hour * (-1)),
+	}}
+}
+
+func CreateMockConversation() {
+	conversation := GetMockedMessages()
+	for _, message := range conversation {
+		if err := DB.Create(&message).Error; err != nil {
+			log.Printf("Failed to add message %s from user id %d to user id %d: %v", message.Content, message.SenderID, message.ReceiverID, err.Error())
+		}
+	}
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="friend-item">
-    <div class="friend-avatar" v-if="friend">
+    <div class="friend-avatar" v-if="friend" :class="{ 'friend-online': !friend.isOnline }">
       <img :src="api.user.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
     </div>
     <div class="friend-info" v-if="friend">
@@ -26,6 +26,7 @@ interface Friend {
   id: string;
   avatar: string;
   nickname: string;
+  isOnline: boolean;
 }
 
 const props = defineProps<{
@@ -47,7 +48,7 @@ const deleteFriend = async () => {
   }
 };
 </script>
-  
+
 <style scoped>
 .friend-item {
   display: flex;
@@ -69,6 +70,12 @@ const deleteFriend = async () => {
   height: 100%;
   object-fit: cover;
 }
+
+.friend-online {
+  border: 2px solid #2ecc71;
+}
+
+;
 
 .friend-info {
   flex-grow: 1;
@@ -106,4 +113,3 @@ const deleteFriend = async () => {
   color: #dc3545;
 }
 </style>
-  

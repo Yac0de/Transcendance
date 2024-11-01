@@ -56,27 +56,8 @@ const currentConversation = computed(() =>
 
 const toggleChatInterface = () => {
 	showChatInterface.value = !showChatInterface.value;
-
 	if (userStore.getWebSocketService) {
-		userStore.getWebSocketService.setMessageHandler((message) => {
-			if (message.Type === 'CHAT') {
-				const messageToPush = {
-					content: message.Data,
-					senderId: message.SenderID,
-					receiverId: message.ReceiverID,
-				};
-
-				const conversationId = messageToPush.senderId === userStore.getId
-					? messageToPush.receiverId
-					: messageToPush.senderId;
-
-				if (!conversations.value[conversationId]) {
-					conversations.value[conversationId] = [];
-				}
-
-				conversations.value[conversationId].push(messageToPush);
-			}
-		});
+		setupChatMessageHandler();
 	}
 };
 
@@ -119,6 +100,32 @@ const sendMessage = (message: string) => {
 			console.error('WebSocket is not connected');
 		}
 	}
+};
+
+const setupChatMessageHandler = () => {
+	if (!userStore.getWebSocketService) {
+		return;
+	}
+
+	console.log("YEAH");
+	userStore.getWebSocketService.setMessageHandler('CHAT', (message) => {
+		console.log("REceived message: ", message);
+		const messageToPush = {
+			content: message.Data,
+			senderId: message.SenderID,
+			receiverId: message.ReceiverID,
+		};
+
+		const conversationId = messageToPush.senderId === userStore.getId
+			? messageToPush.receiverId
+			: messageToPush.senderId;
+
+		if (!conversations.value[conversationId]) {
+			conversations.value[conversationId] = [];
+		}
+		console.log("PUSH MESSAGE");
+		conversations.value[conversationId].push(messageToPush);
+	});
 };
 
 const fetchFriendList = async () => {

@@ -1,19 +1,25 @@
-interface ChatMessage {
-    Type: string;
-    Data: string;
-    SenderID: string;
-    ReceiverID: string;
-}
-
 export class WebSocketService {
     private ws: WebSocket | null = null;
     private clientId: string;
+
+    private messageHandlers = {
+    'CHAT': (message: ChatMessage) => {
+
+        },
+    'GAME': (message: any) => {
+
+        },
+    'USER_STATUS': (message: any) => {
+
+        }
+    }
+
     constructor(clientId: string) {
         this.clientId = clientId;
     }
-    private messageHandler: ((message: any) => void) | null = null;
-    public setMessageHandler(handler: (message: any) => void): void {
-        this.messageHandler = handler;
+
+    public setMessageHandler(type: string, handler: (message: any) => void): void {
+        this.messageHandlers[type] = handler;
     }
     public connect(): void {
         try {
@@ -34,8 +40,9 @@ export class WebSocketService {
                 try {
                     const message = JSON.parse(event.data);
                     console.log("Message returned from the server: ", message);
-                    if (this.messageHandler) {
-                        this.messageHandler(message);
+                    const handler = this.messageHandlers[message.Type];
+                    if (handler) {
+                        handler(message);
                     }
                 } catch (e) {
                     console.error('Error parsing message, invalid format ?', e);

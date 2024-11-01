@@ -18,7 +18,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { WebSocketService } from '../../../services/chatService';
 import { useUserStore } from '../../../stores/user';
 import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
@@ -45,8 +44,6 @@ const friends = ref<Friend[]>([]);
 const fetchedConversationsTracker = ref<Set<string>>(new Set());
 const conversations = ref<{ [friendId: string]: Message[] }>({});
 
-const webSocketService = new WebSocketService(userStore.getId);
-
 const currentFriend = computed(() =>
 	friends.value.find(f => f.id === currentFriendId.value)
 );
@@ -59,6 +56,28 @@ const currentConversation = computed(() =>
 
 const toggleChatInterface = () => {
 	showChatInterface.value = !showChatInterface.value;
+
+	if (userStore.getWebSocketService) {
+		userStore.getWebSocketService.setMessageHandler((message) => {
+			if (message.Type === 'CHAT') {
+				const messageToPush = {
+					content: message.Data,
+					senderId: message.SenderID,
+					receiverId: message.ReceiverID,
+				};
+
+				const conversationId = messageToPush.senderId === userStore.getId
+					? messageToPush.receiverId
+					: messageToPush.senderId;
+
+				if (!conversations.value[conversationId]) {
+					conversations.value[conversationId] = [];
+				}
+
+				conversations.value[conversationId].push(messageToPush);
+			}
+		});
+	}
 };
 
 const selectFriend = async (friendId: string) => {
@@ -90,8 +109,8 @@ const loadFriendDiscussion = async (friendId: string) => {
 
 const sendMessage = (message: string) => {
 	if (message.trim() && currentFriendId.value) {
-		if (webSocketService.isConnected()) {
-			webSocketService.sendMessage(
+		if (userStore.getWebSocketService.isConnected()) {
+			userStore.getWebSocketService.sendMessage(
 				message,
 				userStore.getId,
 				currentFriendId.value
@@ -113,28 +132,8 @@ const fetchFriendList = async () => {
 	}
 };
 
-webSocketService.setMessageHandler((message) => {
-	if (message.Type === 'CHAT') {
-		const messageToPush = {
-			content: message.Data,
-			senderId: message.SenderID,
-			receiverId: message.ReceiverID,
-		};
-
-		const conversationId = messageToPush.senderId === userStore.getId
-			? messageToPush.receiverId
-			: messageToPush.senderId;
-
-		if (!conversations.value[conversationId]) {
-			conversations.value[conversationId] = [];
-		}
-
-		conversations.value[conversationId].push(messageToPush);
-	}
-});
 
 onMounted(() => {
-	webSocketService.connect();
 	fetchFriendList();
 });
 </script>

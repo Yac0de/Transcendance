@@ -1,26 +1,44 @@
+import { BaseMessage, ChatMessage, OnlineUsersMessage, UserStatusMessage } from '../types/websocket';
+import { useOnlineUsersStore } from '../stores/onlineUsers';
+import { useOnlineUsersStore } from '../stores/onlineUsers';
+
 export class WebSocketService {
     private ws: WebSocket | null = null;
     private clientId: string;
+    private onlineUsersStore = useOnlineUsersStore();
 
     private messageHandlers = {
     'CHAT': (message: ChatMessage) => {
-
-        },
-    'GAME': (message: any) => {
-
-        },
-    'USER_STATUS': (message: any) => {
-
         }
     }
 
     constructor(clientId: string) {
         this.clientId = clientId;
+        this.initMessageHandlers();
     }
 
+    public initMessageHandlers(): void {
+        this.setMessageHandler('ONLINE_USERS', (message: OnlineUsersMessage) => {
+            this.onlineUsersStore.setOnlineUsers(message.UsersOnline);
+            console.log("RECEIVED THE LIST");
+        });
+
+        this.setMessageHandler('USER_DISCONNECTED', (message: UserStatusMessage) => {
+            this.onlineUsersStore.removeOnlineUser(message.User);
+            console.log("USER DISCO");
+        });
+
+        this.setMessageHandler('NEW_CONNECTION', (message: UserStatusMessage) => {
+            this.onlineUsersStore.addOnlineUser(message.User);
+            console.log("USER CO");
+        });
+    }
+ 
     public setMessageHandler(type: string, handler: (message: any) => void): void {
+        console.log("Setting handler for type: ", type); 
         this.messageHandlers[type] = handler;
     }
+
     public connect(): void {
         try {
             const url = `ws://localhost:4001/ws?id=${this.clientId}`

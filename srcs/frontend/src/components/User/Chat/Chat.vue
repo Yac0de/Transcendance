@@ -107,7 +107,6 @@ const setupChatMessageHandler = () => {
 		return;
 	}
 
-	console.log("YEAH");
 	userStore.getWebSocketService.setMessageHandler('CHAT', (message) => {
 		console.log("REceived message: ", message);
 		const messageToPush = {

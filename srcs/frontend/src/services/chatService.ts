@@ -1,5 +1,6 @@
 import { apiRequest } from './apiUtils';
 import { WebSocketService } from './websocketService';
+import { ChatMessage } from '../types/websocket';
 
 interface ChatMessage {
     Type: string;

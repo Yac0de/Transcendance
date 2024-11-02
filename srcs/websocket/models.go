@@ -1,7 +1,7 @@
 package main
 
 type Event struct {
-	Type string `json:"type"`
+	Type string `json:"Type"`
 }
 
 type MessageEvent struct {

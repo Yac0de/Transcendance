@@ -45,7 +45,6 @@ const handleSubmit = async () => {
     await userStore.fetchUser();
 
     userStore.setWebSocketService(userStore.getId);
-    console.log("wS after setup", userStore.getWebSocketService);
     console.log('Sign in successful', userStore.getNickname);
 
     successMessage.value = 'Sign in successful!';

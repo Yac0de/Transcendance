@@ -13,10 +13,10 @@ type MessageEvent struct {
 
 type OnlineUsersEvent struct {
 	Event
-	Users []uint64 `json:"usersOnline"`
+	Users []uint64 `json:"UsersOnline"`
 }
 
 type UserStatusEvent struct {
 	Event
-	User uint64 `json:"user"`
+	User uint64 `json:"User"`
 }

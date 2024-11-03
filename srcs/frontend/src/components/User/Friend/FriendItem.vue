@@ -1,6 +1,6 @@
 <template>
   <div class="friend-item">
-    <div class="friend-avatar" v-if="friend" :class="{ 'friend-online': !friend.isOnline }">
+    <div class="friend-avatar" v-if="friend" :class="{ 'friend-online': isOnline }">
       <img :src="api.user.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
     </div>
     <div class="friend-info" v-if="friend">
@@ -19,8 +19,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import api from '../../../services/api';
+import { useOnlineUsersStore } from '../../../stores/onlineUsers';
+
+const OnlineUsersStore = useOnlineUsersStore();
 
 interface Friend {
   id: string;
@@ -33,6 +36,14 @@ const props = defineProps<{
   friend: Friend | null;
   deleteFriendFromList: (id: string) => Promise<void>;
 }>();
+
+const isOnline = computed(() => {
+  if (!props.friend) {
+    return false;
+  }
+  console.log("FIRNE ID: ", props.friend.id);
+  return OnlineUsersStore.isUserOnline(props.friend.id);
+});
 
 const loadingDeleteFriend = ref(false);
 
@@ -63,6 +74,7 @@ const deleteFriend = async () => {
   border-radius: 50%;
   overflow: hidden;
   margin-right: 10px;
+  border: 2px solid #ff0000;
 }
 
 .friend-avatar img {

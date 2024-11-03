@@ -1,41 +1,39 @@
+import type { ReturnType } from 'typescript';
 import { BaseMessage, ChatMessage, OnlineUsersMessage, UserStatusMessage } from '../types/websocket';
-import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 
 export class WebSocketService {
     private ws: WebSocket | null = null;
     private clientId: string;
-    private onlineUsersStore = useOnlineUsersStore();
+    private onlineUsersStore: ReturnType<typeof useOnlineUsersStore>;
 
     private messageHandlers = {
     'CHAT': (message: ChatMessage) => {
         }
     }
 
-    constructor(clientId: string) {
+    constructor(clientId: string, store: ReturnType<typeof useOnlineUsersStore>) {
         this.clientId = clientId;
+        this.onlineUsersStore = store;
         this.initMessageHandlers();
     }
 
     public initMessageHandlers(): void {
         this.setMessageHandler('ONLINE_USERS', (message: OnlineUsersMessage) => {
             this.onlineUsersStore.setOnlineUsers(message.UsersOnline);
-            console.log("RECEIVED THE LIST");
+            console.log("ONLINE = ", this.onlineUsersStore.getOnlineUsers);
         });
 
         this.setMessageHandler('USER_DISCONNECTED', (message: UserStatusMessage) => {
             this.onlineUsersStore.removeOnlineUser(message.User);
-            console.log("USER DISCO");
         });
 
         this.setMessageHandler('NEW_CONNECTION', (message: UserStatusMessage) => {
             this.onlineUsersStore.addOnlineUser(message.User);
-            console.log("USER CO");
         });
     }
- 
+
     public setMessageHandler(type: string, handler: (message: any) => void): void {
-        console.log("Setting handler for type: ", type); 
         this.messageHandlers[type] = handler;
     }
 

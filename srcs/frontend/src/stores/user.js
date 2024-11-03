@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import api from '../services/api'
 import { WebSocketService } from '../services/websocketService';
+import { useOnlineUsersStore } from '../stores/onlineUsers';
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -36,7 +37,8 @@ export const useUserStore = defineStore('user', {
     },
 
     setWebSocketService(userId) {
-      const webSocketService = new WebSocketService(userId);
+      const store = useOnlineUsersStore();
+      const webSocketService = new WebSocketService(userId, store);
       webSocketService.connect();
       this.webSocketService = webSocketService;
     },
@@ -76,7 +78,8 @@ export const useUserStore = defineStore('user', {
         const userData = JSON.parse(storedUser)
         this.$patch(userData)
 
-        const webSocketService = new WebSocketService(userData.id);
+        const store = useOnlineUsersStore();
+        const webSocketService = new WebSocketService(userData.id, store);
         webSocketService.connect();
         this.webSocketService = webSocketService;
 

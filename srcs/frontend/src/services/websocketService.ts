@@ -21,7 +21,6 @@ export class WebSocketService {
     public initMessageHandlers(): void {
         this.setMessageHandler('ONLINE_USERS', (message: OnlineUsersMessage) => {
             this.onlineUsersStore.setOnlineUsers(message.UsersOnline);
-            console.log("ONLINE = ", this.onlineUsersStore.getOnlineUsers);
         });
 
         this.setMessageHandler('USER_DISCONNECTED', (message: UserStatusMessage) => {
@@ -55,7 +54,6 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    console.log("Message returned from the server: ", message);
                     const handler = this.messageHandlers[message.Type];
                     if (handler) {
                         handler(message);
@@ -76,7 +74,6 @@ export class WebSocketService {
                 SenderID: senderID,
                 ReceiverID: receiverID
             };
-            console.log("MESSAGE SENT = ", message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

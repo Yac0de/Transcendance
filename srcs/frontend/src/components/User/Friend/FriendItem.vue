@@ -41,7 +41,6 @@ const isOnline = computed(() => {
   if (!props.friend) {
     return false;
   }
-  console.log("FIRNE ID: ", props.friend.id);
   return OnlineUsersStore.isUserOnline(props.friend.id);
 });
 

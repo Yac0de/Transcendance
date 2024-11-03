@@ -108,7 +108,6 @@ const setupChatMessageHandler = () => {
 	}
 
 	userStore.getWebSocketService.setMessageHandler('CHAT', (message) => {
-		console.log("REceived message: ", message);
 		const messageToPush = {
 			content: message.Data,
 			senderId: message.SenderID,
@@ -122,7 +121,6 @@ const setupChatMessageHandler = () => {
 		if (!conversations.value[conversationId]) {
 			conversations.value[conversationId] = [];
 		}
-		console.log("PUSH MESSAGE");
 		conversations.value[conversationId].push(messageToPush);
 	});
 };

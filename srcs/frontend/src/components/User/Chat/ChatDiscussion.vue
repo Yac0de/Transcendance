@@ -21,19 +21,7 @@
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue';
 import { ref, watch, nextTick } from 'vue';
-
-interface Friend {
-	id: string;
-	avatar: string;
-	nickname: string;
-}
-
-interface Message {
-	content: string;
-	senderId: string;
-	receiverId: string;
-	timestamp: string;
-}
+import { Friend, Message } from '../../../types/models';
 
 const messageContainer = ref<HTMLElement | null>(null);
 

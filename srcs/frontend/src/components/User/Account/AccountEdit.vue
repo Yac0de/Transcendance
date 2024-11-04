@@ -13,9 +13,9 @@
 
     <div class="edit-fields">
       <label for="edit-nickname">Nickname:</label>
-      <input id="edit-nickname" v-model="editedUser.nickname" type="text" maxlength="20"/>
+      <input id="edit-nickname" v-model="editedUser.nickname" type="text" maxlength="20" />
       <label for="edit-displayname">Display Name:</label>
-      <input id="edit-displayname" v-model="editedUser.displayname" type="text" maxlength="30"/>
+      <input id="edit-displayname" v-model="editedUser.displayname" type="text" maxlength="30" />
 
       <div class="password-toggle">
         <label for="change-password" class="toggle-label">Change password</label>
@@ -28,13 +28,15 @@
       <div v-if="changePassword" class="change-password">
         <div class="current-password">
           <label for="current-password">Current Password:</label>
-          <input id="current-password" v-model="currentPassword" type="password" placeholder="Enter current password" maxlength="50" />
+          <input id="current-password" v-model="currentPassword" type="password" placeholder="Enter current password"
+            maxlength="50" />
         </div>
         <div class="new-password">
           <label for="new-password">New Password:</label>
-          <input id="new-password" v-model="newPassword" type="password" placeholder="New password" maxlength="50"/>
+          <input id="new-password" v-model="newPassword" type="password" placeholder="New password" maxlength="50" />
 
-          <input id="confirm-password" v-model="confirmPassword" type="password" placeholder="Confirm new password" maxlength="50"/>
+          <input id="confirm-password" v-model="confirmPassword" type="password" placeholder="Confirm new password"
+            maxlength="50" />
         </div>
       </div>
     </div>
@@ -53,12 +55,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import api from '../../../services/api';
-
-interface UserData {
-  nickname: string;
-  displayname: string;
-  avatar: string;
-}
+import { UserData } from '../../../types/models';
 
 interface Props {
   user: UserData;
@@ -142,7 +139,6 @@ const saveChanges = async () => {
 </script>
 
 <style scoped>
-
 .account-edit {
   display: flex;
   flex-direction: column;
@@ -266,7 +262,7 @@ button {
   justify-content: space-between;
 }
 
-.change-password input{
+.change-password input {
   margin-top: 5px;
 }
 
@@ -275,7 +271,7 @@ button {
 }
 
 .current-password,
-.new-password{
+.new-password {
   display: flex;
   flex-direction: column;
 }
@@ -325,11 +321,11 @@ button {
   border-radius: 50%;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: #4CAF50;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(26px);
 }
 
@@ -345,5 +341,4 @@ input:checked + .slider:before {
   font-size: 12px;
   vertical-align: middle;
 }
-
 </style>

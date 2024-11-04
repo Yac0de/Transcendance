@@ -1,0 +1,24 @@
+# Utilisation de l'image node pour le développement
+FROM node:20-alpine
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Mettre à jour npm à la dernière version
+RUN npm install -g npm@latest
+
+# Copier les fichiers package.json et package-lock.json et installer les dépendances
+COPY package*.json ./
+RUN npm install
+
+RUN npm install pinia
+RUN npm install socket.io-client
+
+# Copier tout le code source dans le conteneur
+COPY . .
+
+# Exposer le port utilisé par Vite (5173 par défaut)
+EXPOSE 5173
+
+# Démarrer le serveur de développement de Vite
+CMD ["npm", "run", "dev"]

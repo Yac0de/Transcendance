@@ -22,15 +22,9 @@
 import { ref, computed } from 'vue';
 import api from '../../../services/api';
 import { useOnlineUsersStore } from '../../../stores/onlineUsers';
+import { Friend } from '../../../types/models';
 
 const OnlineUsersStore = useOnlineUsersStore();
-
-interface Friend {
-  id: string;
-  avatar: string;
-  nickname: string;
-  isOnline: boolean;
-}
 
 const props = defineProps<{
   friend: Friend | null;

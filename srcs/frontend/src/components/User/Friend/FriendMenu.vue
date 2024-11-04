@@ -27,18 +27,7 @@ import AddFriendPopover from './AddFriendPopover.vue';
 import FriendRequestPopover from './FriendRequestPopover.vue';
 import FriendMenuActions from './FriendMenuActions.vue';
 import api from '../../../services/api';
-
-interface Friend {
-  id: string;
-  nickname: string;
-  avatar: string;
-}
-
-interface FriendRequest {
-  id: string;
-  nickname: string;
-  avatar: string;
-}
+import { FriendRequest, Friend } from '../../../types/models';
 
 const showFriendIcon = ref(true);
 const showFriendMenu = ref(false);

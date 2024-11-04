@@ -19,18 +19,15 @@
 </template>
 
 <script setup lang="ts">
-interface FriendRequest {
-  id: string;
-  nickname: string;
-}
+import { FriendRequest } from '../../../types/models';
 
-const { 
-  toggleFriendList, 
-  toggleAddFriend, 
-  toggleFriendRequests, 
-  toggleOffFriendMenu, 
-  showFriendMenu, 
-  friendRequests 
+const {
+  toggleFriendList,
+  toggleAddFriend,
+  toggleFriendRequests,
+  toggleOffFriendMenu,
+  showFriendMenu,
+  friendRequests
 } = defineProps<{
   toggleFriendList: () => void;
   toggleAddFriend: () => void;

@@ -11,12 +11,8 @@
           <p>You have no friends yet 😢</p>
         </div>
         <div v-else>
-          <FriendItem
-            v-for="friend in friends"
-            :key="friend.id"
-            :friend="friend"
-            :deleteFriendFromList="deleteFriendFromList"
-          />
+          <FriendItem v-for="friend in friends" :key="friend.id" :friend="friend"
+            :deleteFriendFromList="deleteFriendFromList" />
         </div>
       </div>
     </div>
@@ -27,12 +23,7 @@
 import { ref, onMounted } from 'vue';
 import api from '../../../services/api';
 import FriendItem from './FriendItem.vue';
-
-interface Friend {
-  id: string;
-  avatar: string;
-  nickname: string;
-}
+import { Friend } from '../../../types/models';
 
 const { toggleFriendList } = defineProps<{
   toggleFriendList: () => void;
@@ -66,7 +57,7 @@ const deleteFriendFromList = async (friendId: string) => {
 
 onMounted(fetchFriendList);
 </script>
-  
+
 <style scoped>
 .friend-list-popover {
   position: fixed;
@@ -106,4 +97,4 @@ onMounted(fetchFriendList);
   max-height: 400px;
   overflow-y: auto;
 }
-  </style>
+</style>

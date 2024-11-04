@@ -13,11 +13,7 @@
 </template>
 
 <script setup lang="ts">
-interface Friend {
-	id: string;
-	avatar: string;
-	nickname: string;
-}
+import { Friend } from '../../../types/models';
 
 defineProps<{
 	friends: Friend[];

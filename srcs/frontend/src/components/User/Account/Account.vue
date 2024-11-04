@@ -2,23 +2,13 @@
   <div v-if="userExists" class="account-container">
     <div class="account-content">
       <h2>Account Details</h2>
-      <AccountView v-if="!isViewingStats && !isEditing && !isDeleting"
-        :user="userToDisplay"
-        :isOwnProfile="isOwnProfile"
-        @startEditing="startEditing"
-      />
-      <AccountEdit v-if="isEditing && !isDeleting"
-        :user="userToDisplay"
-        :errorMessage="errorMessage"
-        @saveProfile="saveProfile"
-        @cancelEdit="cancelEdit"
-        @confirmDeleteAccount="confirmDeleteAccount"
-        @updateErrorMessage="errorMessage = $event"
-      />
-      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted"
-        @deleteAccount="deleteAccount"
-        @cancelDelete="cancelDelete"
-      />
+      <AccountView v-if="!isViewingStats && !isEditing && !isDeleting" :user="userToDisplay"
+        :isOwnProfile="isOwnProfile" @startEditing="startEditing" />
+      <AccountEdit v-if="isEditing && !isDeleting" :user="userToDisplay" :errorMessage="errorMessage"
+        @saveProfile="saveProfile" @cancelEdit="cancelEdit" @confirmDeleteAccount="confirmDeleteAccount"
+        @updateErrorMessage="errorMessage = $event" />
+      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted" @deleteAccount="deleteAccount"
+        @cancelDelete="cancelDelete" />
 
       <AccountStats v-if="isViewingStats" />
       <div v-if="!isEditing && !isDeleting">
@@ -44,12 +34,7 @@ import AccountView from './AccountView.vue'
 import AccountEdit from './AccountEdit.vue'
 import DeleteAccountPrompt from './DeleteAccountPrompt.vue'
 import AccountStats from './AccountStats.vue'
-
-interface UserData {
-  nickname: string;
-  displayname: string;
-  avatar: string;
-}
+import { UserData } from '../../../types/models';
 
 const isEditing = ref(false)
 const isDeleting = ref(false)

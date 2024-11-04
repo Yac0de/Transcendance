@@ -1,11 +1,5 @@
 import { apiRequest } from './apiUtils';
-
-interface Friend {
-    id: string;
-    displayname: string;
-    nickname: string;
-    avatar: string;
-}
+import { Friend } from '../../../types/models';
 
 export default {
     async getFriendList(): Promise<Friend[]> {

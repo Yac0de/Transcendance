@@ -2,13 +2,6 @@ import { apiRequest } from './apiUtils';
 import { WebSocketService } from './websocketService';
 import { ChatMessage } from '../types/websocket';
 
-interface ChatMessage {
-    Type: string;
-    Data: string;
-    SenderID: string;
-    ReceiverID: string;
-}
-
 export default {
     async getChatHistory(friendId: string): Promise<ChatMessage | null> {
         try {

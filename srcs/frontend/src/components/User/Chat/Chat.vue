@@ -23,19 +23,7 @@ import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
 import ChatDiscussion from './ChatDiscussion.vue';
-
-interface Friend {
-	id: string;
-	avatar: string;
-	nickname: string;
-}
-
-interface Message {
-	content: string;
-	senderId: string;
-	receiverId: string;
-	timestamp: string;
-}
+import { Friend, Message } from '../../../types/models';
 
 const showChatInterface = ref(false);
 const currentFriendId = ref<string | null>(null);

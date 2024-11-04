@@ -32,7 +32,7 @@ func newHub() *Hub {
 	}
 }
 
-func saveMessage(event Event) error {
+func saveMessage(event MessageEvent) error {
 	log.Printf("Message from %d to %d: %v", event.SenderID, event.ReceiverID, event.Data)
 	message := Message{
 		SenderID:   event.SenderID,
@@ -63,36 +63,87 @@ func saveMessage(event Event) error {
 	return nil
 }
 
+func CreateOnlineUsersEvent(clients map[uint64]*Client, clientId uint64) OnlineUsersEvent {
+	UsersOnline := OnlineUsersEvent{}
+	UsersOnline.Type = "ONLINE_USERS"
+	for id := range clients {
+		if id != clientId {
+			UsersOnline.Users = append(UsersOnline.Users, id)
+		}
+	}
+	return UsersOnline
+}
+
+func CreateUserStatusEvent(id uint64, event string) UserStatusEvent {
+	return UserStatusEvent{
+		Event: Event{
+			Type: event,
+		},
+		User: id,
+	}
+}
+
+func SendOnlineUsersToClient(h *Hub, client *Client) {
+	message, _ := json.Marshal(CreateOnlineUsersEvent(h.clients, client.Id))
+	select {
+	case h.clients[client.Id].Send <- message:
+	default:
+		close(h.clients[client.Id].Send)
+		delete(h.clients, client.Id)
+	}
+}
+
+func NotifyClients(h *Hub, clientId uint64, event string) {
+	message, _ := json.Marshal(CreateUserStatusEvent(clientId, event))
+	for id := range h.clients {
+		if id != clientId {
+			select {
+			case h.clients[id].Send <- message:
+			default:
+				close(h.clients[id].Send)
+				delete(h.clients, id)
+			}
+		}
+	}
+
+}
+
+func DispatchMessage(h *Hub, message []byte) {
+	var event MessageEvent
+	if err := json.Unmarshal(message, &event); err != nil {
+		log.Printf("error parsing message: %v", err)
+	}
+	for id := range h.clients {
+		if id == event.SenderID || id == event.ReceiverID {
+			select {
+			case h.clients[id].Send <- message:
+			default:
+				close(h.clients[id].Send)
+				delete(h.clients, id)
+			}
+		}
+	}
+	err := saveMessage(event)
+	if err != nil {
+		log.Printf("err: %v\n", err)
+	}
+}
+
 func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
 			h.clients[client.Id] = client
+			SendOnlineUsersToClient(h, client)
+			NotifyClients(h, client.Id, "NEW_CONNECTION")
 		case client := <-h.unregister:
-			log.Printf("unregister client %d", client.Id)
 			if _, ok := h.clients[client.Id]; ok {
 				delete(h.clients, client.Id)
 				close(client.Send)
+				NotifyClients(h, client.Id, "USER_DISCONNECTED")
 			}
 		case message := <-h.broadcast:
-			var event Event
-			if err := json.Unmarshal(message, &event); err != nil {
-				log.Printf("error parsing message: %v", err)
-			}
-			for id := range h.clients {
-				if id == event.SenderID || id == event.ReceiverID {
-					select {
-					case h.clients[id].Send <- message:
-					default:
-						close(h.clients[id].Send)
-						delete(h.clients, id)
-					}
-				}
-			}
-			err := saveMessage(event)
-			if err != nil {
-				log.Printf("err: %v\n", err)
-			}
+			DispatchMessage(h, message)
 		}
 	}
 }

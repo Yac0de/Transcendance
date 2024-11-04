@@ -1,6 +1,6 @@
 <template>
   <div class="friend-item">
-    <div class="friend-avatar" v-if="friend">
+    <div class="friend-avatar" v-if="friend" :class="{ 'friend-online': isOnline }">
       <img :src="api.user.getAvatarUrl(friend.avatar)" :alt="friend.nickname + '\'s avatar'" />
     </div>
     <div class="friend-info" v-if="friend">
@@ -19,19 +19,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import api from '../../../services/api';
+import { useOnlineUsersStore } from '../../../stores/onlineUsers';
+
+const OnlineUsersStore = useOnlineUsersStore();
 
 interface Friend {
   id: string;
   avatar: string;
   nickname: string;
+  isOnline: boolean;
 }
 
 const props = defineProps<{
   friend: Friend | null;
   deleteFriendFromList: (id: string) => Promise<void>;
 }>();
+
+const isOnline = computed(() => {
+  if (!props.friend) {
+    return false;
+  }
+  return OnlineUsersStore.isUserOnline(props.friend.id);
+});
 
 const loadingDeleteFriend = ref(false);
 
@@ -47,7 +58,7 @@ const deleteFriend = async () => {
   }
 };
 </script>
-  
+
 <style scoped>
 .friend-item {
   display: flex;
@@ -62,6 +73,7 @@ const deleteFriend = async () => {
   border-radius: 50%;
   overflow: hidden;
   margin-right: 10px;
+  border: 2px solid #ff0000;
 }
 
 .friend-avatar img {
@@ -69,6 +81,12 @@ const deleteFriend = async () => {
   height: 100%;
   object-fit: cover;
 }
+
+.friend-online {
+  border: 2px solid #2ecc71;
+}
+
+;
 
 .friend-info {
   flex-grow: 1;
@@ -106,4 +124,3 @@ const deleteFriend = async () => {
   color: #dc3545;
 }
 </style>
-  

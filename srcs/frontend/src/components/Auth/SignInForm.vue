@@ -5,11 +5,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../services/api';
 import AuthForm from './AuthForm.vue';
 import { useUserStore } from '../../stores/user';
+import { WebSocketService } from '../../services/websocketService';
 
 const nickname = ref('');
 const password = ref('');
@@ -41,9 +42,11 @@ const handleSubmit = async () => {
     errorMessage.value = '';
     successMessage.value = '';
     await api.auth.signin({ nickname: nickname.value, password: password.value });
-
     await userStore.fetchUser();
+
+    userStore.setWebSocketService(userStore.getId);
     console.log('Sign in successful', userStore.getNickname);
+
     successMessage.value = 'Sign in successful!';
     router.push('/');
   } catch (err: any) {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -25,14 +24,6 @@ const (
 	maxMessageSize = 1024
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
 type Client struct {
 	Id   uint64
 	Hub  *Hub
@@ -40,11 +31,12 @@ type Client struct {
 	Send chan []byte
 }
 
-type Event struct {
-	Type       string `json:"type"`
-	Data       string `json:"data"`
-	SenderID   uint64 `json:"senderId"`
-	ReceiverID uint64 `json:"receiverId"`
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 func (c *Client) readPump() {
@@ -71,6 +63,7 @@ func (c *Client) readPump() {
 		c.Hub.broadcast <- message
 	}
 }
+
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -132,21 +125,6 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client.Hub.register <- client
-
-	response := Event{
-		Type:       "connect",
-		SenderID:   client.Id,
-		ReceiverID: client.Id,
-		Data:       "",
-	}
-
-	message, err := json.Marshal(response)
-	if err != nil {
-		log.Printf("error encoding message: %v", err)
-		return
-	}
-
-	client.Send <- message
 
 	go client.writePump()
 	go client.readPump()

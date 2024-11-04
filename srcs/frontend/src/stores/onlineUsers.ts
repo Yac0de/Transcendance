@@ -25,7 +25,7 @@ export const useOnlineUsersStore = defineStore('onlineUsers', {
   
   getters: {
     isUserOnline: (state) => {
-      return (userId: string) => state.onlineUsers.includes(userId)
+      return (userId: string) => state.onlineUsers?.includes(userId)
     },
     getOnlineUsers: (state) => {
       return state.onlineUsers

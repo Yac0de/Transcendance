@@ -23,7 +23,8 @@ import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
 import ChatDiscussion from './ChatDiscussion.vue';
-import { Friend, Message } from '../../../types/models';
+import { Friend, Message, ChatHistory } from '../../../types/models';
+import { WebSocketService } from '../../../services/websocketService';
 
 const showChatInterface = ref(false);
 const currentFriendId = ref<string | null>(null);
@@ -33,7 +34,7 @@ const fetchedConversationsTracker = ref<Set<string>>(new Set());
 const conversations = ref<{ [friendId: string]: Message[] }>({});
 
 const currentFriend = computed(() =>
-	friends.value.find(f => f.id === currentFriendId.value)
+	friends.value.find((f: Friend) => f.id === currentFriendId.value)
 );
 
 const currentConversation = computed(() =>
@@ -60,13 +61,13 @@ const loadFriendDiscussion = async (friendId: string) => {
 	}
 
 	try {
-		const messages = await api.chat.getChatHistory(friendId);
-		const formattedMessages = messages.conversation.map(msg => ({
+		const messages: ChatHistory | null = await api.chat.getChatHistory(friendId);
+		const formattedMessages = messages?.conversation?.map(msg => ({
 			content: msg.content,
 			senderId: msg.senderId,
 			receiverId: msg.receiverId,
 			timestamp: msg.createdAt
-		}));
+		})) || [];
 
 		const conversationId = friendId;
 		conversations.value[conversationId] = formattedMessages;
@@ -95,11 +96,12 @@ const setupChatMessageHandler = () => {
 		return;
 	}
 
-	userStore.getWebSocketService.setMessageHandler('CHAT', (message) => {
-		const messageToPush = {
+	userStore.getWebSocketService.setMessageHandler('CHAT', (message: WebSocketHandler) => {
+		const messageToPush: Message = {
 			content: message.Data,
 			senderId: message.SenderID,
 			receiverId: message.ReceiverID,
+			timestamp: new Date().toISOString()
 		};
 
 		const conversationId = messageToPush.senderId === userStore.getId

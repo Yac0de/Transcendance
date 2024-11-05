@@ -1,3 +1,5 @@
+import { ref } from 'vue';
+
 export interface UserData {
   nickname: string;
   displayname: string;
@@ -9,12 +11,12 @@ export interface FriendRequest {
   nickname: string;
 }
 
-interface Credentials {
+export interface Credentials {
     nickname: string;
     password: string;
 }
 
-interface Friend {
+export interface Friend {
     id: string;
     displayname: string;
     nickname: string;
@@ -22,11 +24,23 @@ interface Friend {
     isOnline: boolean;
 }
 
-interface Message {
+export interface Message {
 	content: string;
 	senderId: string;
 	receiverId: string;
 	timestamp: string;
+}
+
+export interface Field {
+	label: string;
+	model: Ref<string>;
+	type: string;
+	required: bool;
+	maxlength: number;
+}
+
+export interface ChatHistory {
+	conversation: ChatMessage[]; 
 }
 
 

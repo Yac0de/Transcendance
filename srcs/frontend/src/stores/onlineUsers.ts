@@ -9,7 +9,7 @@ export const useOnlineUsersStore = defineStore('onlineUsers', {
   
   actions: {
     setOnlineUsers(users: string[]) {
-      this.onlineUsers = users;
+      this.onlineUsers = users || [];
     },
     
     addOnlineUser(userId: string) {

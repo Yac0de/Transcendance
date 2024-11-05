@@ -23,7 +23,7 @@ interface Props {
   deleted: boolean;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 const emit = defineEmits(['deleteAccount', 'cancelDelete']);
 const password = ref('');
 

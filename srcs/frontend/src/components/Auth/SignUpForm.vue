@@ -1,14 +1,7 @@
 <template>
-  <AuthForm
-    formTitle="Sign Up"
-    submitButtonLabel="Sign Up"
-    :fields="fields"
-    :successMessage="successMessage"
-    :errorMessage="errorMessage"
-    @submit="handleSubmit"
-    @secondaryAction="handleSignin"
-    secondaryButtonLabel="Back to sign in"
-  />
+  <AuthForm formTitle="Sign Up" submitButtonLabel="Sign Up" :fields="fields" :successMessage="successMessage"
+    :errorMessage="errorMessage" @submit="handleSubmit" @secondaryAction="handleSignin"
+    secondaryButtonLabel="Back to sign in" />
 </template>
 
 <script setup lang="ts">
@@ -16,6 +9,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../services/api';
 import AuthForm from './AuthForm.vue';
+import { Field } from '../../types/models';
 
 const nickname = ref('');
 const password = ref('');
@@ -25,7 +19,7 @@ const successMessage = ref('');
 const router = useRouter();
 
 // Form fields
-const fields = ref([
+const fields = ref<Field[]>([
   { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 20 },
   { label: 'Password', model: password, type: 'password', required: true, maxlength: 50 },
   { label: 'Confirm Password', model: confirmPassword, type: 'password', required: true, maxlength: 50 },
@@ -66,6 +60,4 @@ const handleSignin = () => {
 </script>
 
 
-<style scoped>
-
-</style>
+<style scoped></style>

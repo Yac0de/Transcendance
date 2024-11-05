@@ -36,7 +36,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: frontend
     ports:
       - '3000:5173'  # Redirection du port 5173 (Vite) vers 3000 (localhost)
@@ -45,6 +45,18 @@ services:
     volumes:
       - ./frontend:/app  # Volume pour synchroniser les fichiers du frontend
       - /app/node_modules  # Ne pas monter node_modules pour éviter les conflits
+    networks:
+      - transcendance_net
+    depends_on:
+      - db
+
+  frontend_prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: frontend_prod
+    ports:
+      - '80:80'
     networks:
       - transcendance_net
     depends_on:

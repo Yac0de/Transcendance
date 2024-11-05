@@ -5,12 +5,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../services/api';
 import AuthForm from './AuthForm.vue';
 import { useUserStore } from '../../stores/user';
-import { WebSocketService } from '../../services/websocketService';
+import { Field } from '../../types/models';
 
 const nickname = ref('');
 const password = ref('');
@@ -20,7 +20,7 @@ const router = useRouter();
 const userStore = useUserStore();
 
 // Form fields
-const fields = ref([
+const fields = ref<Field[]>([
   { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 20 },
   { label: 'Password', model: password, type: 'password', required: true, maxlength: 50 },
 ]);

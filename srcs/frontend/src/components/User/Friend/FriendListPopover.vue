@@ -49,7 +49,7 @@ const fetchFriendList = async () => {
 const deleteFriendFromList = async (friendId: string) => {
   try {
     await api.friendlist.deleteFromFriendList(friendId);
-    friends.value = friends.value.filter(friend => friend.id !== friendId);
+    friends.value = friends.value.filter((friend: Friend) => friend.id !== friendId);
   } catch (error) {
     console.error('Failed to delete friend', error);
   }

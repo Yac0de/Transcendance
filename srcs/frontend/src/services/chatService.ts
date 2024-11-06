@@ -3,7 +3,7 @@ import { WebSocketService } from './websocketService';
 import { ChatMessage } from '../types/websocket';
 
 export default {
-    async getChatHistory(friendId: string): Promise<ChatMessage | null> {
+    async getChatHistory(friendId: string): Promise<Message | null> {
         try {
             return await apiRequest(`/conversation/${friendId}`, { credentials: "include" });
         } catch (error: unknown) {

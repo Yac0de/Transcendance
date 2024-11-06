@@ -3,7 +3,7 @@
 		<template v-if="currentFriend">
 			<h4>{{ currentFriend.nickname }}</h4>
 			<div class="messages" ref="messageContainer">
-				<div v-for="message in messages" :key="`${message.senderId} - ${message.timestamp}`"
+				<div v-for="message in messages" :key="`${message.senderId} - ${message.createdAt}`"
 					:class="['message-wrapper', message.senderId === userId ? 'user-message' : 'receiver-message']">
 					<div class="message-content">
 						{{ message.content }}

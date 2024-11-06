@@ -24,7 +24,7 @@ import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
 import ChatDiscussion from './ChatDiscussion.vue';
 import { Friend, Message, ChatHistory } from '../../../types/models';
-import { WebSocketService } from '../../../services/websocketService';
+import { ChatMessage } from '../../../types/websocket';
 
 const showChatInterface = ref(false);
 const currentFriendId = ref<string | null>(null);
@@ -66,7 +66,7 @@ const loadFriendDiscussion = async (friendId: string) => {
 			content: msg.content,
 			senderId: msg.senderId,
 			receiverId: msg.receiverId,
-			timestamp: msg.createdAt
+			createdAt: msg.createdAt
 		})) || [];
 
 		const conversationId = friendId;
@@ -96,12 +96,12 @@ const setupChatMessageHandler = () => {
 		return;
 	}
 
-	userStore.getWebSocketService.setMessageHandler('CHAT', (message: WebSocketHandler) => {
+	userStore.getWebSocketService.setMessageHandler('CHAT', (message: ChatMessage) => {
 		const messageToPush: Message = {
 			content: message.Data,
 			senderId: message.SenderID,
 			receiverId: message.ReceiverID,
-			timestamp: new Date().toISOString()
+			createdAt: new Date().toISOString()
 		};
 
 		const conversationId = messageToPush.senderId === userStore.getId

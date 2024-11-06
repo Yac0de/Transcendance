@@ -28,7 +28,7 @@ export interface Message {
 	content: string;
 	senderId: string;
 	receiverId: string;
-	timestamp: string;
+	createdAt: string;
 }
 
 export interface Field {
@@ -40,7 +40,7 @@ export interface Field {
 }
 
 export interface ChatHistory {
-	conversation: ChatMessage[]; 
+	conversation: Message[]; 
 }
 
 

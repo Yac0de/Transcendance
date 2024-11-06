@@ -1,9 +1,19 @@
-import { ref } from 'vue';
+import { Ref } from 'vue';
+import { WebSocketService } from '../services/websocketService';
 
 export interface UserData {
+  id: string;
   nickname: string;
   displayname: string;
   avatar: string;
+}
+
+export interface UserState {
+  id: string | null;
+  nickname: string | null;
+  displayname: string | null;
+  avatar: string | null;
+  webSocketService: InstanceType<typeof WebSocketService> | null, 
 }
 
 export interface FriendRequest {
@@ -35,7 +45,7 @@ export interface Field {
 	label: string;
 	model: Ref<string>;
 	type: string;
-	required: bool;
+	required: boolean;
 	maxlength: number;
 }
 

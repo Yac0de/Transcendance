@@ -40,7 +40,7 @@ const isEditing = ref(false)
 const isDeleting = ref(false)
 const isViewingStats = ref(false)
 const deleted = ref(false)
-const userToDisplay = ref<UserData>({ nickname: '', displayname: '', avatar: '' })
+const userToDisplay = ref<UserData>({ id: '', nickname: '', displayname: '', avatar: '' })
 const successMessage = ref('')
 const errorMessage = ref('')
 const router = useRouter()
@@ -65,17 +65,19 @@ const checkOwnProfile = async () => {
 
 const fetchUserData = async (nickname: string) => {
   resetMessages()
+  console.log("YEAH YEAH");
   userExists.value = true
 
   try {
-    let userData: UserData
+    let userData: UserData | null
 
     if (nickname === userStore.getNickname) {
       userData = {
-        nickname: userStore.getNickname,
-        displayname: userStore.getDisplayName,
-        avatar: userStore.getAvatarPath
-      }
+        id: userStore.getId ?? '',
+        nickname: userStore.getNickname ?? '',
+        displayname: userStore.getDisplayName ?? '',
+        avatar: userStore.getAvatarPath ?? ''
+      };
     } else {
       userData = await api.user.getProfileData(nickname)
       if (!userData) {
@@ -126,7 +128,7 @@ const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) =>
   try {
     await api.user.updateUserProfile(updatedUser, newAvatarFile)
     await userStore.fetchUser()
-    userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath }
+    userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath ?? '' }
     successMessage.value = 'Profile updated successfully'
   } catch (error: any) {
     const errorResponse = await error.response?.json()

@@ -4,7 +4,7 @@
 			<ul>
 				<li v-for="friend in friends" :key="friend.id"
 					:class="['friend-item', { 'active': currentFriendId === friend.id }]"
-					@click="$emit('select-friend', friend.id)">
+					@click="$emit('select-friend', String(friend.id))">
 					{{ friend.nickname }}
 				</li>
 			</ul>
@@ -23,6 +23,7 @@ defineProps<{
 defineEmits<{
 	(e: 'select-friend', friendId: string): void;
 }>();
+
 </script>
 
 <style scoped>

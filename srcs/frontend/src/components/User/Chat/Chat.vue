@@ -7,7 +7,7 @@
 				<FriendList :friends="friends" :currentFriendId="currentFriendId"
 					@select-friend="selectFriend" />
 				<ChatDiscussion :currentFriend="currentFriend" :messages="currentConversation"
-					:userId="userStore.getId" @send-message="sendMessage" />
+					:userId="userStore.getId ?? ''" @send-message="sendMessage" />
 			</div>
 			<button @click="toggleChatInterface" class="close-button">
 				<i class="fas fa-times"></i>
@@ -51,6 +51,7 @@ const toggleChatInterface = () => {
 };
 
 const selectFriend = async (friendId: string) => {
+	console.log("SF = ", typeof (friendId));
 	currentFriendId.value = friendId;
 	await loadFriendDiscussion(friendId);
 };
@@ -79,10 +80,10 @@ const loadFriendDiscussion = async (friendId: string) => {
 
 const sendMessage = (message: string) => {
 	if (message.trim() && currentFriendId.value) {
-		if (userStore.getWebSocketService.isConnected()) {
-			userStore.getWebSocketService.sendMessage(
+		if (userStore.getWebSocketService?.isConnected()) {
+			userStore.getWebSocketService?.sendMessage(
 				message,
-				userStore.getId,
+				userStore.getId ?? '',
 				currentFriendId.value
 			);
 		} else {
@@ -96,7 +97,7 @@ const setupChatMessageHandler = () => {
 		return;
 	}
 
-	userStore.getWebSocketService.setMessageHandler('CHAT', (message: ChatMessage) => {
+	userStore.getWebSocketService.setMessageHandler<ChatMessage>('CHAT', (message: ChatMessage) => {
 		const messageToPush: Message = {
 			content: message.Data,
 			senderId: message.SenderID,
@@ -119,13 +120,16 @@ const fetchFriendList = async () => {
 	try {
 		const fetchedFriends = await api.friendlist.getFriendList();
 		if (fetchedFriends) {
-			friends.value = fetchedFriends;
+			friends.value = fetchedFriends.map(friend => ({
+				...friend,
+				id: String(friend.id)  // Convert number to string here
+			}));
 		}
+		console.log(typeof (friends.value[0].id));
 	} catch (error) {
 		console.error('Failed to fetch friend list', error);
 	}
 };
-
 
 onMounted(() => {
 	fetchFriendList();

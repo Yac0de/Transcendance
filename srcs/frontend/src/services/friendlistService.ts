@@ -1,5 +1,5 @@
 import { apiRequest } from './apiUtils';
-import { Friend } from '../../../types/models';
+import { Friend } from '../types/models';
 
 export default {
     async getFriendList(): Promise<Friend[]> {

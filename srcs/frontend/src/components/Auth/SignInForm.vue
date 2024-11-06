@@ -20,10 +20,10 @@ const router = useRouter();
 const userStore = useUserStore();
 
 // Form fields
-const fields = ref<Field[]>([
+const fields: Field[] = [
   { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 20 },
   { label: 'Password', model: password, type: 'password', required: true, maxlength: 50 },
-]);
+];
 
 const handleSubmit = async () => {
   // Field validation
@@ -44,7 +44,10 @@ const handleSubmit = async () => {
     await api.auth.signin({ nickname: nickname.value, password: password.value });
     await userStore.fetchUser();
 
-    userStore.setWebSocketService(userStore.getId);
+    const userId: string | null = userStore.getId;
+    if (userId) {
+      userStore.setWebSocketService(userId);
+    }
     console.log('Sign in successful', userStore.getNickname);
 
     successMessage.value = 'Sign in successful!';

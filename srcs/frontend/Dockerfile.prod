@@ -8,6 +8,8 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
+RUN npm install pinia
+RUN npm install socket.io-client
 
 # Copy project files
 COPY . .

@@ -1,16 +1,16 @@
-import type { ReturnType } from 'typescript';
-import { BaseMessage, ChatMessage, OnlineUsersMessage, UserStatusMessage } from '../types/websocket';
+import { ChatMessage, OnlineUsersMessage, UserStatusMessage } from '../types/websocket';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 
-export class WebSocketService {
-    private ws: WebSocket | null = null;
-    private clientId: string;
-    private onlineUsersStore: ReturnType<typeof useOnlineUsersStore>;
+type MessageHandler<T> = (message: T) => void;
+type MessageHandlers = {
+    [key: string]: MessageHandler<ChatMessage | OnlineUsersMessage | UserStatusMessage>;
+};
 
-    private messageHandlers = {
-    'CHAT': (message: ChatMessage) => {
-        }
-    }
+export class WebSocketService {
+    public ws: WebSocket | null = null;
+    public clientId: string;
+    public onlineUsersStore: ReturnType<typeof useOnlineUsersStore>;
+    public messageHandlers: MessageHandlers = {};
 
     constructor(clientId: string, store: ReturnType<typeof useOnlineUsersStore>) {
         this.clientId = clientId;
@@ -19,21 +19,21 @@ export class WebSocketService {
     }
 
     public initMessageHandlers(): void {
-        this.setMessageHandler('ONLINE_USERS', (message: OnlineUsersMessage) => {
+        this.setMessageHandler<OnlineUsersMessage> ('ONLINE_USERS', (message: OnlineUsersMessage) => {
             this.onlineUsersStore.setOnlineUsers(message.UsersOnline);
         });
 
-        this.setMessageHandler('USER_DISCONNECTED', (message: UserStatusMessage) => {
+        this.setMessageHandler<UserStatusMessage>('USER_DISCONNECTED', (message: UserStatusMessage) => {
             this.onlineUsersStore.removeOnlineUser(message.User);
         });
 
-        this.setMessageHandler('NEW_CONNECTION', (message: UserStatusMessage) => {
+        this.setMessageHandler<UserStatusMessage>('NEW_CONNECTION', (message: UserStatusMessage) => {
             this.onlineUsersStore.addOnlineUser(message.User);
         });
     }
 
-    public setMessageHandler(type: string, handler: (message: any) => void): void {
-        this.messageHandlers[type] = handler;
+    public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
+        this.messageHandlers[type] = handler as MessageHandler<ChatMessage | OnlineUsersMessage | UserStatusMessage>;
     }
 
     public connect(): void {
@@ -43,7 +43,7 @@ export class WebSocketService {
             this.ws = new WebSocket(url);
             this.ws.onopen = () => {
                 console.log('Websocket connected!');
-                console.log('WS ready state: ', this.ws.readyState);
+                console.log('WS ready state: ', this.ws?.readyState);
             };
             this.ws.onclose = (event) => {
                 console.log('Disconnected to Websocket!, ', event.reason);
@@ -89,4 +89,3 @@ export class WebSocketService {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }
 }
-

@@ -5,7 +5,7 @@
       <form @submit.prevent="onSubmit">
         <div v-for="(field, index) in fields" :key="index">
           <label :for="field.label">{{ field.label }}</label>
-          <input :type="field.type" :id="field.label" v-model="field.model" :required="field.required"
+          <input :type="field.type" :id="field.label" v-model="field.model.value" :required="field.required"
             :maxlength="field.maxlength" />
         </div>
         <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>

@@ -1,9 +1,9 @@
 import { apiRequest } from './apiUtils';
 import { WebSocketService } from './websocketService';
-import { ChatMessage } from '../types/websocket';
+import { ChatHistory } from '../types/models';
 
 export default {
-    async getChatHistory(friendId: string): Promise<Message | null> {
+    async getChatHistory(friendId: string): Promise<ChatHistory | null> {
         try {
             return await apiRequest(`/conversation/${friendId}`, { credentials: "include" });
         } catch (error: unknown) {

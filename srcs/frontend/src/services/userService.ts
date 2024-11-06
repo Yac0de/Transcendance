@@ -1,5 +1,5 @@
 import { apiRequest, API_BASE_URL } from './apiUtils';
-import { UserData } from '../../../types/models';
+import { UserData } from '../types/models';
 
 export default {
     async getUserData(): Promise<UserData | null> {

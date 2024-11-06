@@ -1,7 +1,6 @@
 import { apiRequest } from './apiUtils';
-import userService from './userService';
 import { useUserStore } from '../stores/user';
-import { Credentials } from '../../../types/models';
+import { Credentials } from '../types/models';
 
 export default {
     async signin(credentials: Credentials): Promise<any> {

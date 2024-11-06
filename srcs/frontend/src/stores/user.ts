@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 import api from '../services/api'
 import { WebSocketService } from '../services/websocketService';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
+import { UserState, UserData } from '../types/models';
 
 export const useUserStore = defineStore('user', {
-  state: () => ({
+  state: (): UserState => ({
     id: null,
     nickname: null,
     displayname: null,
@@ -12,22 +13,22 @@ export const useUserStore = defineStore('user', {
     webSocketService: null, 
   }),
   getters: {
-    getId: (state) => state.id,
-    getNickname: (state) => state.nickname,
-    getDisplayName: (state) => state.displayname,
-    getAvatarPath: (state) => state.avatar,
-    isSignedIn: (state) => !!state.id,
-    getWebSocketService: (state) => state.webSocketService
+    getId: (state): string | null => state.id,
+    getNickname: (state): string | null => state.nickname,
+    getDisplayName: (state): string | null => state.displayname,
+    getAvatarPath: (state): string | null => state.avatar,
+    isSignedIn: (state): boolean => !!state.id,
+    getWebSocketService: (state): InstanceType<typeof WebSocketService> | null => state.webSocketService
   },
   actions: {
-    setUser(userData) {
+    setUser(userData: UserData) {
       this.$patch({
         id: userData.id,
         nickname: userData.nickname,
         displayname: userData.displayname,
         avatar: userData.avatar
       });
-      const storageData = {
+      const storageData: UserData = {
         id: userData.id,
         nickname: userData.nickname,
         displayname: userData.displayname,
@@ -36,16 +37,16 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem('userData', JSON.stringify(storageData))
     },
 
-    setWebSocketService(userId) {
+    setWebSocketService(userId: string) {
       const store = useOnlineUsersStore();
-      const webSocketService = new WebSocketService(userId, store);
+      const webSocketService: WebSocketService = new WebSocketService(userId, store);
       webSocketService.connect();
       this.webSocketService = webSocketService;
     },
 
     async fetchUser() {
       try {
-        const userData = await api.user.getUserData()
+        const userData: UserData | null = await api.user.getUserData()
         if (userData) {
           const currentWS = this.webSocketService;
           
@@ -65,7 +66,7 @@ export const useUserStore = defineStore('user', {
 
     clearUser() {
       if (this.webSocketService) {
-        this.webSocketService.disconnect();
+        this.webSocketService?.disconnect();
         this.webSocketService = null;
       }
       this.$reset()
@@ -75,7 +76,7 @@ export const useUserStore = defineStore('user', {
     loadUserFromStorage() {
       const storedUser = localStorage.getItem('userData')
       if (storedUser) {
-        const userData = JSON.parse(storedUser)
+        const userData: UserData = JSON.parse(storedUser)
         this.$patch(userData)
 
         const store = useOnlineUsersStore();

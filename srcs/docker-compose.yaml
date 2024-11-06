@@ -50,17 +50,17 @@ services:
     depends_on:
       - db
 
-  frontend_prod:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-    container_name: frontend_prod
-    ports:
-      - '80:80'
-    networks:
-      - transcendance_net
-    depends_on:
-      - db
+  # frontend_prod:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.prod
+  #   container_name: frontend_prod
+  #   ports:
+  #     - '80:80'
+  #   networks:
+  #     - transcendance_net
+  #   depends_on:
+  #     - db
 
   # Backend en Go
   backend:

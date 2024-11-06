@@ -65,7 +65,6 @@ const checkOwnProfile = async () => {
 
 const fetchUserData = async (nickname: string) => {
   resetMessages()
-  console.log("YEAH YEAH");
   userExists.value = true
 
   try {

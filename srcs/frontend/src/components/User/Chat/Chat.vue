@@ -51,7 +51,6 @@ const toggleChatInterface = () => {
 };
 
 const selectFriend = async (friendId: string) => {
-	console.log("SF = ", typeof (friendId));
 	currentFriendId.value = friendId;
 	await loadFriendDiscussion(friendId);
 };
@@ -125,7 +124,6 @@ const fetchFriendList = async () => {
 				id: String(friend.id)  // Convert number to string here
 			}));
 		}
-		console.log(typeof (friends.value[0].id));
 	} catch (error) {
 		console.error('Failed to fetch friend list', error);
 	}

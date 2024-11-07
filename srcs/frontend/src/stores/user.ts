@@ -13,12 +13,12 @@ export const useUserStore = defineStore('user', {
     webSocketService: null, 
   }),
   getters: {
-    getId: (state): string | null => state.id,
-    getNickname: (state): string | null => state.nickname,
-    getDisplayName: (state): string | null => state.displayname,
-    getAvatarPath: (state): string | null => state.avatar,
-    isSignedIn: (state): boolean => !!state.id,
-    getWebSocketService: (state): InstanceType<typeof WebSocketService> | null => state.webSocketService
+    getId: (state: UserState): string | null => state.id,
+    getNickname: (state: UserState): string | null => state.nickname,
+    getDisplayName: (state: UserState): string | null => state.displayname,
+    getAvatarPath: (state: UserState): string | null => state.avatar,
+    isSignedIn: (state: UserState): boolean => !!state.id,
+    getWebSocketService: (state: UserState): InstanceType<typeof WebSocketService> | null => state.webSocketService
   },
   actions: {
     setUser(userData: UserData) {

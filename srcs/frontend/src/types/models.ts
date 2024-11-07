@@ -16,11 +16,6 @@ export interface UserState {
   webSocketService: InstanceType<typeof WebSocketService> | null, 
 }
 
-export interface FriendRequest {
-  id: string;
-  nickname: string;
-}
-
 export interface Credentials {
     nickname: string;
     password: string;

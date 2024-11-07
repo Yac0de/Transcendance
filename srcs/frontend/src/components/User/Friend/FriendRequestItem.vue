@@ -14,10 +14,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { FriendRequest } from '../../../types/models';
+import { Friend } from '../../../types/models';
 
 const props = defineProps<{
-  request: FriendRequest;
+  request: Friend;
   acceptFriend: (id: string) => Promise<void>;
   denyFriend: (id: string) => Promise<void>;
 }>();

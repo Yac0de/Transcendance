@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { FriendRequest } from '../../../types/models';
+import { Friend } from '../../../types/models';
 
 const {
   toggleFriendList,
@@ -34,7 +34,7 @@ const {
   toggleFriendRequests: () => void;
   toggleOffFriendMenu: () => void;
   showFriendMenu: boolean;
-  friendRequests: FriendRequest[];
+  friendRequests: Friend[] | null;
 }>();
 </script>
 

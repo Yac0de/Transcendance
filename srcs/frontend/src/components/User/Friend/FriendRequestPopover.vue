@@ -32,15 +32,16 @@
     </div>
   </div>
 </template>
-  
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import api from '../../../services/api';
+import { Friend } from '../../../types/models';
 
 const { toggleFriendRequests, fetchFriendRequests, friendRequests } = defineProps<{
   toggleFriendRequests: () => void;
   fetchFriendRequests: () => void;
-  friendRequests: Array<{ id: string; nickname: string; avatar: string}>;
+  friendRequests: Friend[] | null;
 }>();
 
 const loadingFriendRequests = ref(false);
@@ -49,26 +50,26 @@ const errorMessage = ref('');
 
 // Fonction pour accepter une demande d'ami
 const acceptFriend = async (friendId: string) => {
-    try {
-        await api.friendlist.acceptFriendRequest(friendId);
-        friendRequests.splice(friendRequests.findIndex(req => req.id === friendId), 1);
-        successMessage.value = 'Friend request accepted!';
-        fetchFriendRequests();
-    } catch (error) {
-        errorMessage.value = 'Failed to accept friend request';
-    }
+  try {
+    await api.friendlist.acceptFriendRequest(friendId);
+    friendRequests.splice(friendRequests.findIndex(req => req.id === friendId), 1);
+    successMessage.value = 'Friend request accepted!';
+    fetchFriendRequests();
+  } catch (error) {
+    errorMessage.value = 'Failed to accept friend request';
+  }
 };
 
 // Fonction pour refuser une demande d'ami
 const denyFriend = async (requestId: string) => {
-    try {
-        await api.friendlist.denyFriendRequest(requestId);
-        friendRequests.splice(friendRequests.findIndex(req => req.id === requestId), 1);
-        successMessage.value = 'Friend request denied!';
-        fetchFriendRequests();
-    } catch (error) {
-        errorMessage.value = 'Failed to deny friend request';
-    }
+  try {
+    await api.friendlist.denyFriendRequest(requestId);
+    friendRequests.splice(friendRequests.findIndex(req => req.id === requestId), 1);
+    successMessage.value = 'Friend request denied!';
+    fetchFriendRequests();
+  } catch (error) {
+    errorMessage.value = 'Failed to deny friend request';
+  }
 };
 
 onMounted(fetchFriendRequests);
@@ -77,7 +78,6 @@ onMounted(fetchFriendRequests);
 
 
 <style scoped>
-
 .friend-requests-popover {
   position: fixed;
   bottom: 80px;
@@ -203,11 +203,11 @@ onMounted(fetchFriendRequests);
 }
 
 @media (max-width: 600px) {
-.friend-requests-popover {
-  bottom: 70px;
-  right: 10px;
-  width: calc(100% - 20px);
-  max-width: 300px;
-}
+  .friend-requests-popover {
+    bottom: 70px;
+    right: 10px;
+    width: calc(100% - 20px);
+    max-width: 300px;
+  }
 }
 </style>

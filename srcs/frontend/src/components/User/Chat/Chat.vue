@@ -119,10 +119,7 @@ const fetchFriendList = async () => {
 	try {
 		const fetchedFriends = await api.friendlist.getFriendList();
 		if (fetchedFriends) {
-			friends.value = fetchedFriends.map(friend => ({
-				...friend,
-				id: String(friend.id)  // Convert number to string here
-			}));
+			friends.value = fetchedFriends;
 		}
 	} catch (error) {
 		console.error('Failed to fetch friend list', error);

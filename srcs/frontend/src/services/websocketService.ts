@@ -8,11 +8,11 @@ type MessageHandlers = {
 
 export class WebSocketService {
     public ws: WebSocket | null = null;
-    public clientId: string;
+    public clientId: number;
     public onlineUsersStore: ReturnType<typeof useOnlineUsersStore>;
     public messageHandlers: MessageHandlers = {};
 
-    constructor(clientId: string, store: ReturnType<typeof useOnlineUsersStore>) {
+    constructor(clientId: number, store: ReturnType<typeof useOnlineUsersStore>) {
         this.clientId = clientId;
         this.onlineUsersStore = store;
         this.initMessageHandlers();
@@ -66,7 +66,7 @@ export class WebSocketService {
             console.error('Could not connect to the ws: ', error);
         }
     }
-    public sendMessage(content: string, senderID: string, receiverID: string): void {
+    public sendMessage(content: string, senderID: number, receiverID: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: ChatMessage = {
                 Type: 'CHAT',

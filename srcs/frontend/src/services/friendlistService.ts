@@ -13,7 +13,7 @@ export default {
         return response;
     },
 
-    async deleteFromFriendList(friendId: string): Promise<void> {
+    async deleteFromFriendList(friendId: number): Promise<void> {
         return apiRequest(`/users/friendships/delete/${friendId}`, {
             method: 'DELETE',
             credentials: 'include',
@@ -37,14 +37,14 @@ export default {
         });
     },
 
-    async acceptFriendRequest(friendId: string): Promise<void> {
+    async acceptFriendRequest(friendId: number): Promise<void> {
         return apiRequest(`/users/friendships/accept/${friendId}`, {
             method: 'PUT',
             credentials: 'include',
         });
     },
 
-    async denyFriendRequest(friendId: string): Promise<void> {
+    async denyFriendRequest(friendId: number): Promise<void> {
         return apiRequest(`/users/friendships/deny/${friendId}`, {
             method: 'PUT',
             credentials: 'include',

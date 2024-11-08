@@ -36,7 +36,7 @@ const scrollToBottom = () => {
 const props = defineProps<{
 	currentFriend: Friend | undefined;
 	messages: Message[];
-	userId: string;
+	userId: number;
 }>();
 
 const emit = defineEmits<{

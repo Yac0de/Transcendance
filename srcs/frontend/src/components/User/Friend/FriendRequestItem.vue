@@ -18,8 +18,8 @@ import { Friend } from '../../../types/models';
 
 const props = defineProps<{
   request: Friend;
-  acceptFriend: (id: string) => Promise<void>;
-  denyFriend: (id: string) => Promise<void>;
+  acceptFriend: (id: number) => Promise<void>;
+  denyFriend: (id: number) => Promise<void>;
 }>();
 
 const loadingAccept = ref(false);

@@ -44,7 +44,7 @@ const handleSubmit = async () => {
     await api.auth.signin({ nickname: nickname.value, password: password.value });
     await userStore.fetchUser();
 
-    const userId: string | null = userStore.getId;
+    const userId: number | null = userStore.getId;
     if (userId) {
       userStore.setWebSocketService(userId);
     }

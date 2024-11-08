@@ -49,10 +49,10 @@ const successMessage = ref('');
 const errorMessage = ref('');
 
 // Fonction pour accepter une demande d'ami
-const acceptFriend = async (friendId: string) => {
+const acceptFriend = async (friendId: number) => {
   try {
     await api.friendlist.acceptFriendRequest(friendId);
-    friendRequests.splice(friendRequests.findIndex(req => req.id === friendId), 1);
+    friendRequests?.splice(friendRequests.findIndex(req => req.id === friendId), 1);
     successMessage.value = 'Friend request accepted!';
     fetchFriendRequests();
   } catch (error) {
@@ -61,10 +61,10 @@ const acceptFriend = async (friendId: string) => {
 };
 
 // Fonction pour refuser une demande d'ami
-const denyFriend = async (requestId: string) => {
+const denyFriend = async (requestId: number) => {
   try {
     await api.friendlist.denyFriendRequest(requestId);
-    friendRequests.splice(friendRequests.findIndex(req => req.id === requestId), 1);
+    friendRequests?.splice(friendRequests.findIndex(req => req.id === requestId), 1);
     successMessage.value = 'Friend request denied!';
     fetchFriendRequests();
   } catch (error) {

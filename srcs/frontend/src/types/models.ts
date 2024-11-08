@@ -2,14 +2,14 @@ import { Ref } from 'vue';
 import { WebSocketService } from '../services/websocketService';
 
 export interface UserData {
-  id: string;
+  id: number;
   nickname: string;
   displayname: string;
   avatar: string;
 }
 
 export interface UserState {
-  id: string | null;
+  id: number | null;
   nickname: string | null;
   displayname: string | null;
   avatar: string | null;
@@ -22,7 +22,7 @@ export interface Credentials {
 }
 
 export interface Friend {
-    id: string;
+    id: number;
     displayname: string;
     nickname: string;
     avatar: string;
@@ -31,8 +31,8 @@ export interface Friend {
 
 export interface Message {
 	content: string;
-	senderId: string;
-	receiverId: string;
+	senderId: number;
+	receiverId: number;
 	createdAt: string;
 }
 

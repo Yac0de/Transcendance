@@ -46,7 +46,7 @@ const fetchFriendList = async () => {
   }
 };
 
-const deleteFriendFromList = async (friendId: string) => {
+const deleteFriendFromList = async (friendId: number) => {
   try {
     await api.friendlist.deleteFromFriendList(friendId);
     friends.value = friends.value.filter((friend: Friend) => friend.id !== friendId);

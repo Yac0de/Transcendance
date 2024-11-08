@@ -40,7 +40,7 @@ const isEditing = ref(false)
 const isDeleting = ref(false)
 const isViewingStats = ref(false)
 const deleted = ref(false)
-const userToDisplay = ref<UserData>({ id: '', nickname: '', displayname: '', avatar: '' })
+const userToDisplay = ref<UserData>({ id: 0, nickname: '', displayname: '', avatar: '' })
 const successMessage = ref('')
 const errorMessage = ref('')
 const router = useRouter()
@@ -72,7 +72,7 @@ const fetchUserData = async (nickname: string) => {
 
     if (nickname === userStore.getNickname) {
       userData = {
-        id: userStore.getId ?? '',
+        id: userStore.getId ?? 0,
         nickname: userStore.getNickname ?? '',
         displayname: userStore.getDisplayName ?? '',
         avatar: userStore.getAvatarPath ?? ''

@@ -13,7 +13,7 @@ export const useUserStore = defineStore('user', {
     webSocketService: null, 
   }),
   getters: {
-    getId: (state: UserState): string | null => state.id,
+    getId: (state: UserState): number | null => state.id,
     getNickname: (state: UserState): string | null => state.nickname,
     getDisplayName: (state: UserState): string | null => state.displayname,
     getAvatarPath: (state: UserState): string | null => state.avatar,
@@ -37,7 +37,7 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem('userData', JSON.stringify(storageData))
     },
 
-    setWebSocketService(userId: string) {
+    setWebSocketService(userId: number) {
       const store = useOnlineUsersStore();
       const webSocketService: WebSocketService = new WebSocketService(userId, store);
       webSocketService.connect();

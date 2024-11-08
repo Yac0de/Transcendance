@@ -8,7 +8,7 @@
     </button>
     <button @click="toggleFriendRequests" class="icon-button friend-requests-button">
       <i class="fas fa-bell"></i>
-      <span v-if="friendRequests.length > 0" class="notification-badge">
+      <span v-if="friendRequests && friendRequests.length > 0" class="notification-badge">
         {{ friendRequests.length }}
       </span>
     </button>

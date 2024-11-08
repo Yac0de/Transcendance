@@ -7,7 +7,7 @@
 				<FriendList :friends="friends" :currentFriendId="currentFriendId"
 					@select-friend="selectFriend" />
 				<ChatDiscussion :currentFriend="currentFriend" :messages="currentConversation"
-					:userId="userStore.getId ?? ''" @send-message="sendMessage" />
+					:userId="userStore.getId ?? 0" @send-message="sendMessage" />
 			</div>
 			<button @click="toggleChatInterface" class="close-button">
 				<i class="fas fa-times"></i>
@@ -27,11 +27,11 @@ import { Friend, Message, ChatHistory } from '../../../types/models';
 import { ChatMessage } from '../../../types/websocket';
 
 const showChatInterface = ref(false);
-const currentFriendId = ref<string | null>(null);
+const currentFriendId = ref<number | null>(null);
 const userStore = useUserStore();
 const friends = ref<Friend[]>([]);
-const fetchedConversationsTracker = ref<Set<string>>(new Set());
-const conversations = ref<{ [friendId: string]: Message[] }>({});
+const fetchedConversationsTracker = ref<Set<number>>(new Set());
+const conversations = ref<{ [friendId: number]: Message[] }>({});
 
 const currentFriend = computed(() =>
 	friends.value.find((f: Friend) => f.id === currentFriendId.value)
@@ -50,12 +50,12 @@ const toggleChatInterface = () => {
 	}
 };
 
-const selectFriend = async (friendId: string) => {
+const selectFriend = async (friendId: number) => {
 	currentFriendId.value = friendId;
 	await loadFriendDiscussion(friendId);
 };
 
-const loadFriendDiscussion = async (friendId: string) => {
+const loadFriendDiscussion = async (friendId: number) => {
 	if (fetchedConversationsTracker.value.has(friendId)) {
 		return;
 	}
@@ -82,7 +82,7 @@ const sendMessage = (message: string) => {
 		if (userStore.getWebSocketService?.isConnected()) {
 			userStore.getWebSocketService?.sendMessage(
 				message,
-				userStore.getId ?? '',
+				userStore.getId ?? 0,
 				currentFriendId.value
 			);
 		} else {

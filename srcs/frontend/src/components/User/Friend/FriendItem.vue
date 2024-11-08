@@ -28,7 +28,7 @@ const OnlineUsersStore = useOnlineUsersStore();
 
 const props = defineProps<{
   friend: Friend | null;
-  deleteFriendFromList: (id: string) => Promise<void>;
+  deleteFriendFromList: (id: number) => Promise<void>;
 }>();
 
 const isOnline = computed(() => {

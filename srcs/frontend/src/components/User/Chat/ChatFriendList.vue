@@ -17,7 +17,7 @@ import { Friend } from '../../../types/models';
 
 defineProps<{
 	friends: Friend[];
-	currentFriendId: string | null;
+	currentFriendId: number | null;
 }>();
 
 defineEmits<{

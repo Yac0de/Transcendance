@@ -8,7 +8,7 @@
     </button>
     <button @click="toggleFriendRequests" class="icon-button friend-requests-button">
       <i class="fas fa-bell"></i>
-      <span v-if="friendRequests.length > 0" class="notification-badge">
+      <span v-if="friendRequests && friendRequests.length > 0" class="notification-badge">
         {{ friendRequests.length }}
       </span>
     </button>
@@ -19,25 +19,22 @@
 </template>
 
 <script setup lang="ts">
-interface FriendRequest {
-  id: string;
-  nickname: string;
-}
+import { Friend } from '../../../types/models';
 
-const { 
-  toggleFriendList, 
-  toggleAddFriend, 
-  toggleFriendRequests, 
-  toggleOffFriendMenu, 
-  showFriendMenu, 
-  friendRequests 
+const {
+  toggleFriendList,
+  toggleAddFriend,
+  toggleFriendRequests,
+  toggleOffFriendMenu,
+  showFriendMenu,
+  friendRequests
 } = defineProps<{
   toggleFriendList: () => void;
   toggleAddFriend: () => void;
   toggleFriendRequests: () => void;
   toggleOffFriendMenu: () => void;
   showFriendMenu: boolean;
-  friendRequests: FriendRequest[];
+  friendRequests: Friend[] | null;
 }>();
 </script>
 

@@ -20,12 +20,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import api from '../../../services/api';
-
-interface UserData {
-  nickname: string;
-  displayname: string;
-  avatar: string;
-}
+import { UserData } from '../../../types/models';
 
 interface Props {
   user: UserData;

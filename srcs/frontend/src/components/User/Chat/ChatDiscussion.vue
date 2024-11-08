@@ -3,7 +3,7 @@
 		<template v-if="currentFriend">
 			<h4>{{ currentFriend.nickname }}</h4>
 			<div class="messages" ref="messageContainer">
-				<div v-for="message in messages" :key="message.id"
+				<div v-for="message in messages" :key="`${message.senderId} - ${message.createdAt}`"
 					:class="['message-wrapper', message.senderId === userId ? 'user-message' : 'receiver-message']">
 					<div class="message-content">
 						{{ message.content }}
@@ -21,19 +21,7 @@
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue';
 import { ref, watch, nextTick } from 'vue';
-
-interface Friend {
-	id: string;
-	avatar: string;
-	nickname: string;
-}
-
-interface Message {
-	content: string;
-	senderId: string;
-	receiverId: string;
-	timestamp: string;
-}
+import { Friend, Message } from '../../../types/models';
 
 const messageContainer = ref<HTMLElement | null>(null);
 

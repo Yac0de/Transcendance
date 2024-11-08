@@ -7,7 +7,7 @@
 				<FriendList :friends="friends" :currentFriendId="currentFriendId"
 					@select-friend="selectFriend" />
 				<ChatDiscussion :currentFriend="currentFriend" :messages="currentConversation"
-					:userId="userStore.getId" @send-message="sendMessage" />
+					:userId="userStore.getId ?? 0" @send-message="sendMessage" />
 			</div>
 			<button @click="toggleChatInterface" class="close-button">
 				<i class="fas fa-times"></i>
@@ -23,29 +23,18 @@ import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
 import ChatDiscussion from './ChatDiscussion.vue';
-
-interface Friend {
-	id: string;
-	avatar: string;
-	nickname: string;
-}
-
-interface Message {
-	content: string;
-	senderId: string;
-	receiverId: string;
-	timestamp: string;
-}
+import { Friend, Message, ChatHistory } from '../../../types/models';
+import { ChatMessage } from '../../../types/websocket';
 
 const showChatInterface = ref(false);
-const currentFriendId = ref<string | null>(null);
+const currentFriendId = ref<number | null>(null);
 const userStore = useUserStore();
 const friends = ref<Friend[]>([]);
-const fetchedConversationsTracker = ref<Set<string>>(new Set());
-const conversations = ref<{ [friendId: string]: Message[] }>({});
+const fetchedConversationsTracker = ref<Set<number>>(new Set());
+const conversations = ref<{ [friendId: number]: Message[] }>({});
 
 const currentFriend = computed(() =>
-	friends.value.find(f => f.id === currentFriendId.value)
+	friends.value.find((f: Friend) => f.id === currentFriendId.value)
 );
 
 const currentConversation = computed(() =>
@@ -61,24 +50,24 @@ const toggleChatInterface = () => {
 	}
 };
 
-const selectFriend = async (friendId: string) => {
+const selectFriend = async (friendId: number) => {
 	currentFriendId.value = friendId;
 	await loadFriendDiscussion(friendId);
 };
 
-const loadFriendDiscussion = async (friendId: string) => {
+const loadFriendDiscussion = async (friendId: number) => {
 	if (fetchedConversationsTracker.value.has(friendId)) {
 		return;
 	}
 
 	try {
-		const messages = await api.chat.getChatHistory(friendId);
-		const formattedMessages = messages.conversation.map(msg => ({
+		const messages: ChatHistory | null = await api.chat.getChatHistory(friendId);
+		const formattedMessages = messages?.conversation?.map(msg => ({
 			content: msg.content,
 			senderId: msg.senderId,
 			receiverId: msg.receiverId,
-			timestamp: msg.createdAt
-		}));
+			createdAt: msg.createdAt
+		})) || [];
 
 		const conversationId = friendId;
 		conversations.value[conversationId] = formattedMessages;
@@ -90,10 +79,10 @@ const loadFriendDiscussion = async (friendId: string) => {
 
 const sendMessage = (message: string) => {
 	if (message.trim() && currentFriendId.value) {
-		if (userStore.getWebSocketService.isConnected()) {
-			userStore.getWebSocketService.sendMessage(
+		if (userStore.getWebSocketService?.isConnected()) {
+			userStore.getWebSocketService?.sendMessage(
 				message,
-				userStore.getId,
+				userStore.getId ?? 0,
 				currentFriendId.value
 			);
 		} else {
@@ -107,11 +96,12 @@ const setupChatMessageHandler = () => {
 		return;
 	}
 
-	userStore.getWebSocketService.setMessageHandler('CHAT', (message) => {
-		const messageToPush = {
+	userStore.getWebSocketService.setMessageHandler<ChatMessage>('CHAT', (message: ChatMessage) => {
+		const messageToPush: Message = {
 			content: message.Data,
 			senderId: message.SenderID,
 			receiverId: message.ReceiverID,
+			createdAt: new Date().toISOString()
 		};
 
 		const conversationId = messageToPush.senderId === userStore.getId
@@ -135,7 +125,6 @@ const fetchFriendList = async () => {
 		console.error('Failed to fetch friend list', error);
 	}
 };
-
 
 onMounted(() => {
 	fetchFriendList();

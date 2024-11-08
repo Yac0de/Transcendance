@@ -11,19 +11,15 @@
     </div>
   </div>
 </template>
-  
+
 <script setup lang="ts">
 import { ref } from 'vue';
-
-interface FriendRequest {
-  id: string;
-  nickname: string;
-}
+import { Friend } from '../../../types/models';
 
 const props = defineProps<{
-  request: FriendRequest;
-  acceptFriend: (id: string) => Promise<void>;
-  denyFriend: (id: string) => Promise<void>;
+  request: Friend;
+  acceptFriend: (id: number) => Promise<void>;
+  denyFriend: (id: number) => Promise<void>;
 }>();
 
 const loadingAccept = ref(false);
@@ -51,7 +47,7 @@ const denyRequest = async () => {
   }
 };
 </script>
-  
+
 <style scoped>
 .friend-request-item {
   display: flex;

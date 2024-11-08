@@ -2,23 +2,13 @@
   <div v-if="userExists" class="account-container">
     <div class="account-content">
       <h2>Account Details</h2>
-      <AccountView v-if="!isViewingStats && !isEditing && !isDeleting"
-        :user="userToDisplay"
-        :isOwnProfile="isOwnProfile"
-        @startEditing="startEditing"
-      />
-      <AccountEdit v-if="isEditing && !isDeleting"
-        :user="userToDisplay"
-        :errorMessage="errorMessage"
-        @saveProfile="saveProfile"
-        @cancelEdit="cancelEdit"
-        @confirmDeleteAccount="confirmDeleteAccount"
-        @updateErrorMessage="errorMessage = $event"
-      />
-      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted"
-        @deleteAccount="deleteAccount"
-        @cancelDelete="cancelDelete"
-      />
+      <AccountView v-if="!isViewingStats && !isEditing && !isDeleting" :user="userToDisplay"
+        :isOwnProfile="isOwnProfile" @startEditing="startEditing" />
+      <AccountEdit v-if="isEditing && !isDeleting" :user="userToDisplay" :errorMessage="errorMessage"
+        @saveProfile="saveProfile" @cancelEdit="cancelEdit" @confirmDeleteAccount="confirmDeleteAccount"
+        @updateErrorMessage="errorMessage = $event" />
+      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted" @deleteAccount="deleteAccount"
+        @cancelDelete="cancelDelete" />
 
       <AccountStats v-if="isViewingStats" />
       <div v-if="!isEditing && !isDeleting">
@@ -44,18 +34,13 @@ import AccountView from './AccountView.vue'
 import AccountEdit from './AccountEdit.vue'
 import DeleteAccountPrompt from './DeleteAccountPrompt.vue'
 import AccountStats from './AccountStats.vue'
-
-interface UserData {
-  nickname: string;
-  displayname: string;
-  avatar: string;
-}
+import { UserData } from '../../../types/models';
 
 const isEditing = ref(false)
 const isDeleting = ref(false)
 const isViewingStats = ref(false)
 const deleted = ref(false)
-const userToDisplay = ref<UserData>({ nickname: '', displayname: '', avatar: '' })
+const userToDisplay = ref<UserData>({ id: 0, nickname: '', displayname: '', avatar: '' })
 const successMessage = ref('')
 const errorMessage = ref('')
 const router = useRouter()
@@ -83,14 +68,15 @@ const fetchUserData = async (nickname: string) => {
   userExists.value = true
 
   try {
-    let userData: UserData
+    let userData: UserData | null
 
     if (nickname === userStore.getNickname) {
       userData = {
-        nickname: userStore.getNickname,
-        displayname: userStore.getDisplayName,
-        avatar: userStore.getAvatarPath
-      }
+        id: userStore.getId ?? 0,
+        nickname: userStore.getNickname ?? '',
+        displayname: userStore.getDisplayName ?? '',
+        avatar: userStore.getAvatarPath ?? ''
+      };
     } else {
       userData = await api.user.getProfileData(nickname)
       if (!userData) {
@@ -141,7 +127,7 @@ const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) =>
   try {
     await api.user.updateUserProfile(updatedUser, newAvatarFile)
     await userStore.fetchUser()
-    userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath }
+    userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath ?? '' }
     successMessage.value = 'Profile updated successfully'
   } catch (error: any) {
     const errorResponse = await error.response?.json()

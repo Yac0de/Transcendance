@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw, NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 import HomeView from '../components/General/HomeView.vue'
 import SignInForm from '../components/Auth/SignInForm.vue'
 import SignUpForm from '../components/Auth/SignUpForm.vue'
@@ -41,9 +41,9 @@ const router = createRouter({
 })
 
 // Navigation Guard (executé avant chaque changement de route)
-router.beforeEach(async (to, _from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  const requiresGuest = to.matched.some(record => record.meta.requiresGuest);
+router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
+  const requiresAuth = to.matched.some((record: RouteRecordRaw) => record.meta && record.meta.requiresAuth);
+  const requiresGuest = to.matched.some((record: RouteRecordRaw) => record.meta && record.meta.requiresGuest);
 
   const userStore = useUserStore();
   const nickname = userStore.getNickname;

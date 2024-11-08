@@ -5,16 +5,16 @@ export interface BaseMessage {
 export interface ChatMessage extends BaseMessage {
   Type: 'CHAT';
   Data: string;
-  SenderID: string;
-  ReceiverID: string;
+  SenderID: number;
+  ReceiverID: number;
 }
 
 export interface OnlineUsersMessage extends BaseMessage {
   Type: 'ONLINE_USERS';
-  UsersOnline: string[];
+  UsersOnline: number[];
 }
 
 export interface UserStatusMessage extends BaseMessage {
   Type: 'USER_DISCONNECTED | NEW_CONNECTION';
-  User: string;
+  User: number;
 }

@@ -1,10 +1,5 @@
 import { apiRequest, API_BASE_URL } from './apiUtils';
-
-interface UserData {
-    nickname: string;
-    displayname: string;
-    avatar: string;
-}
+import { UserData } from '../types/models';
 
 export default {
     async getUserData(): Promise<UserData | null> {

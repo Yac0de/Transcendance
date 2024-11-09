@@ -17,8 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useUserStore } from '../../../stores/user';
+import { useChatStore } from '../../../stores/chatStore';
 import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
@@ -29,6 +30,7 @@ import { ChatMessage } from '../../../types/websocket';
 const showChatInterface = ref(false);
 const currentFriendId = ref<number | null>(null);
 const userStore = useUserStore();
+const chatStore = useChatStore();
 const friends = ref<Friend[]>([]);
 const fetchedConversationsTracker = ref<Set<number>>(new Set());
 const conversations = ref<{ [friendId: number]: Message[] }>({});
@@ -125,6 +127,13 @@ const fetchFriendList = async () => {
 		console.error('Failed to fetch friend list', error);
 	}
 };
+
+watch(() => chatStore.selectedFriendId, async (newFriendId) => {
+  if (newFriendId !== null) {
+    await selectFriend(newFriendId);
+    showChatInterface.value = true;
+  }
+});
 
 onMounted(() => {
 	fetchFriendList();

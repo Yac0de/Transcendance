@@ -3,31 +3,33 @@ DOCKER_COMPOSE = docker-compose
 DOCKER_COMPOSE_FILE = ./srcs/docker-compose.yaml
 
 # Phony targets
-.PHONY: all build up down restart clean re prune
+.PHONY: all build up down restart clean re prune prod
 
-# Default target: build and start containers
+# Default: development environment (everything except frontend_prod)
 all: build up
 
-# Build Docker containers
+# Development build (excludes frontend_prod)
 build:
-	@echo "Building Docker containers..."
-	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) build
-	@echo "Docker containers built successfully."
+	@echo "Building Docker containers for development..."
+	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) build frontend backend db adminer websocket alertmanager prometheus node-exporter postgres-exporter grafana
 
-# Start Docker containers
+# Start containers for development
 up:
 	@echo "Starting Docker containers..."
-	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) up -d
-	@echo "Containers are up and running."
+	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) up -d frontend backend db adminer websocket alertmanager prometheus node-exporter postgres-exporter grafana
+	@echo "Development environment is up on port 3000"
 
-# Stop and remove Docker containers
+# Production environment (excludes frontend)
+prod:
+	@echo "Building and starting production environment..."
+	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) up -d --build frontend_prod backend db adminer websocket alertmanager prometheus node-exporter postgres-exporter grafana
+	@echo "Production environment is up on port 8000"
+
+# Stop and remove containers
 down:
 	@echo "Stopping and removing Docker containers..."
 	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) down
 	@echo "Containers stopped and removed."
-
-# Restart Docker containers
-restart: down up
 
 # Clean Docker resources
 clean:
@@ -36,11 +38,14 @@ clean:
 	@docker system prune --force
 	@echo "Cleanup complete."
 
-# Rebuild Docker containers from scratch
-re: down build up
-
-# Clean up all dangling Docker resources
+# Deep clean
 prune:
 	@echo "Pruning all unused Docker resources..."
 	@docker system prune --all --volumes --force
 	@echo "Prune complete."
+
+# Rebuild containers
+re: down build up
+
+# Restart containers
+restart: down up

@@ -8,7 +8,7 @@
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
-        <ClickableScrollDown :friends="friendsList" @friend-selected="handleFriendSelected"
+        <PlayerScrolldown :friends="friendsList" @friend-selected="handleFriendSelected"
           :selectedFriend="player2Name" />
         <ReadyCheck @ready-changed="handlePlayer2Ready" />
       </div>
@@ -17,31 +17,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import LeaveLobbyButton from './LeaveLobbyButton.vue'
 import PlayerItem from './PlayerItem.vue'
-import ClickableScrollDown from './PlayerScrollDown.vue'
+import PlayerScrolldown from './PlayerScrolldown.vue'
 import ReadyCheck from './ReadyCheck.vue'
+import { useOnlineUsersStore } from '../../stores/onlineUsers';
+import { Friend } from '../../../types/models';
 
-// Types
-interface Friend {
-  id: string
-  name: string
-}
+const online_users_store = useOnlineUsersStore();
 
 // State
 const player1Name = ref<string>('Player 1') // Current player's name
 const player2Name = ref<string | null>(null)
 const player1Ready = ref<boolean>(false)
 const player2Ready = ref<boolean>(false)
-
-// Example friends list - replace with your actual data
-const friendsList = ref<Friend[]>([
-  { id: '1', name: 'Friend 1' },
-  { id: '2', name: 'Friend 2' },
-  { id: '3', name: 'Friend 3' },
-  { id: '4', name: 'Friend 4' },
-])
 
 // Methods
 const handleLeaveLobby = () => {

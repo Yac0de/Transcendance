@@ -3,7 +3,7 @@
     <div class="player-content">
       <div class="avatar-container">
         <div class="avatar-wrapper">
-          <img :src="api.user.getAvatarUrl(user.getAvatarPath)" :alt="user.getNickname + '\'s avatar'"
+          <img :src="api.user.getAvatarUrl(user_store.getAvatarPath)" :alt="user_store.getNickname + '\'s avatar'"
             class="avatar-image" />
         </div>
       </div>
@@ -17,8 +17,8 @@ import { useUserStore } from '../../stores/user';
 import { ref } from 'vue';
 import api from '../../services/api';
 
-const user = useUserStore();
-const userName: string = user.getNickname;
+const user_store = useUserStore();
+const userName: string = user_store.getNickname;
 </script>
 
 <style scoped>

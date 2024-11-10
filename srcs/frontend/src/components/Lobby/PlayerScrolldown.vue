@@ -1,16 +1,21 @@
 <template>
   <div class="scroll-down-container" ref="containerRef">
-    <div class="selected-friend" @click="toggleDropdown">
-      <span v-if="selectedFriend">{{ selectedFriend }}</span>
-      <span class="select-friend-text" v-else>Select a friend</span>
-      <span class="arrow" :class="{ 'arrow-up': isOpen }">▼</span>
+    <div v-if="isWaiting" class="selected-friend">
+      <span class="select-friend-text">Waiting for friend's answer...</span>
     </div>
-    <div class="dropdown-list" v-if="isOpen">
-      <div v-if="onlineFriends.length === 0" class="friend-item no-friends">
-        No friends online
+    <div v-else>
+      <div class="selected-friend" @click="toggleDropdown">
+        <span v-if="selectedFriend">{{ selectedFriend }}</span>
+        <span class="select-friend-text" v-else>Select a friend</span>
+        <span class="arrow" :class="{ 'arrow-up': isOpen }">▼</span>
       </div>
-      <div v-for="friend in onlineFriends" :key="friend.id" class="friend-item" @click="selectFriend(friend.id)">
-        {{ friend.nickname }}
+      <div class="dropdown-list" v-if="isOpen">
+        <div v-if="onlineFriends.length === 0" class="friend-item no-friends">
+          No friends online
+        </div>
+        <div v-for="friend in onlineFriends" :key="friend.id" class="friend-item" @click="selectFriend(friend.id)">
+          {{ friend.nickname }}
+        </div>
       </div>
     </div>
   </div>
@@ -20,18 +25,21 @@
 // Your existing script code remains the same
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useOnlineUsersStore } from '../../stores/onlineUsers'
+import { useUserStore } from '../../stores/user'
 import { Friend } from '../.../types/models';
 import api from '../../services/api';
 
+const isWaiting = ref(false);
 let friendList: Friend[] = [];
-const onlineUsersStore = useOnlineUsersStore()
-const onlineUsers = computed(() => onlineUsersStore.getOnlineUsers)
+const onlineUsersStore = useOnlineUsersStore();
+const userStore = useUserStore();
+const onlineUsers = computed(() => onlineUsersStore.getOnlineUsers);
 const onlineFriends = computed(() =>
   friendList.filter(friend => onlineUsers.value.includes(friend.id))
-)
+);
 
-const isOpen = ref(false)
-const containerRef = ref<HTMLElement | null>(null)
+const isOpen = ref(false);
+const containerRef = ref<HTMLElement | null>(null);
 
 interface Props {
   selectedFriend?: number | null
@@ -50,6 +58,14 @@ const toggleDropdown = () => {
 }
 
 const selectFriend = (userId: number) => {
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.inviteFriendToGameMessage(userId);
+    console.log("SENT WS SOCKET MESSAGE TO INVITE A FRIEND TO A GAME");
+  } else {
+    console.error('WebSocket is not connected');
+  }
+
+  isWaiting.value = true;
   emit('friend-selected', userId)
   isOpen.value = false
 }

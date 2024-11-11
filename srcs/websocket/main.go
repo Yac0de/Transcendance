@@ -4,10 +4,49 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"websocket/controllers"
+
+	"github.com/gorilla/websocket"
 )
 
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
+func serveWs(hub *controllers.Hub, w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+
+	id, err := strconv.ParseUint(r.Header.Get("id"), 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		log.Println(err)
+		return
+	}
+
+	client := &controllers.Client{
+		Id:   id,
+		Hub:  hub,
+		Conn: conn,
+		Send: make(chan []byte, 1024),
+	}
+
+	client.Hub.Register <- client
+
+	go client.WritePump()
+	go client.ReadPump()
+}
+
 func main() {
-	hub := NewHub()
+	hub := controllers.NewHub()
 	go hub.Run()
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

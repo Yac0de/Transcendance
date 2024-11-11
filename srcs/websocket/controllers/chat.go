@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"bytes"
@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"websocket/models"
 )
 
-func SaveMessageToDB(event MessageEvent) error {
+func SaveMessageToDB(event models.MessageEvent) error {
 	var message struct {
 		SenderID   uint64    `json:"senderId"`
 		ReceiverID uint64    `json:"receiverId"`
@@ -44,8 +45,8 @@ func SaveMessageToDB(event MessageEvent) error {
 	return nil
 }
 
-func CreateOnlineUsersEvent(clients map[uint64]*Client, clientId uint64) OnlineUsersEvent {
-	UsersOnline := OnlineUsersEvent{}
+func CreateOnlineUsersEvent(clients map[uint64]*Client, clientId uint64) models.OnlineUsersEvent {
+	UsersOnline := models.OnlineUsersEvent{}
 	UsersOnline.Type = "ONLINE_USERS"
 	for id := range clients {
 		if id != clientId {
@@ -55,9 +56,9 @@ func CreateOnlineUsersEvent(clients map[uint64]*Client, clientId uint64) OnlineU
 	return UsersOnline
 }
 
-func CreateUserStatusEvent(id uint64, event string) UserStatusEvent {
-	return UserStatusEvent{
-		Event: Event{
+func CreateUserStatusEvent(id uint64, event string) models.UserStatusEvent {
+	return models.UserStatusEvent{
+		Event: models.Event{
 			Type: event,
 		},
 		User: id,
@@ -65,25 +66,25 @@ func CreateUserStatusEvent(id uint64, event string) UserStatusEvent {
 }
 
 func SendOnlineUsersToClient(h *Hub, client *Client) {
-	message, _ := json.Marshal(CreateOnlineUsersEvent(h.clients, client.Id))
+	message, _ := json.Marshal(CreateOnlineUsersEvent(h.Clients, client.Id))
 	select {
-	case h.clients[client.Id].Send <- message:
+	case h.Clients[client.Id].Send <- message:
 	default:
-		close(h.clients[client.Id].Send)
-		delete(h.clients, client.Id)
+		close(h.Clients[client.Id].Send)
+		delete(h.Clients, client.Id)
 	}
 }
 
 func NotifyClients(h *Hub, clientId uint64, event string) {
 	message, _ := json.Marshal(CreateUserStatusEvent(clientId, event))
 	fmt.Printf("Event: %+v\n", string(message))
-	for id := range h.clients {
+	for id := range h.Clients {
 		if id != clientId {
 			select {
-			case h.clients[id].Send <- message:
+			case h.Clients[id].Send <- message:
 			default:
-				close(h.clients[id].Send)
-				delete(h.clients, id)
+				close(h.Clients[id].Send)
+				delete(h.Clients, id)
 			}
 		}
 	}
@@ -91,16 +92,16 @@ func NotifyClients(h *Hub, clientId uint64, event string) {
 }
 
 func HandleChatMessage(h *Hub, message []byte) {
-	var event MessageEvent
+	var event models.MessageEvent
 	if err := json.Unmarshal(message, &event); err != nil {
 		fmt.Printf("error parsing message: %v", err)
 		return
 	}
-	receiver, exists := h.clients[event.ReceiverID]
+	receiver, exists := h.Clients[event.ReceiverID]
 	if exists {
 		receiver.Send <- message
 	}
-	sender, exists := h.clients[event.SenderID]
+	sender, exists := h.Clients[event.SenderID]
 	if exists {
 		sender.Send <- message
 	}

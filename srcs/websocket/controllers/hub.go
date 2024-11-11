@@ -3,7 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"websocket/models"
+
+	"github.com/google/uuid"
 )
 
 type Hub struct {
@@ -11,6 +14,7 @@ type Hub struct {
 	Broadcast  chan []byte
 	Register   chan *Client
 	Unregister chan *Client
+	Lobbies    map[uuid.UUID]*Lobby
 }
 
 func NewHub() *Hub {
@@ -19,6 +23,7 @@ func NewHub() *Hub {
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
+		Lobbies:    make(map[uuid.UUID]*Lobby),
 	}
 }
 
@@ -48,9 +53,11 @@ func (h *Hub) Run() {
 			if err != nil {
 				fmt.Printf("Hub.broadcast error on event cast: %s | error: %v\n", string(message), err)
 			}
-			switch event.Type {
-			case "CHAT":
+			switch {
+			case event.Type == "CHAT":
 				HandleChatMessage(h, message)
+			case strings.HasPrefix(event.Type, "LOBBY_"):
+				HandleLobby(h, event.Type, message)
 			default:
 				fmt.Printf("models.Event not handled: %+v\n", event)
 			}

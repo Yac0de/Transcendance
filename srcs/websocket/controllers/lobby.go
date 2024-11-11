@@ -18,10 +18,9 @@ type LobbyTimestamps struct {
 }
 
 type Lobby struct {
-	Id           uuid.UUID `json:"id"`
-	Sender       *Client   `json:"sender"`
-	Receiver     *Client   `json:"receiver"`
-	PlayerJoined [2]uint64 `json:"playerJoined"`
+	Id       uuid.UUID `json:"id"`
+	Sender   *Client   `json:"sender"`
+	Receiver *Client   `json:"receiver"`
 	// Instance    *Game          `json:"instance"`
 	Timestamps LobbyTimestamps `json:"timestamps"`
 	Status     string          `json:"status"`

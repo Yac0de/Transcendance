@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	hub := newHub()
-	go hub.run()
+	hub := NewHub()
+	go hub.Run()
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		values := r.URL.Query().Get("id")

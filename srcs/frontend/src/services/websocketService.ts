@@ -1,5 +1,7 @@
 import { ChatMessage, OnlineUsersMessage, UserStatusMessage } from '../types/websocket';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
+import { useUserStore } from '../stores/user';
+import { eventBus } from '../events/eventBus';
 
 type MessageHandler<T> = (message: T) => void;
 type MessageHandlers = {
@@ -10,11 +12,13 @@ export class WebSocketService {
     public ws: WebSocket | null = null;
     public clientId: number;
     public onlineUsersStore: ReturnType<typeof useOnlineUsersStore>;
+    public userStore: ReturnType<typeof useUserStore>;
     public messageHandlers: MessageHandlers = {};
 
-    constructor(clientId: number, store: ReturnType<typeof useOnlineUsersStore>) {
+    constructor(clientId: number, onlineUsersStore: ReturnType<typeof useOnlineUsersStore>, userStore: ReturnType<typeof useUserStore>) {
         this.clientId = clientId;
-        this.onlineUsersStore = store;
+        this.onlineUsersStore = onlineUsersStore;
+        this.userStore = userStore;
         this.initMessageHandlers();
     }
 
@@ -29,6 +33,9 @@ export class WebSocketService {
 
         this.setMessageHandler<UserStatusMessage>('NEW_CONNECTION', (message: UserStatusMessage) => {
             this.onlineUsersStore.addOnlineUser(message.user);
+        });
+        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_FROM_FRIEND', (message: UserStatusMessage) => {
+            eventBus.emit('lobby-invitation')
         });
     }
 
@@ -54,6 +61,7 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
+                    console.log(message);
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
@@ -81,12 +89,15 @@ export class WebSocketService {
         }
     }
 
-    public inviteFriendToGameMessage(friendId: number): void {
+    public inviteFriendToLobbyMessage(friendId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: ChatMessage = {
-                Type: 'GAME_INVITATION_TO_FRIEND',
-                friendId: friendId
+            const message: LobbyInvitationToFriend  = {
+                Type: 'LOBBY_INVITATION_TO_FRIEND',
+                userID: this.userStore.getId,
+                senderID: this.userStore.getId,
+                receiverID: friendId
             };
+            console.log("MSG SENT");
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

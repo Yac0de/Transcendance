@@ -13,6 +13,7 @@ RUN npm install
 
 RUN npm install pinia
 RUN npm install socket.io-client
+RUN npm install mitt
 
 # Copier tout le code source dans le conteneur
 COPY . .

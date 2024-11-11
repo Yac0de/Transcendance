@@ -4,14 +4,19 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'LeaveLobbyButton',
-  methods: {
-    leaveLobby() {
-      this.$emit('leave-lobby')
-    }
-  }
+<script setup lang="ts">
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const emit = defineEmits<{
+  (e: 'leave-lobby'): void
+}>()
+
+const leaveLobby = () => {
+  console.log("Leaving lobby ...");
+  router.push('/');
+  emit('leave-lobby')
 }
 </script>
 
@@ -19,7 +24,6 @@ export default {
 .leave-button-container {
   position: absolute;
   top: 80px;
-  /* Adjusted to be below navbar */
   left: 20px;
   z-index: 100;
 }

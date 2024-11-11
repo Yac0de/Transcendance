@@ -58,13 +58,6 @@ const toggleDropdown = () => {
 }
 
 const selectFriend = (userId: number) => {
-  if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.inviteFriendToGameMessage(userId);
-    console.log("SENT WS SOCKET MESSAGE TO INVITE A FRIEND TO A GAME");
-  } else {
-    console.error('WebSocket is not connected');
-  }
-
   isWaiting.value = true;
   emit('friend-selected', userId)
   isOpen.value = false
@@ -78,7 +71,6 @@ const handleClickOutside = (event: MouseEvent) => {
 
 onMounted(async () => {
   friendList = await api.friendlist.getFriendList();
-  console.log("F ONLINE = ", onlineFriends.value, "LEN = ", onlineFriends.value.length);
   document.addEventListener('click', handleClickOutside)
 })
 

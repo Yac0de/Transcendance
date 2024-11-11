@@ -3,13 +3,12 @@
     <LeaveLobbyButton @leave-lobby="handleLeaveLobby" />
     <div class="players-container">
       <div class="player-column">
-        <PlayerItem :player-name="player1Name" :is-left="true" />
+        <PlayerItem :is-left="true" />
         <ReadyCheck @ready-changed="handlePlayer1Ready" />
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
-        <PlayerScrolldown :friends="friendsList" @friend-selected="handleFriendSelected"
-          :selectedFriend="player2Name" />
+        <PlayerScrolldown :friends="friendsList" @friend-selected="handleFriendSelected" />
         <ReadyCheck @ready-changed="handlePlayer2Ready" />
       </div>
     </div>
@@ -23,13 +22,12 @@ import PlayerItem from './PlayerItem.vue'
 import PlayerScrolldown from './PlayerScrolldown.vue'
 import ReadyCheck from './ReadyCheck.vue'
 import { useOnlineUsersStore } from '../../stores/onlineUsers';
+import { useUserStore } from '../../stores/user'
 import { Friend } from '../../../types/models';
 
 const online_users_store = useOnlineUsersStore();
+const userStore = useUserStore();
 
-// State
-const player1Name = ref<string>('Player 1') // Current player's name
-const player2Name = ref<string | null>(null)
 const player1Ready = ref<boolean>(false)
 const player2Ready = ref<boolean>(false)
 
@@ -40,9 +38,15 @@ const handleLeaveLobby = () => {
 }
 
 const handleFriendSelected = (friend: Friend) => {
-  player2Name.value = friend.name
   // Add any additional logic for when a friend is selected
   console.log('Friend selected:', friend)
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.inviteFriendToLobbyMessage(friend);
+    console.log("SENT WS SOCKET MESSAGE TO INVITE A FRIEND TO A GAME");
+  } else {
+    console.error('WebSocket is not connected');
+  }
+
 }
 
 const handlePlayer1Ready = (isReady: boolean) => {

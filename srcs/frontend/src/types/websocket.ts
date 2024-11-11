@@ -1,25 +1,25 @@
 export interface BaseMessage {
-  Type: string;
+  type: string;
 }
 
 export interface ChatMessage extends BaseMessage {
-  Type: 'CHAT';
-  Data: string;
-  SenderID: number;
-  ReceiverID: number;
+  type: 'CHAT';
+  data: string;
+  senderID: number;
+  receiverID: number;
 }
 
 export interface GameInvitationMessage extends BaseMessage {
-  Type: 'GAME_INVITATION_TO_FRIEND';
+  type: 'GAME_INVITATION_TO_FRIEND';
   friendId: number;
 }
 
 export interface OnlineUsersMessage extends BaseMessage {
-  Type: 'ONLINE_USERS';
-  UsersOnline: number[];
+  type: 'ONLINE_USERS';
+  usersOnline: number[];
 }
 
 export interface UserStatusMessage extends BaseMessage {
-  Type: 'USER_DISCONNECTED | NEW_CONNECTION';
-  User: number;
+  type: 'USER_DISCONNECTED | NEW_CONNECTION';
+  user: number;
 }

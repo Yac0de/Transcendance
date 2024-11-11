@@ -19,16 +19,16 @@ export class WebSocketService {
     }
 
     public initMessageHandlers(): void {
-        this.setMessageHandler<OnlineUsersMessage> ('ONLINE_USERS', (message: OnlineUsersMessage) => {
-            this.onlineUsersStore.setOnlineUsers(message.UsersOnline);
+        this.setMessageHandler<OnlineUsersMessage>('ONLINE_USERS', (message: OnlineUsersMessage) => {
+            this.onlineUsersStore.setOnlineUsers(message.usersOnline);
         });
 
         this.setMessageHandler<UserStatusMessage>('USER_DISCONNECTED', (message: UserStatusMessage) => {
-            this.onlineUsersStore.removeOnlineUser(message.User);
+            this.onlineUsersStore.removeOnlineUser(message.user);
         });
 
         this.setMessageHandler<UserStatusMessage>('NEW_CONNECTION', (message: UserStatusMessage) => {
-            this.onlineUsersStore.addOnlineUser(message.User);
+            this.onlineUsersStore.addOnlineUser(message.user);
         });
     }
 
@@ -54,7 +54,7 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    const handler = this.messageHandlers[message.Type];
+                    const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
                     }
@@ -70,10 +70,10 @@ export class WebSocketService {
     public sendChatMessage(content: string, senderID: number, receiverID: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: ChatMessage = {
-                Type: 'CHAT',
-                Data: content,
-                SenderID: senderID,
-                ReceiverID: receiverID
+                type: 'CHAT',
+                data: content,
+                senderID: senderID,
+                receiverID: receiverID
             };
             this.ws.send(JSON.stringify(message));
         } else {

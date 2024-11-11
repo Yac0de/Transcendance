@@ -98,9 +98,9 @@ const setupChatMessageHandler = () => {
 
 	userStore.getWebSocketService.setMessageHandler<ChatMessage>('CHAT', (message: ChatMessage) => {
 		const messageToPush: Message = {
-			content: message.Data,
-			senderId: message.SenderID,
-			receiverId: message.ReceiverID,
+			content: message.data,
+			senderId: message.senderID,
+			receiverId: message.receiverID,
 			createdAt: new Date().toISOString()
 		};
 

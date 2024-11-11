@@ -66,7 +66,8 @@ export class WebSocketService {
             console.error('Could not connect to the ws: ', error);
         }
     }
-    public sendMessage(content: string, senderID: number, receiverID: number): void {
+
+    public sendChatMessage(content: string, senderID: number, receiverID: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: ChatMessage = {
                 Type: 'CHAT',
@@ -79,12 +80,26 @@ export class WebSocketService {
             console.warn("Can't send a message, ws is not connected");
         }
     }
+
+    public inviteFriendToGameMessage(friendId: number): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: ChatMessage = {
+                Type: 'GAME_INVITATION_TO_FRIEND',
+                friendId: friendId
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
     public disconnect(): void {
         if (this.ws) {
             this.ws.close();
             this.ws = null;
         }
     }
+
     public isConnected(): boolean {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }

@@ -9,6 +9,11 @@ export interface ChatMessage extends BaseMessage {
   ReceiverID: number;
 }
 
+export interface GameInvitationMessage extends BaseMessage {
+  Type: 'GAME_INVITATION_TO_FRIEND';
+  friendId: number;
+}
+
 export interface OnlineUsersMessage extends BaseMessage {
   Type: 'ONLINE_USERS';
   UsersOnline: number[];

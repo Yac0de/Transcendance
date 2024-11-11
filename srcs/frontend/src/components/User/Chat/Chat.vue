@@ -80,7 +80,7 @@ const loadFriendDiscussion = async (friendId: number) => {
 const sendMessage = (message: string) => {
 	if (message.trim() && currentFriendId.value) {
 		if (userStore.getWebSocketService?.isConnected()) {
-			userStore.getWebSocketService?.sendMessage(
+			userStore.getWebSocketService?.sendChatMessage(
 				message,
 				userStore.getId ?? 0,
 				currentFriendId.value

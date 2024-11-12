@@ -32,7 +32,6 @@ const accept = () => {
   const wsService = userStore.getWebSocketService
   if (wsService) {
     console.log('WebSocket service found, would send ACCEPT for inviterId:', inviterId.value)
-    //wsService.sendGameResponse(inviterId.value, 'ACCEPT')
     router.push('/lobby')
   }
   show.value = false
@@ -43,7 +42,6 @@ const decline = () => {
   const wsService = userStore.getWebSocketService
   if (wsService) {
     console.log('WebSocket service found, would send DECLINE for inviterId:', inviterId.value)
-    //wsService.sendGameResponse(inviterId.value, 'DECLINE')
   }
   show.value = false
 }
@@ -57,7 +55,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  eventBus.off('game-invite')
+  eventBus.off('lobby-invitation')
 })
 </script>
 

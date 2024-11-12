@@ -24,7 +24,7 @@ import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
 import ChatDiscussion from './ChatDiscussion.vue';
 import { Friend, Message, ChatHistory } from '../../../types/models';
-import { ChatMessage } from '../../../types/websocket';
+import { ChatMessage } from '../../../types/chat';
 
 const showChatInterface = ref(false);
 const currentFriendId = ref<number | null>(null);

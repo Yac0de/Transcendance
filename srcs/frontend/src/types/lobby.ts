@@ -1,19 +1,9 @@
-export interface BaseMessage {
-  type: string;
-}
-
-export interface ChatMessage extends BaseMessage {
-  type: 'CHAT';
-  data: string;
-  senderID: number;
-  receiverID: number;
-}
-
 export interface LobbyInvitationToFriend extends BaseMessage {
   type: 'LOBBY_INVITATION_TO_FRIEND';
   userID: number;
   senderID: number;
   receiverID: number;
+  lobbyID: string;
 }
 
 export interface LobbyInvitationFromFriend extends BaseMessage {
@@ -21,6 +11,7 @@ export interface LobbyInvitationFromFriend extends BaseMessage {
   userID: number;
   senderID: number;
   receiverID: number;
+  lobbyID: string;
 }
 
 export interface LobbyAcceptFromFriend extends BaseMessage {
@@ -28,7 +19,7 @@ export interface LobbyAcceptFromFriend extends BaseMessage {
   userID: number;
   senderID: number;
   receiverID: number;
-  lobbyID: number;
+  lobbyID: string;
 }
 
 export interface LobbyDenyFromFriend extends BaseMessage {
@@ -36,7 +27,7 @@ export interface LobbyDenyFromFriend extends BaseMessage {
   data: string;
   senderID: number;
   receiverID: number;
-  lobbyID: number;
+  lobbyID: string;
 }
 
 export interface LobbyTerminate extends BaseMessage {
@@ -44,14 +35,4 @@ export interface LobbyTerminate extends BaseMessage {
   data: string;
   senderID: number;
   receiverID: number;
-}
-
-export interface OnlineUsersMessage extends BaseMessage {
-  type: 'ONLINE_USERS';
-  usersOnline: number[];
-}
-
-export interface UserStatusMessage extends BaseMessage {
-  type: 'USER_DISCONNECTED | NEW_CONNECTION';
-  user: number;
 }

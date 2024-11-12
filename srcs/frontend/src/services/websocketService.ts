@@ -1,4 +1,5 @@
-import { ChatMessage, OnlineUsersMessage, UserStatusMessage } from '../types/websocket';
+import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
+import { ChatMessage} from '../types/chat';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { useUserStore } from '../stores/user';
 import { eventBus } from '../events/eventBus';
@@ -34,8 +35,10 @@ export class WebSocketService {
         this.setMessageHandler<UserStatusMessage>('NEW_CONNECTION', (message: UserStatusMessage) => {
             this.onlineUsersStore.addOnlineUser(message.user);
         });
-        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_FROM_FRIEND', (message: UserStatusMessage) => {
-            eventBus.emit('lobby-invitation')
+        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_FROM_FRIEND', (message) => {
+            eventBus.emit('lobby-invitation', () => {
+
+            })
         });
     }
 

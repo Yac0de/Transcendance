@@ -69,7 +69,6 @@ onUnmounted(() => {
 .invite-popup {
   position: fixed;
   top: 70px;
-  /* Positioned just below nav bar - adjust if needed */
   right: 20px;
   z-index: 2000;
   width: 300px;
@@ -78,7 +77,6 @@ onUnmounted(() => {
 
 .popup-content {
   background-color: #f3f4f6;
-  /* Light grey background */
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

@@ -5,19 +5,38 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { eventBus } from '../../events/eventBus'
+import { useUserStore } from '../../stores/user'
 
 const router = useRouter();
 
-const emit = defineEmits<{
-  (e: 'leave-lobby'): void
-}>()
+let lobbyId: string = '';
+let inviterId: number = 0;
+const userStore = useUserStore()
 
 const leaveLobby = () => {
-  console.log("Leaving lobby ...");
+  const wsService = userStore.getWebSocketService
+  if (wsService && lobbyId !== '') {
+    wsService.leaveAndTerminateLobby(lobbyId);
+    console.log('terminating the lobby: ', lobbyId);
+  }
   router.push('/');
-  emit('leave-lobby')
 }
+
+onMounted(() => {
+  console.log('Leave lobby  component mounted')
+  eventBus.on('LOBBY_INVITATION_TO_FRIEND', (message) => {
+    console.log('Game invite event sent with success: ', message.lobbyId);
+    lobbyId = message.lobbyId;
+    inviterId = message.senderId;
+  })
+})
+
+onUnmounted(() => {
+  eventBus.off('LOBBY_INVITATION_TO_FRIEND')
+})
 </script>
 
 <style scoped>

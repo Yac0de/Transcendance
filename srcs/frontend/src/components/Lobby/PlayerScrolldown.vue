@@ -22,7 +22,6 @@
 </template>
 
 <script setup lang="ts">
-// Your existing script code remains the same
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useOnlineUsersStore } from '../../stores/onlineUsers'
 import { useUserStore } from '../../stores/user'

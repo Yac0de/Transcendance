@@ -38,6 +38,9 @@ export class WebSocketService {
         this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_FROM_FRIEND', (message: LobbyInvitationFromFriend) => {
             eventBus.emit('LOBBY_INVITATION_FROM_FRIEND', message);
         });
+        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_TO_FRIEND', (message: LobbyInvitationToFriend) => {
+            eventBus.emit('LOBBY_INVITATION_TO_FRIEND', message);
+        });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -129,6 +132,19 @@ export class WebSocketService {
                 receiverID: inviterId
             };
             console.log("MSG SENT");
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public leaveAndTerminateLobby(lobbyId: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyAcceptFromFriend  = {
+                Type: 'LOBBY_TERMINATE',
+                userID: this.userStore.getId,
+                senderID: this.userStore.getId,
+            };
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

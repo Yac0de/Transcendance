@@ -22,16 +22,19 @@ import { eventBus } from '../../events/eventBus'
 
 const show = ref(false)
 const inviterName = ref('Debug User')
-const inviterId = ref<number>(0)
 
 const userStore = useUserStore()
 const router = useRouter()
+
+let lobbyId: string = '';
+let inviterId: number = 0;
 
 const accept = () => {
   console.log('Accept clicked')
   const wsService = userStore.getWebSocketService
   if (wsService) {
-    console.log('WebSocket service found, would send ACCEPT for inviterId:', inviterId.value)
+    wsService.acceptInviteFromFriend(lobbyId, inviterId);
+    console.log('WebSocket service found, would send ACCEPT for inviterId:', inviterId)
     router.push('/lobby')
   }
   show.value = false
@@ -41,21 +44,24 @@ const decline = () => {
   console.log('Decline clicked')
   const wsService = userStore.getWebSocketService
   if (wsService) {
-    console.log('WebSocket service found, would send DECLINE for inviterId:', inviterId.value)
+    wsService.denyInviteFromFriend(lobbyId, inviterId);
+    console.log('WebSocket service found, would send DECLINE for inviterId:', inviterId)
   }
   show.value = false
 }
 
 onMounted(() => {
   console.log('InvitePopUp component mounted')
-  eventBus.on('lobby-invitation', () => {
-    console.log('Game invite event received')
-    show.value = true
+  eventBus.on('LOBBY_INVITATION_FROM_FRIEND', (message) => {
+    console.log('Game invite event received: ', message.lobbyId);
+    lobbyId = message.lobbyId;
+    inviterId = message.senderId;
+    show.value = true;
   })
 })
 
 onUnmounted(() => {
-  eventBus.off('lobby-invitation')
+  eventBus.off('LOBBY_INVITATION_FROM_FRIEND')
 })
 </script>
 

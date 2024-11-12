@@ -24,7 +24,7 @@ export interface LobbyAcceptFromFriend extends BaseMessage {
 
 export interface LobbyDenyFromFriend extends BaseMessage {
   type: 'LOBBY_DENY_FROM_FRIEND';
-  data: string;
+  userID: number;
   senderID: number;
   receiverID: number;
   lobbyID: string;

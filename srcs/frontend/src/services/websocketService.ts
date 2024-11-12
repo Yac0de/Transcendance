@@ -35,10 +35,8 @@ export class WebSocketService {
         this.setMessageHandler<UserStatusMessage>('NEW_CONNECTION', (message: UserStatusMessage) => {
             this.onlineUsersStore.addOnlineUser(message.user);
         });
-        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_FROM_FRIEND', (message) => {
-            eventBus.emit('lobby-invitation', () => {
-
-            })
+        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_FROM_FRIEND', (message: LobbyInvitationFromFriend) => {
+            eventBus.emit('LOBBY_INVITATION_FROM_FRIEND', message);
         });
     }
 
@@ -99,6 +97,36 @@ export class WebSocketService {
                 userID: this.userStore.getId,
                 senderID: this.userStore.getId,
                 receiverID: friendId
+            };
+            console.log("MSG SENT");
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public acceptInviteFromFriend(lobbyId: string, inviterId: number): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyAcceptFromFriend  = {
+                Type: 'LOBBY_ACCEPT_FROM_FRIEND',
+                userID: this.userStore.getId,
+                senderID: this.userStore.getId,
+                receiverID: inviterId
+            };
+            console.log("MSG SENT");
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public denyInviteFromFriend(lobbyId: string, inviterId: number): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyAcceptFromFriend  = {
+                Type: 'LOBBY_DENY_FROM_FRIEND',
+                userID: this.userStore.getId,
+                senderID: this.userStore.getId,
+                receiverID: inviterId
             };
             console.log("MSG SENT");
             this.ws.send(JSON.stringify(message));

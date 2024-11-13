@@ -13,6 +13,17 @@ export default {
         }
     },
 
+    async getOtherUserData(userId: number): Promise<UserData | null> {
+        try {
+            return await apiRequest(`/users?id=${userId}`, { credentials: "include" });
+        } catch (error: unknown) {
+            if ((error as any).message === 'Unauthorized') {
+                return null;
+            }
+            throw new Error('Fetching other user data failed');
+        }
+    },
+
     async getProfileData(nickname: string): Promise<UserData | null> {
         const params = new URLSearchParams({ nickname }).toString();
         try {

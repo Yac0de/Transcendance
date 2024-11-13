@@ -1,5 +1,6 @@
 import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
 import { ChatMessage} from '../types/chat';
+import { LobbyInvitationToFriend, LobbyInvitationToFriend, LobbyCreated } from '../types/chat';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { useUserStore } from '../stores/user';
 import { eventBus } from '../events/eventBus';
@@ -35,11 +36,14 @@ export class WebSocketService {
         this.setMessageHandler<UserStatusMessage>('NEW_CONNECTION', (message: UserStatusMessage) => {
             this.onlineUsersStore.addOnlineUser(message.user);
         });
-        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_FROM_FRIEND', (message: LobbyInvitationFromFriend) => {
+        this.setMessageHandler<LobbyInvitationFromFriend>('LOBBY_INVITATION_FROM_FRIEND', (message: LobbyInvitationFromFriend) => {
             eventBus.emit('LOBBY_INVITATION_FROM_FRIEND', message);
         });
-        this.setMessageHandler<UserStatusMessage>('LOBBY_INVITATION_TO_FRIEND', (message: LobbyInvitationToFriend) => {
+        this.setMessageHandler<LobbyInvitationToFriend>('LOBBY_INVITATION_TO_FRIEND', (message: LobbyInvitationToFriend) => {
             eventBus.emit('LOBBY_INVITATION_TO_FRIEND', message);
+        });
+        this.setMessageHandler<LobbyCreated>('LOBBY_CREATED', (message: LobbyCreated) => {
+            eventBus.emit('LOBBY_CREATED', message);
         });
     }
 
@@ -96,7 +100,7 @@ export class WebSocketService {
     public inviteFriendToLobbyMessage(friendId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyInvitationToFriend  = {
-                Type: 'LOBBY_INVITATION_TO_FRIEND',
+                type: 'LOBBY_INVITATION_TO_FRIEND',
                 userID: this.userStore.getId,
                 senderID: this.userStore.getId,
                 receiverID: friendId
@@ -111,12 +115,12 @@ export class WebSocketService {
     public acceptInviteFromFriend(lobbyId: string, inviterId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyAcceptFromFriend  = {
-                Type: 'LOBBY_ACCEPT_FROM_FRIEND',
+                type: 'LOBBY_ACCEPT_FROM_FRIEND',
                 userID: this.userStore.getId,
                 senderID: this.userStore.getId,
-                receiverID: inviterId
+                receiverID: inviterId,
+                lobbyID: lobbyId
             };
-            console.log("MSG SENT");
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -126,12 +130,12 @@ export class WebSocketService {
     public denyInviteFromFriend(lobbyId: string, inviterId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyAcceptFromFriend  = {
-                Type: 'LOBBY_DENY_FROM_FRIEND',
+                type: 'LOBBY_DENY_FROM_FRIEND',
                 userID: this.userStore.getId,
                 senderID: this.userStore.getId,
-                receiverID: inviterId
+                receiverID: inviterId,
+                lobbyID: lobbyId
             };
-            console.log("MSG SENT");
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -141,9 +145,10 @@ export class WebSocketService {
     public leaveAndTerminateLobby(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyAcceptFromFriend  = {
-                Type: 'LOBBY_TERMINATE',
+                type: 'LOBBY_TERMINATE',
                 userID: this.userStore.getId,
                 senderID: this.userStore.getId,
+                lobbyID: lobbyId
             };
             this.ws.send(JSON.stringify(message));
         } else {

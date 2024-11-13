@@ -30,9 +30,16 @@ export interface LobbyDenyFromFriend extends BaseMessage {
   lobbyID: string;
 }
 
+export interface LobbyCreated extends BaseMessage {
+  type: 'LOBBY_CREATED';
+  data: string;
+  senderID: number;
+  lobbyID: number;
+}
+
 export interface LobbyTerminate extends BaseMessage {
   type: 'LOBBY_TERMINATE';
   data: string;
   senderID: number;
-  receiverID: number;
+  lobbyID: number;
 }

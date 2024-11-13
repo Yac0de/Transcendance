@@ -1,7 +1,7 @@
 <template>
   <div v-if="show" class="invite-popup">
     <div class="popup-content">
-      <p class="text-message">{{ inviterName || 'Debug User' }} invited you to play!</p>
+      <p class="text-message">{{ inviter.nickname }} invited you to play!</p>
       <div class="button-container">
         <button @click="accept" class="accept-button">
           Accept
@@ -19,6 +19,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import { eventBus } from '../../events/eventBus'
+import { UserData } from '../../types/models'
+import { fetchUserById } from '../../utils/fetch'
 
 const show = ref(false)
 const inviterName = ref('Debug User')
@@ -27,14 +29,16 @@ const userStore = useUserStore()
 const router = useRouter()
 
 let lobbyId: string = '';
-let inviterId: number = 0;
+let inviterId: number | null = 0;
+let inviter: UserData | null = null;
 
 const accept = () => {
   console.log('Accept clicked')
   const wsService = userStore.getWebSocketService
   if (wsService) {
-    wsService.acceptInviteFromFriend(lobbyId, inviterId);
-    console.log('WebSocket service found, would send ACCEPT for inviterId:', inviterId)
+    if (inviter) {
+      wsService.acceptInviteFromFriend(lobbyId, inviterId);
+    }
     router.push('/lobby')
   }
   show.value = false
@@ -44,18 +48,21 @@ const decline = () => {
   console.log('Decline clicked')
   const wsService = userStore.getWebSocketService
   if (wsService) {
-    wsService.denyInviteFromFriend(lobbyId, inviterId);
-    console.log('WebSocket service found, would send DECLINE for inviterId:', inviterId)
+    if (inviter) {
+      wsService.denyInviteFromFriend(lobbyId, inviterId);
+      console.log('WebSocket service found, would send DECLINE for inviterId:', inviter.id)
+    }
   }
   show.value = false
 }
 
 onMounted(() => {
   console.log('InvitePopUp component mounted')
-  eventBus.on('LOBBY_INVITATION_FROM_FRIEND', (message) => {
+  eventBus.on('LOBBY_INVITATION_FROM_FRIEND', async (message) => {
     console.log('Game invite event received: ', message.lobbyId);
     lobbyId = message.lobbyId;
     inviterId = message.senderId;
+    inviter = await fetchUserById(message.senderId);
     show.value = true;
   })
 })

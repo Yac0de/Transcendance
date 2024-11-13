@@ -5,21 +5,21 @@
       <div class="player-column">
         <PlayerItem :is-left="true" :is-challenged="isAcceptingPlayer"
           :challenged-friend-id="isAcceptingPlayer ? userStore.getId : challengedFriendId" />
-        <ReadyCheck @ready-changed="handlePlayer1Ready" />
+        <ReadyCheck v-if="bothPlayerPresent" @ready-changed="handlePlayer1Ready" />
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
         <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
           :is-challenged="!isAcceptingPlayer" :challenged-friend-id="challengedFriendId"
           @friend-selected="handleFriendSelected" />
-        <ReadyCheck @ready-changed="handlePlayer2Ready" />
+        <ReadyCheck v-if="bothPlayerPresent" @ready-changed="handlePlayer2Ready" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import LeaveLobbyButton from './LeaveLobbyButton.vue'
 import PlayerItem from './PlayerItem.vue'
 import PlayerScrolldown from './PlayerScrolldown.vue'
@@ -38,6 +38,10 @@ let lobbyId: string = '';
 const challengedFriend = ref<UserData | null>(null);
 let challengedFriendId = ref<number>(0);
 const isAcceptingPlayer = ref<boolean>(false);
+
+const bothPlayerPresent = computed(() => {
+  return challengedFriend.value !== null;
+});
 
 const handleLeaveLobby = () => {
   console.log('Leaving lobby...')

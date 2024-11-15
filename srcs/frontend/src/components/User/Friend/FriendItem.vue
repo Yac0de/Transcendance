@@ -56,7 +56,7 @@ const deleteFriend = async () => {
 
 const openChat = () => {
   if (props.friend) {
-    chatStore.selectFriend(props.friend.id);
+    chatStore.toggleFriend(props.friend.id);
   }
 };
 </script>

@@ -45,15 +45,19 @@ const currentConversation = computed(() =>
 		: []
 );
 
-const toggleChatInterface = () => {
+const toggleChatInterface = () => {	
 	showChatInterface.value = !showChatInterface.value;
-	if (userStore.getWebSocketService) {
+
+	if (showChatInterface.value && currentFriendId.value)
+    	chatStore.selectFriend(currentFriendId.value);
+
+	if (userStore.getWebSocketService)
 		setupChatMessageHandler();
-	}
 };
 
 const selectFriend = async (friendId: number) => {
 	currentFriendId.value = friendId;
+	chatStore.selectFriend(friendId);
 	await loadFriendDiscussion(friendId);
 };
 
@@ -80,6 +84,7 @@ const loadFriendDiscussion = async (friendId: number) => {
 };
 
 const sendMessage = (message: string) => {
+	console.log("Sending message to friend ID:", currentFriendId.value);
 	if (message.trim() && currentFriendId.value) {
 		if (userStore.getWebSocketService?.isConnected()) {
 			userStore.getWebSocketService?.sendMessage(
@@ -128,10 +133,12 @@ const fetchFriendList = async () => {
 	}
 };
 
-watch(() => chatStore.selectedFriendId, async (newFriendId) => {
-  if (newFriendId !== null) {
-    await selectFriend(newFriendId);
+watch(() => chatStore.selectedFriendId, (newFriendId) => {
+  if (newFriendId === null) {
+    showChatInterface.value = false;
+  } else {
     showChatInterface.value = true;
+    selectFriend(newFriendId);
   }
 });
 

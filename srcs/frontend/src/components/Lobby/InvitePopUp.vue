@@ -1,7 +1,7 @@
 <template>
   <div v-if="show" class="invite-popup">
     <div class="popup-content">
-      <p class="text-message">{{ inviter.nickname }} invited you to play!</p>
+      <p class="text-message">{{ inviterId }} invited you to play!</p>
       <div class="button-container">
         <button @click="accept" class="accept-button">
           Accept
@@ -36,7 +36,7 @@ const accept = () => {
   console.log('Accept clicked')
   const wsService = userStore.getWebSocketService
   if (wsService) {
-    if (inviter) {
+    if (inviterId) {
       wsService.acceptInviteFromFriend(lobbyId, inviterId);
     }
     router.push('/lobby')
@@ -61,8 +61,9 @@ onMounted(() => {
   eventBus.on('LOBBY_INVITATION_FROM_FRIEND', async (message) => {
     console.log('Game invite event received: ', message.lobbyId);
     lobbyId = message.lobbyId;
-    inviterId = message.senderId;
-    inviter = await fetchUserById(message.senderId);
+    inviterId = message.sender.id;
+    console.log(message.sender.id);
+    //inviter = await fetchUserById(message.receiver.id);
     show.value = true;
   })
 })

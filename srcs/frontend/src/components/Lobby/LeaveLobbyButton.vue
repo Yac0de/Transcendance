@@ -30,7 +30,7 @@ onMounted(() => {
   eventBus.on('LOBBY_INVITATION_TO_FRIEND', (message) => {
     console.log('Game invite event sent with success: ', message.lobbyId);
     lobbyId = message.lobbyId;
-    inviterId = message.senderId;
+    inviterId = message.sender.id;
   })
 })
 

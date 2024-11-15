@@ -1,45 +1,48 @@
-export interface LobbyInvitationToFriend extends BaseMessage {
+export interface LobbyUserState {
+  id: number;
+  isReady: boolean;
+}
+
+export interface LobbyInvitationToFriend {
   type: 'LOBBY_INVITATION_TO_FRIEND';
   userID: number;
-  senderID: number;
-  receiverID: number;
+  sender: LobbyUserState;
+  receiver: LobbyUserState;
   lobbyID: string;
 }
 
-export interface LobbyInvitationFromFriend extends BaseMessage {
+export interface LobbyInvitationFromFriend {
   type: 'LOBBY_INVITATION_FROM_FRIEND';
   userID: number;
-  senderID: number;
-  receiverID: number;
+  sender: LobbyUserState;
+  receiver: LobbyUserState;
   lobbyID: string;
 }
 
-export interface LobbyAcceptFromFriend extends BaseMessage {
+export interface LobbyAcceptFromFriend {
   type: 'LOBBY_ACCEPT_FROM_FRIEND';
   userID: number;
-  senderID: number;
-  receiverID: number;
+  sender: LobbyUserState;
+  receiver: LobbyUserState;
   lobbyID: string;
 }
 
-export interface LobbyDenyFromFriend extends BaseMessage {
+export interface LobbyDenyFromFriend {
   type: 'LOBBY_DENY_FROM_FRIEND';
   userID: number;
-  senderID: number;
-  receiverID: number;
+  sender: LobbyUserState;
+  receiver: LobbyUserState;
   lobbyID: string;
 }
 
-export interface LobbyCreated extends BaseMessage {
+export interface LobbyCreated {
   type: 'LOBBY_CREATED';
-  data: string;
-  senderID: number;
+  sender: LobbyUserState;
   lobbyID: number;
 }
 
-export interface LobbyTerminate extends BaseMessage {
+export interface LobbyTerminate {
   type: 'LOBBY_TERMINATE';
-  data: string;
-  senderID: number;
+  sender: LobbyUserState;
   lobbyID: number;
 }

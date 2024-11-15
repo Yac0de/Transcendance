@@ -9,7 +9,7 @@
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
-        <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
+        <component :is="challengedFriendId ? PlayerItem : PlayerScrolldown" :is-left="false"
           :is-challenged="!isAcceptingPlayer" :challenged-friend-id="challengedFriendId"
           @friend-selected="handleFriendSelected" />
         <ReadyCheck v-if="bothPlayerPresent" @ready-changed="handlePlayer2Ready" />
@@ -68,11 +68,11 @@ onMounted(() => {
   eventBus.on('LOBBY_CREATED', async (message) => {
     console.log('Lobby created event received: ', message);
     lobbyId = message.lobbyId;
-    isAcceptingPlayer.value = message.receiverId === userStore.getId;
-    challengedFriendId.value = isAcceptingPlayer.value ? message.senderId : message.receiverId;
+    isAcceptingPlayer.value = message.receiver.id === userStore.getId;
+    challengedFriendId.value = isAcceptingPlayer.value ? message.sender.id : message.receiver.id;
     console.log(challengedFriendId.value);
 
-    challengedFriend.value = await fetchUserById(challengedFriendId.value);
+    //challengedFriend.value = await fetchUserById(challengedFriendId.value);
   })
 })
 

@@ -102,10 +102,15 @@ export class WebSocketService {
             const message: LobbyInvitationToFriend  = {
                 type: 'LOBBY_INVITATION_TO_FRIEND',
                 userID: this.userStore.getId,
-                senderID: this.userStore.getId,
-                receiverID: friendId
+                sender: {
+                    id: this.userStore.getId,
+                    isReady: false
+                },
+                receiver: {
+                    id: friendId,
+                    isReady: false
+                },
             };
-            console.log("MSG SENT");
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -116,11 +121,18 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyAcceptFromFriend  = {
                 type: 'LOBBY_ACCEPT_FROM_FRIEND',
-                userID: this.userStore.getId,
-                senderID: this.userStore.getId,
-                receiverID: inviterId,
+                user: this.userStore.getId,
+                sender: {
+                    id: this.userStore.getId,
+                    isReady: false
+                },
+                receiver: {
+                    id: inviterId,
+                    isReady: false
+                },
                 lobbyID: lobbyId
             };
+            console.log("MSG SENT");
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -129,11 +141,17 @@ export class WebSocketService {
 
     public denyInviteFromFriend(lobbyId: string, inviterId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: LobbyAcceptFromFriend  = {
+            const message: LobbyDenyFromFriend  = {
                 type: 'LOBBY_DENY_FROM_FRIEND',
-                userID: this.userStore.getId,
-                senderID: this.userStore.getId,
-                receiverID: inviterId,
+                user: this.userStore.getId,
+                sender: {
+                    id: this.userStore.getId,
+                    isReady: false
+                },
+                receiver: {
+                    id: inviterId,
+                    isReady: false
+                },
                 lobbyID: lobbyId
             };
             this.ws.send(JSON.stringify(message));
@@ -147,7 +165,10 @@ export class WebSocketService {
             const message: LobbyAcceptFromFriend  = {
                 type: 'LOBBY_TERMINATE',
                 userID: this.userStore.getId,
-                senderID: this.userStore.getId,
+                sender: {
+                    id: this.userStore.getId,
+                    isReady: false
+                },
                 lobbyID: lobbyId
             };
             this.ws.send(JSON.stringify(message));

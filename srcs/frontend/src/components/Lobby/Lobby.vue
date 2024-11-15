@@ -5,14 +5,14 @@
       <div class="player-column">
         <PlayerItem :is-left="true" :is-challenged="isAcceptingPlayer"
           :challenged-friend-id="isAcceptingPlayer ? userStore.getId : challengedFriendId" />
-        <ReadyCheck v-if="bothPlayerPresent" @ready-changed="handlePlayer1Ready" />
+        <ReadyCheck :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent" @ready-changed="handlePlayer1Ready" />
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
         <component :is="challengedFriendId ? PlayerItem : PlayerScrolldown" :is-left="false"
           :is-challenged="!isAcceptingPlayer" :challenged-friend-id="challengedFriendId"
           @friend-selected="handleFriendSelected" />
-        <ReadyCheck v-if="bothPlayerPresent" @ready-changed="handlePlayer2Ready" />
+        <ReadyCheck :disabled="true" v-if="bothPlayerPresent" @ready-changed="handlePlayer2Ready" />
       </div>
     </div>
   </div>
@@ -40,7 +40,7 @@ let challengedFriendId = ref<number>(0);
 const isAcceptingPlayer = ref<boolean>(false);
 
 const bothPlayerPresent = computed(() => {
-  return challengedFriend.value !== null;
+  return challengedFriendId.value !== 0;
 });
 
 const handleLeaveLobby = () => {
@@ -50,7 +50,6 @@ const handleLeaveLobby = () => {
 const handleFriendSelected = (friend: Friend) => {
   if (userStore.getWebSocketService?.isConnected()) {
     userStore.getWebSocketService?.inviteFriendToLobbyMessage(friend);
-    console.log("SENT WS SOCKET MESSAGE TO INVITE A FRIEND TO A GAME");
   } else {
     console.error('WebSocket is not connected');
   }

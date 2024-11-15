@@ -1,28 +1,53 @@
 <template>
   <div class="ready-check">
-    <button class="ready-button" :class="{ 'ready': isReady }" @click="toggleReady">
+    <button 
+      class="ready-button" 
+      :class="{ 'ready': isReady }" 
+      @click="isReady ? toggleUnready() : toggleReady()"
+    >
       {{ isReady ? 'Ready!' : 'Not Ready' }}
     </button>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ReadyCheck',
-  data() {
-    return {
-      isReady: false
-    }
-  },
-  methods: {
-    toggleReady() {
-      this.isReady = !this.isReady
-      this.$emit('ready-changed', this.isReady)
-    }
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useUserStore } from '../../stores/user'
+
+const userStore = useUserStore();
+
+interface Props {
+  disabled?: boolean
+  lobbyId?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  disabled: false,
+  lobbyId: ''
+})
+
+const isReady = ref(false)
+
+const toggleReady = () => {
+  if (props.disabled) return
+  isReady.value = true
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.sendPlayerReadyMessage(userStore.getId, props.lobbyId);
+  } else {
+    console.error('WebSocket is not connected');
+  }
+}
+
+const toggleUnready = () => {
+  if (props.disabled) return
+  isReady.value = false
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.sendPlayerUnreadyMessage(userStore.getId, props.lobbyId);
+  } else {
+    console.error('WebSocket is not connected');
   }
 }
 </script>
-
 <style scoped>
 .ready-check {
   width: 120px;

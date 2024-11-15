@@ -35,6 +35,13 @@ export interface LobbyDenyFromFriend {
   lobbyID: string;
 }
 
+export interface LobbyPlayerStatus {
+  type: 'LOBBY_PLAYER_STATUS';
+  userID: number;
+  sender: LobbyUserState;
+  lobbyID: string;
+}
+
 export interface LobbyCreated {
   type: 'LOBBY_CREATED';
   sender: LobbyUserState;

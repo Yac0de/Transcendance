@@ -19,7 +19,7 @@
 import { useUserStore } from '../../stores/user';
 import { computed, onMounted, watch } from 'vue';
 import api from '../../services/api';
-import type { UserData } from '../../../types/models';
+import type { UserData } from '../../types/models';
 
 const props = defineProps<{
   isLeft: boolean;

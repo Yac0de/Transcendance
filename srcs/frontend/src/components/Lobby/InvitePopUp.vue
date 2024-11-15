@@ -1,7 +1,7 @@
 <template>
   <div v-if="show" class="invite-popup">
     <div class="popup-content">
-      <p class="text-message">{{ inviterId }} invited you to play!</p>
+      <p class="text-message">{{ inviter.nickname }} invited you to play!</p>
       <div class="button-container">
         <button @click="accept" class="accept-button">
           Accept
@@ -33,11 +33,11 @@ let inviterId: number | null = 0;
 let inviter: UserData | null = null;
 
 const accept = () => {
-  console.log('Accept clicked')
   const wsService = userStore.getWebSocketService
   if (wsService) {
-    if (inviterId) {
-      wsService.acceptInviteFromFriend(lobbyId, inviterId);
+    if (inviter) {
+      console.log('Inviter id ', inviter.id);
+      wsService.acceptInviteFromFriend(lobbyId, 1);
     }
     router.push('/lobby')
   }
@@ -49,7 +49,7 @@ const decline = () => {
   const wsService = userStore.getWebSocketService
   if (wsService) {
     if (inviter) {
-      wsService.denyInviteFromFriend(lobbyId, inviterId);
+      wsService.denyInviteFromFriend(lobbyId, inviter.Id);
       console.log('WebSocket service found, would send DECLINE for inviterId:', inviter.id)
     }
   }
@@ -63,7 +63,8 @@ onMounted(() => {
     lobbyId = message.lobbyId;
     inviterId = message.sender.id;
     console.log(message.sender.id);
-    //inviter = await fetchUserById(message.receiver.id);
+    inviter = await fetchUserById(message.receiver.id);
+    console.log(inviter.nickname);
     show.value = true;
   })
 })

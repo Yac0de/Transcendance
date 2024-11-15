@@ -29,7 +29,7 @@ onMounted(() => {
   console.log('Leave lobby  component mounted')
   eventBus.on('LOBBY_INVITATION_TO_FRIEND', (message) => {
     console.log('Game invite event sent with success: ', message.lobbyId);
-    lobbyId = message.lobbyId;
+    lobbyId = message.lobbyID;
     inviterId = message.sender.id;
   })
 })

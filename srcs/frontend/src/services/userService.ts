@@ -15,7 +15,7 @@ export default {
 
     async getOtherUserData(userId: number): Promise<UserData | null> {
         try {
-            return await apiRequest(`/users/?=${userId}`, { credentials: "include" });
+            return await apiRequest(`/users/?id=${userId}`, { credentials: "include" });
         } catch (error: unknown) {
             if ((error as any).message === 'Unauthorized') {
                 return null;

@@ -1,6 +1,6 @@
 import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
 import { ChatMessage} from '../types/chat';
-import { LobbyInvitationToFriend, LobbyInvitationToFriend, LobbyCreated } from '../types/chat';
+import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyTerminate, LobbyPlayerStatus } from '../types/lobby';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { useUserStore } from '../stores/user';
 import { eventBus } from '../events/eventBus';

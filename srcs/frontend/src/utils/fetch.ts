@@ -1,4 +1,4 @@
-import { User } from '../types/models'
+import { UserData } from '../types/models'
 import api from '../services/api'
 
 export const fetchUserById = async (userId: number): Promise<UserData | null> => {

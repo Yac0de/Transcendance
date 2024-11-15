@@ -24,13 +24,12 @@ import LeaveLobbyButton from './LeaveLobbyButton.vue'
 import PlayerItem from './PlayerItem.vue'
 import PlayerScrolldown from './PlayerScrolldown.vue'
 import ReadyCheck from './ReadyCheck.vue'
-import { useOnlineUsersStore } from '../../stores/onlineUsers';
 import { useUserStore } from '../../stores/user'
-import { Friend, UserData } from '../../../types/models';
+import { Friend, UserData } from '../../types/models';
+import { LobbyPlayerStatus, LobbyCreated } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
 
-const online_users_store = useOnlineUsersStore();
 const userStore = useUserStore();
 
 const player1Ready = ref<boolean>(false)
@@ -66,7 +65,7 @@ const handlePlayer2Ready = (isReady: boolean) => {
 }
 
 onMounted(() => {
-  eventBus.on('LOBBY_CREATED', async (message) => {
+  eventBus.on('LOBBY_CREATED', async (message: LobbyCreated) => {
     console.log('Lobby created event received: ', message);
     lobbyId = message.lobbyId;
     isAcceptingPlayer.value = message.receiver.id === userStore.getId;
@@ -76,7 +75,7 @@ onMounted(() => {
     //challengedFriend.value = await fetchUserById(challengedFriendId.value);
   })
 
-  eventBus.on('LOBBY_PLAYER_STATUS', (message) => {
+  eventBus.on('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
     console.log('LOBBY PLAYER STATUS UPDATE, ID: ', message.sender.isReady);
     console.log("P1", player1Ready.value)
     if (message.sender.id === userStore.getId) {

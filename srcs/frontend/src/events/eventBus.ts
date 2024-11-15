@@ -5,6 +5,8 @@ import type {
   LobbyInvitationFromFriend,
   LobbyAcceptFromFriend,
   LobbyDenyFromFriend,
+  LobbyCreated,
+  LobbyPlayerStatus,
   LobbyTerminate
 } from '../types/lobby';
 
@@ -13,6 +15,8 @@ type Events = {
   'LOBBY_INVITATION_FROM_FRIEND': LobbyInvitationFromFriend;
   'LOBBY_ACCEPT_FROM_FRIEND': LobbyAcceptFromFriend;
   'LOBBY_DENY_FROM_FRIEND': LobbyDenyFromFriend;
+  'LOBBY_CREATED': LobbyCreated;
+  'LOBBY_PLAYER_STATUS': LobbyPlayerStatus;
   'LOBBY_TERMINATE': LobbyTerminate;
 }
 

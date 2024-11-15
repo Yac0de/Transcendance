@@ -45,6 +45,9 @@ export class WebSocketService {
         this.setMessageHandler<LobbyCreated>('LOBBY_CREATED', (message: LobbyCreated) => {
             eventBus.emit('LOBBY_CREATED', message);
         });
+        this.setMessageHandler<LobbyPlayerStatus>('LOBBY_PLAYER_STATUS', (message: LobbyCreated) => {
+            eventBus.emit('LOBBY_PLAYER_STATUS', message);
+        });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -67,6 +70,7 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
+                console.log("YEAH");
                 try {
                     const message = JSON.parse(event.data);
                     console.log(message);
@@ -163,7 +167,7 @@ export class WebSocketService {
     public sendPlayerReadyMessage(playerId: number, lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus  = {
-                type: 'LOBBY_STATUS_UPDATE',
+                type: 'LOBBY_PLAYER_STATUS',
                 userID: this.userStore.getId,
                 sender: {
                     id: this.userStore.getId,
@@ -181,7 +185,7 @@ export class WebSocketService {
     public sendPlayerUnreadyMessage(playerId: number, lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus  = {
-                type: 'LOBBY_STATUS_UPDATE',
+                type: 'LOBBY_PLAYER_STATUS',
                 userID: this.userStore.getId,
                 sender: {
                     id: this.userStore.getId,

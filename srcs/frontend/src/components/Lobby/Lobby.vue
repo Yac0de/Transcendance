@@ -5,14 +5,14 @@
       <div class="player-column">
         <PlayerItem :is-left="true" :is-challenged="isAcceptingPlayer"
           :challenged-friend-id="isAcceptingPlayer ? userStore.getId : challengedFriendId" />
-        <ReadyCheck :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent" @ready-changed="handlePlayer1Ready" />
+        <ReadyCheck :isPlayerReady="player1Ready" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent" @ready-changed="handlePlayer1Ready" />
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
         <component :is="challengedFriendId ? PlayerItem : PlayerScrolldown" :is-left="false"
           :is-challenged="!isAcceptingPlayer" :challenged-friend-id="challengedFriendId"
           @friend-selected="handleFriendSelected" />
-        <ReadyCheck :disabled="true" v-if="bothPlayerPresent" @ready-changed="handlePlayer2Ready" />
+        <ReadyCheck :isPlayerReady="player2Ready" :disabled="true" v-if="bothPlayerPresent" @ready-changed="handlePlayer2Ready" />
       </div>
     </div>
   </div>
@@ -32,8 +32,10 @@ import { fetchUserById } from '../../utils/fetch'
 
 const online_users_store = useOnlineUsersStore();
 const userStore = useUserStore();
+
 const player1Ready = ref<boolean>(false)
 const player2Ready = ref<boolean>(false)
+
 let lobbyId: string = '';
 const challengedFriend = ref<UserData | null>(null);
 let challengedFriendId = ref<number>(0);
@@ -73,10 +75,22 @@ onMounted(() => {
 
     //challengedFriend.value = await fetchUserById(challengedFriendId.value);
   })
+
+  eventBus.on('LOBBY_PLAYER_STATUS', (message) => {
+    console.log('LOBBY PLAYER STATUS UPDATE, ID: ', message.sender.isReady);
+    console.log("P1", player1Ready.value)
+    if (message.sender.id === userStore.getId) {
+      player1Ready.value = message.sender.isReady
+      console.log("P1", player1Ready.value)
+    } else if (message.sender.id === challengedFriendId.value) {
+      player2Ready.value = message.sender.isReady
+    }
+  })
 })
 
 onUnmounted(() => {
   eventBus.off('LOBBY_CREATED')
+  eventBus.off('LOBBY_PLAYER_STATUS')
 })
 </script>
 

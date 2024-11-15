@@ -10,7 +10,7 @@
           <i class="fas fa-trash-alt"></i>
           <span v-if="loadingDeleteFriend" class="loading-spinner"></span>
         </button>
-        <button class="friend-action-btn">
+        <button class="friend-action-btn" @click="openChat">
           <i class="fas fa-comment"></i>
         </button>
       </div>
@@ -22,9 +22,11 @@
 import { ref, computed } from 'vue';
 import api from '../../../services/api';
 import { useOnlineUsersStore } from '../../../stores/onlineUsers';
+import { useChatStore } from '../../../stores/chatStore';
 import { Friend } from '../../../types/models';
 
 const OnlineUsersStore = useOnlineUsersStore();
+const chatStore = useChatStore();
 
 const props = defineProps<{
   friend: Friend | null;
@@ -49,6 +51,12 @@ const deleteFriend = async () => {
     console.error('Failed to delete friend', error);
   } finally {
     loadingDeleteFriend.value = false;
+  }
+};
+
+const openChat = () => {
+  if (props.friend) {
+    chatStore.toggleFriend(props.friend.id);
   }
 };
 </script>

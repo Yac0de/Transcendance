@@ -156,9 +156,11 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	if request.UserId == request.Sender.Id {
 		lobby.PlayersReady[0] = request.Sender.IsReady
 	} else if request.UserId == request.Receiver.Id {
-		lobby.PlayersReady[1] = request.Sender.IsReady
+		lobby.PlayersReady[1] = request.Receiver.IsReady
 	}
 
+	fmt.Printf("request: %+v\n", request)
+	fmt.Printf("LOBBY STATE: %+v\n", lobby)
 	request.Sender.IsReady = lobby.PlayersReady[0]
 	request.Receiver.IsReady = lobby.PlayersReady[1]
 

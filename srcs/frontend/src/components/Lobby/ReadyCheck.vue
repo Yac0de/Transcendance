@@ -12,25 +12,30 @@
 
 <script setup lang="ts">
 import { useUserStore } from '../../stores/user'
+import { UserData } from '../../types/models';
 
 const userStore = useUserStore();
 
 interface Props {
-  disabled?: boolean
-  lobbyId?: string
-  isPlayerReady: boolean
+  disabled?: boolean;
+  lobbyId?: string;
+  isPlayerReady: boolean;
+  challengedFriend?: UserData | null;
+  isAccepting: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   lobbyId: '',
-  isPlayerReady: false
+  isPlayerReady: false,
+  challengedFriend: null,
+  isAccepting: false
 })
 
 const toggleReady = () => {
   if (props.disabled) return
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.sendPlayerReadyMessage(userStore.getId, props.lobbyId);
+    userStore.getWebSocketService?.sendPlayerReadyMessage(props.isAccepting, props.challengedFriend.id, props.lobbyId);
   } else {
     console.error('WebSocket is not connected');
   }
@@ -39,7 +44,7 @@ const toggleReady = () => {
 const toggleUnready = () => {
   if (props.disabled) return
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.sendPlayerUnreadyMessage(userStore.getId, props.lobbyId);
+    userStore.getWebSocketService?.sendPlayerUnreadyMessage(props.isAccepting, props.challengedFriend.id, props.lobbyId);
   } else {
     console.error('WebSocket is not connected');
   }

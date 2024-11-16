@@ -39,12 +39,14 @@ export interface LobbyPlayerStatus {
   type: 'LOBBY_PLAYER_STATUS';
   userID: number;
   sender: LobbyUserState;
+  receiver: LobbyUserState;
   lobbyID: string;
 }
 
 export interface LobbyCreated {
   type: 'LOBBY_CREATED';
   sender: LobbyUserState;
+  receiver: LobbyUserState;
   lobbyID: number;
 }
 

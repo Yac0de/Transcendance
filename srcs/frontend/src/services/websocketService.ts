@@ -70,7 +70,6 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
-                console.log("YEAH");
                 try {
                     const message = JSON.parse(event.data);
                     console.log(message);
@@ -136,7 +135,6 @@ export class WebSocketService {
                 },
                 lobbyID: lobbyId
             };
-            console.log("MSG SENT");
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -164,18 +162,25 @@ export class WebSocketService {
         }
     }
 
-    public sendPlayerReadyMessage(playerId: number, lobbyId: string): void {
+    public sendPlayerReadyMessage(isAccepting: boolean, challengerId: number, lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            let senderId: number = isAccepting ? challengerId : this.userStore.getId;
+            let receiverId: number = isAccepting ? this.userStore.getId : challengerId;
             const message: LobbyPlayerStatus  = {
                 type: 'LOBBY_PLAYER_STATUS',
                 userID: this.userStore.getId,
                 sender: {
-                    id: this.userStore.getId,
-                    isReady: true
+                    id: senderId,
+                    isReady: isAccepting ? false : true
+                },
+                receiver: {
+                    id: receiverId,
+                    isReady: isAccepting ? true : false
                 },
                 lobbyID: lobbyId
             };
-            console.log("SENDS READY TO THE SERV THAT ID = ", playerId, "is ready.");
+            console.log("SENDER UPDATE FOR: ", message.sender, " READY OR NOT: ", message.sender.isReady);
+            console.log("RECEIVER UPDATE FOR: ", message.receiver, " READY OR NOT: ", message.receiver.isReady);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -184,22 +189,28 @@ export class WebSocketService {
 
     public sendPlayerUnreadyMessage(playerId: number, lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            let senderId: number = isAccepting ? challengerId : this.userStore.getId;
+            let receiverId: number = isAccepting ? this.userStore.getId : challengerId;
             const message: LobbyPlayerStatus  = {
                 type: 'LOBBY_PLAYER_STATUS',
                 userID: this.userStore.getId,
                 sender: {
-                    id: this.userStore.getId,
-                    isReady: false
+                    id: senderId,
+                    isReady: isAccepting ? true : false
+                },
+                receiver: {
+                    id: receiverId,
+                    isReady: isAccepting ? false : true
                 },
                 lobbyID: lobbyId
             };
-            console.log("SENDS UNREADY TO THE SERV THAT ID = ", playerId, "is ready.");
+            console.log("SENDER UPDATE FOR: ", message.sender.isReady, " READY OR NOT: ", message.sender.isReady);
+            console.log("RECEIVER UPDATE FOR: ", message.receiver.isReady, " READY OR NOT: ", message.receiver.isReady);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
         }
     }
-
 
     public leaveAndTerminateLobby(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {

@@ -36,8 +36,7 @@ const accept = () => {
   const wsService = userStore.getWebSocketService
   if (wsService) {
     if (inviter) {
-      console.log('Inviter id ', inviter.id);
-      wsService.acceptInviteFromFriend(lobbyId, 1);
+      wsService.acceptInviteFromFriend(lobbyId, inviter.id);
     }
     router.push('/lobby')
   }
@@ -45,11 +44,10 @@ const accept = () => {
 }
 
 const decline = () => {
-  console.log('Decline clicked')
   const wsService = userStore.getWebSocketService
   if (wsService) {
     if (inviter) {
-      wsService.denyInviteFromFriend(lobbyId, inviter.Id);
+      wsService.denyInviteFromFriend(lobbyId, inviter.id);
       console.log('WebSocket service found, would send DECLINE for inviterId:', inviter.id)
     }
   }
@@ -57,14 +55,10 @@ const decline = () => {
 }
 
 onMounted(() => {
-  console.log('InvitePopUp component mounted')
   eventBus.on('LOBBY_INVITATION_FROM_FRIEND', async (message) => {
     console.log('Game invite event received: ', message.lobbyId);
     lobbyId = message.lobbyId;
-    inviterId = message.sender.id;
-    console.log(message.sender.id);
-    inviter = await fetchUserById(message.receiver.id);
-    console.log(inviter.nickname);
+    inviter = await fetchUserById(message.sender.id);
     show.value = true;
   })
 })

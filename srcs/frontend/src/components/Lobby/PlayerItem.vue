@@ -9,7 +9,7 @@
         </div>
       </div>
       <div class="player-name">
-        {{ isLeft ? user_store.getNickname : challengedFriendId }}
+        {{ isLeft ? user_store.getNickname : challengedFriend.nickname }}
       </div>
     </div>
   </div>
@@ -23,7 +23,6 @@ import type { UserData } from '../../types/models';
 
 const props = defineProps<{
   isLeft: boolean;
-  challengedFriendId: number;
   challengedFriend?: UserData | null;
 }>();
 

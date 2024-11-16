@@ -214,10 +214,10 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 func (lobby *Lobby) DispatchTimer(timeLeft time.Duration) {
 	var RemainingTime struct {
 		models.Event
-		Time time.Duration `json:"remainingTime"`
+		Time int `json:"remainingSecondsToStart"`
 	}
 	RemainingTime.Type = "LOBBY_PREGAME_REMAINING_TIME"
-	RemainingTime.Time = timeLeft
+	RemainingTime.Time = int(timeLeft.Seconds())
 
 	jsonData, err := json.Marshal(&RemainingTime)
 	if err != nil {

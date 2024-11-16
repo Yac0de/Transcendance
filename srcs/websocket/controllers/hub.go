@@ -43,6 +43,7 @@ func (h *Hub) Run() {
 			SendOnlineUsersToClient(h, client)
 			NotifyClients(h, client.Id, "NEW_CONNECTION")
 		case client := <-h.Unregister:
+			// TODO: REMOVE ALL LOBBIES WHERE THE CLIENT IS PRESENT AND PREVENT OTHER CLIENTS
 			if _, ok := h.Clients[client.Id]; ok {
 				delete(h.Clients, client.Id)
 				close(client.Send)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 	"websocket/models"
 
 	"github.com/google/uuid"
@@ -35,6 +36,25 @@ func (h *Hub) GetEventType(message []byte) (models.Event, error) {
 	return evt, nil
 }
 
+func (h *Hub) RemoveClient(client *Client) {
+	if _, ok := h.Clients[client.Id]; !ok {
+		return
+	}
+
+	target := h.Clients[client.Id]
+	for id := range h.Lobbies {
+		if h.Lobbies[id].Sender == target || h.Lobbies[id].Receiver == target {
+			LobbyClientHasLeft(h, h.Lobbies[id].Id)
+		}
+	}
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		NotifyClients(h, client.Id, "USER_DISCONNECTED")
+	}()
+	delete(h.Clients, client.Id)
+	close(client.Send)
+}
+
 func (h *Hub) Run() {
 	for {
 		select {
@@ -43,12 +63,7 @@ func (h *Hub) Run() {
 			SendOnlineUsersToClient(h, client)
 			NotifyClients(h, client.Id, "NEW_CONNECTION")
 		case client := <-h.Unregister:
-			// TODO: REMOVE ALL LOBBIES WHERE THE CLIENT IS PRESENT AND PREVENT OTHER CLIENTS
-			if _, ok := h.Clients[client.Id]; ok {
-				delete(h.Clients, client.Id)
-				close(client.Send)
-				NotifyClients(h, client.Id, "USER_DISCONNECTED")
-			}
+			h.RemoveClient(client)
 		case message := <-h.Broadcast:
 			event, err := h.GetEventType(message)
 			if err != nil {
@@ -64,4 +79,26 @@ func (h *Hub) Run() {
 			}
 		}
 	}
+}
+
+func safeSend(ch chan []byte, message []byte) {
+	defer func() {
+		if recover() != nil {
+			fmt.Println("Attempted to send on a closed channel")
+		}
+	}()
+	select {
+	case ch <- message:
+	default:
+		fmt.Println("Channel is not ready to receive or closed")
+	}
+}
+
+func safeClose(ch chan struct{}) {
+	defer func() {
+		if recover() != nil {
+			fmt.Println("Attempted to close an already closed channel")
+		}
+	}()
+	close(ch)
 }

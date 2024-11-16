@@ -17,15 +17,15 @@ type LobbyTimestamps struct {
 }
 
 type Lobby struct {
-	Id       uuid.UUID `json:"id"`
-	Sender   *Client   `json:"sender"`
-	Receiver *Client   `json:"receiver"`
-	// Instance    *Game          `json:"instance"`
+	Id           uuid.UUID       `json:"id"`
+	Sender       *Client         `json:"sender"`
+	Receiver     *Client         `json:"receiver"`
 	Timestamps   LobbyTimestamps `json:"timestamps"`
 	Status       string          `json:"status"`
 	PlayersReady [2]bool         `json:"playersReady"`
 	Mutex        sync.Mutex      `json:"-"`
 	Destroy      chan struct{}   `json:"-"`
+	// Instance    *Game          `json:"instance"`
 }
 
 type LobbyUserState struct {
@@ -39,6 +39,12 @@ type LobbyEvent struct {
 	UserId   uint64         `json:"userId"`
 	Sender   LobbyUserState `json:"sender"`
 	Receiver LobbyUserState `json:"receiver"`
+}
+
+type LobbyErrorEvent struct {
+	models.Event
+	LobbyId uuid.UUID `json:"lobbyId"`
+	Error   string    `json:"error"`
 }
 
 func HandleLobby(h *Hub, event string, data []byte) {
@@ -63,6 +69,39 @@ func HandleLobby(h *Hub, event string, data []byte) {
 	}
 }
 
+func (l *Lobby) ArePlayersReachable() bool {
+	if l.Sender == nil || l.Receiver == nil {
+		return false
+	}
+	return true
+}
+
+func LobbyClientHasLeft(h *Hub, lobbyId uuid.UUID) {
+	lobby := h.Lobbies[lobbyId]
+	error := LobbyErrorEvent{
+		Event: models.Event{
+			Type: "LOBBY_DESTROYED",
+		},
+		LobbyId: lobby.Id,
+		Error:   "A player has left the lobby",
+	}
+
+	errorJson, err := json.Marshal(&error)
+	if err != nil {
+		fmt.Printf("Impossible to parse LobbyErrorEvent type: ", err.Error())
+		return
+	}
+
+	safeSend(lobby.Sender.Send, errorJson)
+	safeSend(lobby.Receiver.Send, errorJson)
+
+	if lobby.Destroy != nil {
+		fmt.Printf("lobby destroyed lobby %+v\n", lobby.Id)
+		safeClose(lobby.Destroy)
+	}
+	delete(h.Lobbies, lobby.Id)
+}
+
 func LobbyInvitation(h *Hub, request LobbyEvent) {
 	lobbyId := uuid.New()
 	request.LobbyId = lobbyId
@@ -72,7 +111,7 @@ func LobbyInvitation(h *Hub, request LobbyEvent) {
 		fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())
 		return
 	}
-	h.Clients[request.Sender.Id].Send <- senderJson
+	safeSend(h.Clients[request.Sender.Id].Send, senderJson)
 
 	request.Type = "LOBBY_INVITATION_FROM_FRIEND"
 	receiverJson, err := json.Marshal(&request)
@@ -80,7 +119,7 @@ func LobbyInvitation(h *Hub, request LobbyEvent) {
 		fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())
 		return
 	}
-	h.Clients[request.Receiver.Id].Send <- receiverJson
+	safeSend(h.Clients[request.Receiver.Id].Send, receiverJson)
 }
 
 func LobbyCreation(h *Hub, request LobbyEvent) {
@@ -111,8 +150,8 @@ func LobbyCreation(h *Hub, request LobbyEvent) {
 		return
 	}
 
-	lobby.Sender.Send <- jsonData
-	lobby.Receiver.Send <- jsonData
+	safeSend(lobby.Sender.Send, jsonData)
+	safeSend(lobby.Receiver.Send, jsonData)
 }
 
 func LobbyDenied(h *Hub, request LobbyEvent) {
@@ -122,15 +161,16 @@ func LobbyDenied(h *Hub, request LobbyEvent) {
 		fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())
 		return
 	}
-	h.Clients[request.Sender.Id].Send <- jsonData
-	h.Clients[request.Receiver.Id].Send <- jsonData
+
+	safeSend(h.Clients[request.Sender.Id].Send, jsonData)
+	safeSend(h.Clients[request.Receiver.Id].Send, jsonData)
 }
 
 func LobbyTerminate(h *Hub, request LobbyEvent) {
-	_, exists := h.Lobbies[request.LobbyId]
-	if exists {
-		// close Destroy field
-		delete(h.Lobbies, request.LobbyId)
+	lobby, exists := h.Lobbies[request.LobbyId]
+	if !exists {
+		fmt.Printf("Trying to remove a lobby doesn't exists: %+v\n", request)
+		return
 	}
 	request.Type = "LOBBY_DESTROYED"
 	jsonData, err := json.Marshal(&request)
@@ -138,20 +178,25 @@ func LobbyTerminate(h *Hub, request LobbyEvent) {
 		fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())
 		return
 	}
-	if _, exists := h.Clients[request.Sender.Id]; exists {
-		h.Clients[request.Sender.Id].Send <- jsonData
-	}
 
-	if _, exists := h.Clients[request.Receiver.Id]; exists {
-		h.Clients[request.Receiver.Id].Send <- jsonData
+	safeSend(lobby.Sender.Send, jsonData)
+	safeSend(lobby.Receiver.Send, jsonData)
+
+	if lobby.Destroy != nil {
+		safeClose(lobby.Destroy)
 	}
+	delete(h.Lobbies, request.LobbyId)
 }
 
 func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	lobby, exists := h.Lobbies[request.LobbyId]
 	if !exists {
-		//TODO: add error event
 		fmt.Printf("Lobby %s not found\n", request.LobbyId)
+		return
+	}
+
+	if lobby.ArePlayersReachable() == false {
+		LobbyClientHasLeft(h, lobby.Id)
 		return
 	}
 
@@ -181,8 +226,9 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 		fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())
 		return
 	}
-	lobby.Sender.Send <- jsonData
-	lobby.Receiver.Send <- jsonData
+
+	safeSend(lobby.Sender.Send, jsonData)
+	safeSend(lobby.Receiver.Send, jsonData)
 	if lobby.PlayersReady[0] && lobby.PlayersReady[1] {
 		StartRoutine(h, lobby)
 		return
@@ -196,22 +242,28 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 		for {
 			select {
 			case <-lobby.Destroy:
-				// TODO: Destroy lobby outside the lobby itself
+				fmt.Printf("routine destroyed lobby %+v\n", lobby.Id)
 				return
 			default:
-				time.Sleep(time.Second)
 				limit := lobby.Timestamps.Pregame.Add(time.Minute)
 				if limit.Compare(time.Now()) <= 0 {
-					close(lobby.Destroy)
-				} else {
-					lobby.DispatchTimer(limit.Sub(time.Now()))
+					event := LobbyEvent{
+						LobbyId: lobby.Id,
+					}
+					LobbyTerminate(h, event)
+					return
 				}
+				lobby.DispatchTimer(limit.Sub(time.Now()))
+				time.Sleep(time.Second)
 			}
 		}
 	}()
 }
 
 func (lobby *Lobby) DispatchTimer(timeLeft time.Duration) {
+	if lobby == nil {
+		return
+	}
 	var RemainingTime struct {
 		models.Event
 		Time int `json:"remainingSecondsToStart"`
@@ -224,8 +276,10 @@ func (lobby *Lobby) DispatchTimer(timeLeft time.Duration) {
 		fmt.Printf("Impossible to parse RemainingTime type: ", err.Error())
 		return
 	}
-	lobby.Sender.Send <- jsonData
-	lobby.Receiver.Send <- jsonData
+
+	fmt.Printf("Destroy: %+v\n\n", lobby.Destroy)
+	safeSend(lobby.Sender.Send, jsonData)
+	safeSend(lobby.Receiver.Send, jsonData)
 }
 
 func NewLobby(h *Hub, request LobbyEvent) (*Lobby, error) {

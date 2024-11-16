@@ -77,7 +77,6 @@ func SendOnlineUsersToClient(h *Hub, client *Client) {
 
 func NotifyClients(h *Hub, clientId uint64, event string) {
 	message, _ := json.Marshal(CreateUserStatusEvent(clientId, event))
-	fmt.Printf("Event: %+v\n", string(message))
 	for id := range h.Clients {
 		if id != clientId {
 			select {

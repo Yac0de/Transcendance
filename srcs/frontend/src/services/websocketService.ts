@@ -1,5 +1,5 @@
 import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
-import { ChatMessage} from '../types/chat';
+import { ChatMessage } from '../types/chat';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyTerminate, LobbyPlayerStatus } from '../types/lobby';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { useUserStore } from '../stores/user';
@@ -102,7 +102,7 @@ export class WebSocketService {
 
     public inviteFriendToLobbyMessage(friendId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: LobbyInvitationToFriend  = {
+            const message: LobbyInvitationToFriend = {
                 type: 'LOBBY_INVITATION_TO_FRIEND',
                 userID: this.userStore.getId,
                 sender: {
@@ -122,15 +122,16 @@ export class WebSocketService {
 
     public acceptInviteFromFriend(lobbyId: string, inviterId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: LobbyAcceptFromFriend  = {
+
+            const message: LobbyAcceptFromFriend = {
                 type: 'LOBBY_ACCEPT_FROM_FRIEND',
                 user: this.userStore.getId,
                 sender: {
-                    id: this.userStore.getId,
+                    id: inviterId,
                     isReady: false
                 },
                 receiver: {
-                    id: inviterId,
+                    id: this.userStore.getId,
                     isReady: false
                 },
                 lobbyID: lobbyId
@@ -143,7 +144,7 @@ export class WebSocketService {
 
     public denyInviteFromFriend(lobbyId: string, inviterId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: LobbyDenyFromFriend  = {
+            const message: LobbyDenyFromFriend = {
                 type: 'LOBBY_DENY_FROM_FRIEND',
                 user: this.userStore.getId,
                 sender: {
@@ -164,23 +165,11 @@ export class WebSocketService {
 
     public sendPlayerReadyMessage(isAccepting: boolean, challengerId: number, lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            let senderId: number = isAccepting ? challengerId : this.userStore.getId;
-            let receiverId: number = isAccepting ? this.userStore.getId : challengerId;
-            const message: LobbyPlayerStatus  = {
-                type: 'LOBBY_PLAYER_STATUS',
+            const message: LobbyPlayerStatus = {
+                type: 'LOBBY_PLAYER_READY_STATUS',
                 userID: this.userStore.getId,
-                sender: {
-                    id: senderId,
-                    isReady: isAccepting ? false : true
-                },
-                receiver: {
-                    id: receiverId,
-                    isReady: isAccepting ? true : false
-                },
-                lobbyID: lobbyId
+                lobbyID: lobbyId,
             };
-            console.log("SENDER UPDATE FOR: ", message.sender, " READY OR NOT: ", message.sender.isReady);
-            console.log("RECEIVER UPDATE FOR: ", message.receiver, " READY OR NOT: ", message.receiver.isReady);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -189,23 +178,11 @@ export class WebSocketService {
 
     public sendPlayerUnreadyMessage(playerId: number, lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            let senderId: number = isAccepting ? challengerId : this.userStore.getId;
-            let receiverId: number = isAccepting ? this.userStore.getId : challengerId;
-            const message: LobbyPlayerStatus  = {
-                type: 'LOBBY_PLAYER_STATUS',
+            const message: LobbyPlayerStatus = {
+                type: 'LOBBY_PLAYER_UNREADY_STATUS',
                 userID: this.userStore.getId,
-                sender: {
-                    id: senderId,
-                    isReady: isAccepting ? true : false
-                },
-                receiver: {
-                    id: receiverId,
-                    isReady: isAccepting ? false : true
-                },
                 lobbyID: lobbyId
             };
-            console.log("SENDER UPDATE FOR: ", message.sender.isReady, " READY OR NOT: ", message.sender.isReady);
-            console.log("RECEIVER UPDATE FOR: ", message.receiver.isReady, " READY OR NOT: ", message.receiver.isReady);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -214,7 +191,7 @@ export class WebSocketService {
 
     public leaveAndTerminateLobby(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: LobbyAcceptFromFriend  = {
+            const message: LobbyAcceptFromFriend = {
                 type: 'LOBBY_TERMINATE',
                 userID: this.userStore.getId,
                 sender: {

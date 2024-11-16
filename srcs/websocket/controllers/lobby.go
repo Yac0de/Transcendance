@@ -56,7 +56,9 @@ func HandleLobby(h *Hub, event string, data []byte) {
 		LobbyDenied(h, request)
 	case "LOBBY_TERMINATE":
 		LobbyTerminate(h, request)
-	case "LOBBY_PLAYER_STATUS":
+	case "LOBBY_PLAYER_READY_STATUS":
+		LobbyUpdatePlayerStatus(h, request)
+	case "LOBBY_PLAYER_UNREADY_STATUS":
 		LobbyUpdatePlayerStatus(h, request)
 	}
 }
@@ -153,21 +155,31 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 		return
 	}
 
-	if request.UserId == request.Sender.Id {
-		lobby.PlayersReady[0] = request.Sender.IsReady
-	} else if request.UserId == request.Receiver.Id {
-		lobby.PlayersReady[1] = request.Receiver.IsReady
+	isReady := false
+	if request.Type == "LOBBY_PLAYER_READY_STATUS" {
+		isReady = true
 	}
 
-	fmt.Printf("request: %+v\n", request)
-	fmt.Printf("LOBBY STATE: %+v\n", lobby)
-	request.Sender.IsReady = lobby.PlayersReady[0]
-	request.Receiver.IsReady = lobby.PlayersReady[1]
+	if request.UserId == lobby.Sender.Id {
+		lobby.PlayersReady[0] = isReady
+	} else if request.UserId == lobby.Sender.Id {
+		lobby.PlayersReady[1] = isReady
+	}
+
+	request.Sender = LobbyUserState{
+		Id:      lobby.Sender.Id,
+		IsReady: lobby.PlayersReady[0],
+	}
+	request.Receiver = LobbyUserState{
+		Id:      lobby.Receiver.Id,
+		IsReady: lobby.PlayersReady[1],
+	}
 
 	if lobby.PlayersReady[0] && lobby.PlayersReady[1] {
 		StartRoutine(h, lobby)
 		return
 	}
+	request.Type = "LOBBY_PLAYER_STATUS"
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
 		fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())

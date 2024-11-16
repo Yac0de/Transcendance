@@ -36,10 +36,10 @@ export interface LobbyDenyFromFriend {
 }
 
 export interface LobbyPlayerStatus {
-  type: 'LOBBY_PLAYER_STATUS';
+  type: 'LOBBY_PLAYER_READY_STATUS' | 'LOBBY_PLAYER_UNREADY_STATUS';
   userID: number;
-  sender: LobbyUserState;
-  receiver: LobbyUserState;
+  sender?: LobbyUserState;
+  receiver?: LobbyUserState;
   lobbyID: string;
 }
 

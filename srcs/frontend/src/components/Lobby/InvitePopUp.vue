@@ -56,7 +56,6 @@ const decline = () => {
 
 onMounted(() => {
   eventBus.on('LOBBY_INVITATION_FROM_FRIEND', async (message) => {
-    console.log('Game invite event received: ', message.lobbyId);
     lobbyId = message.lobbyId;
     inviter = await fetchUserById(message.sender.id);
     show.value = true;

@@ -70,6 +70,7 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
+                console.log("RECEIVED: ");
                 try {
                     const message = JSON.parse(event.data);
                     console.log(message);
@@ -122,7 +123,6 @@ export class WebSocketService {
 
     public acceptInviteFromFriend(lobbyId: string, inviterId: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-
             const message: LobbyAcceptFromFriend = {
                 type: 'LOBBY_ACCEPT_FROM_FRIEND',
                 user: this.userStore.getId,
@@ -163,7 +163,7 @@ export class WebSocketService {
         }
     }
 
-    public sendPlayerReadyMessage(isAccepting: boolean, challengerId: number, lobbyId: string): void {
+    public sendPlayerReadyMessage(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_READY_STATUS',
@@ -176,7 +176,7 @@ export class WebSocketService {
         }
     }
 
-    public sendPlayerUnreadyMessage(playerId: number, lobbyId: string): void {
+    public sendPlayerUnreadyMessage(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_UNREADY_STATUS',

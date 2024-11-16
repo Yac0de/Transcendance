@@ -35,7 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
 const toggleReady = () => {
   if (props.disabled) return
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.sendPlayerReadyMessage(props.isAccepting, props.challengedFriend.id, props.lobbyId);
+    userStore.getWebSocketService?.sendPlayerReadyMessage(props.lobbyId);
   } else {
     console.error('WebSocket is not connected');
   }
@@ -44,7 +44,7 @@ const toggleReady = () => {
 const toggleUnready = () => {
   if (props.disabled) return
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.sendPlayerUnreadyMessage(props.isAccepting, props.challengedFriend.id, props.lobbyId);
+    userStore.getWebSocketService?.sendPlayerUnreadyMessage(props.lobbyId);
   } else {
     console.error('WebSocket is not connected');
   }

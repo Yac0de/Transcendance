@@ -66,22 +66,21 @@ const handlePlayer2Ready = (isReady: boolean) => {
 
 onMounted(() => {
   eventBus.on('LOBBY_CREATED', async (message: LobbyCreated) => {
-    console.log('Lobby created event received: ', message);
     lobbyId = message.lobbyId;
     isAcceptingPlayer = message.receiver.id === userStore.getId;
     console.log("IS CLIENT THE ACCEPTING PLAYER", isAcceptingPlayer);
-    challengedFriendId.value = isAcceptingPlayer ? message.receiver.id : message.sender.id;
+    challengedFriendId.value = isAcceptingPlayer ? message.sender.id : message.receiver.id;
     console.log("ID OF CHALL", challengedFriendId.value);
     challengedFriend.value = await fetchUserById(challengedFriendId.value);
     console.log("CHALL = ", challengedFriend.value.nickname);
   })
 
   eventBus.on('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
-    console.log('LOBBY PLAYER STATUS UPDATE, ID: ', message.sender.isReady);
-    if (message.sender.id === userStore.getId) {
-      player1Ready.value = message.sender.isReady
-    } else if (message.sender.id === challengedFriendId.value) {
-      player2Ready.value = message.receiver.isReady
+    console.log('LOBBY PLAYER STATUS UPDATE, ID: ', message.userId);
+    if (message.userId === userStore.getId) {
+      player1Ready.value = player1Ready.value ? false : true 
+    } else if (message.userId === challengedFriendId.value) {
+      player2Ready.value = player2Ready.value ? false : true 
     }
   })
 })

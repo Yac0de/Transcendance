@@ -162,7 +162,7 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 
 	if request.UserId == lobby.Sender.Id {
 		lobby.PlayersReady[0] = isReady
-	} else if request.UserId == lobby.Sender.Id {
+	} else if request.UserId == lobby.Receiver.Id {
 		lobby.PlayersReady[1] = isReady
 	}
 
@@ -175,10 +175,6 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 		IsReady: lobby.PlayersReady[1],
 	}
 
-	if lobby.PlayersReady[0] && lobby.PlayersReady[1] {
-		StartRoutine(h, lobby)
-		return
-	}
 	request.Type = "LOBBY_PLAYER_STATUS"
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
@@ -187,6 +183,10 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	}
 	lobby.Sender.Send <- jsonData
 	lobby.Receiver.Send <- jsonData
+	if lobby.PlayersReady[0] && lobby.PlayersReady[1] {
+		StartRoutine(h, lobby)
+		return
+	}
 }
 
 func StartRoutine(h *Hub, lobby *Lobby) {

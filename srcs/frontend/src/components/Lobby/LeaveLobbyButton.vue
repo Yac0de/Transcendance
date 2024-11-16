@@ -42,7 +42,7 @@ onUnmounted(() => {
 <style scoped>
 .leave-button-container {
   position: absolute;
-  top: 80px;
+  top: 10px;
   left: 20px;
   z-index: 100;
 }

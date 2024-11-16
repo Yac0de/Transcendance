@@ -1,18 +1,19 @@
 <template>
   <div class="lobby-container">
     <LeaveLobbyButton @leave-lobby="handleLeaveLobby" />
+    <Timer v-if="showTimer"/>
     <div class="players-container">
       <div class="player-column">
         <PlayerItem :is-left="true"
           :challenged-friend="challengedFriend" />
-        <ReadyCheck :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent" @ready-changed="handlePlayer1Ready" />
+        <ReadyCheck :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
         <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
           :challenged-friend="challengedFriend"
           @friend-selected="handleFriendSelected" />
-        <ReadyCheck :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent" @ready-changed="handlePlayer2Ready" />
+        <ReadyCheck :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
       </div>
     </div>
   </div>
@@ -24,6 +25,7 @@ import LeaveLobbyButton from './LeaveLobbyButton.vue'
 import PlayerItem from './PlayerItem.vue'
 import PlayerScrolldown from './PlayerScrolldown.vue'
 import ReadyCheck from './ReadyCheck.vue'
+import Timer from './Timer.vue'
 import { useUserStore } from '../../stores/user'
 import { Friend, UserData } from '../../types/models';
 import { LobbyPlayerStatus, LobbyCreated } from '../../types/lobby';
@@ -43,6 +45,9 @@ let isAcceptingPlayer: boolean = false;
 const bothPlayerPresent = computed(() => {
   return challengedFriendId.value !== 0;
 });
+
+const showReadyChecks = ref<boolean>(true);
+const showTimer = ref<boolean>(false);
 
 const handleLeaveLobby = () => {
   console.log('Leaving lobby...')
@@ -83,6 +88,11 @@ onMounted(() => {
       player2Ready.value = player2Ready.value ? false : true 
     }
   })
+
+  eventBus.on('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
+    showReadyChecks.value = false;
+    showTimer.value = true;
+  })
 })
 
 onUnmounted(() => {
@@ -95,6 +105,7 @@ onUnmounted(() => {
 .lobby-container {
   min-height: 100vh;
   display: flex;
+  position: relative;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -132,8 +143,5 @@ onUnmounted(() => {
     gap: 20px;
   }
 
-  .versus {
-    margin: 10px 0;
-  }
 }
 </style>

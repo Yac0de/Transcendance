@@ -20,16 +20,12 @@ interface Props {
   disabled?: boolean;
   lobbyId?: string;
   isPlayerReady: boolean;
-  challengedFriend?: UserData | null;
-  isAccepting: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   lobbyId: '',
   isPlayerReady: false,
-  challengedFriend: null,
-  isAccepting: false
 })
 
 const toggleReady = () => {

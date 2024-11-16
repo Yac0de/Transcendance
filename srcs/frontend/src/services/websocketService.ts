@@ -45,8 +45,11 @@ export class WebSocketService {
         this.setMessageHandler<LobbyCreated>('LOBBY_CREATED', (message: LobbyCreated) => {
             eventBus.emit('LOBBY_CREATED', message);
         });
-        this.setMessageHandler<LobbyPlayerStatus>('LOBBY_PLAYER_STATUS', (message: LobbyCreated) => {
+        this.setMessageHandler<LobbyPlayerStatus>('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
             eventBus.emit('LOBBY_PLAYER_STATUS', message);
+        });
+        this.setMessageHandler<LobbyPregameRemainingTime>('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
+            eventBus.emit('LOBBY_PREGAME_REMAINING_TIME', message);
         });
     }
 

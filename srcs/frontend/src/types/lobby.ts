@@ -48,6 +48,12 @@ export interface LobbyCreated {
   lobbyID: number;
 }
 
+export interface LobbyPregameRemainingTime {
+  type: 'LOBBY_PREGAME_REMAINING_TIME';
+  remaining_time: number;
+  lobbyID: number;
+}
+
 export interface LobbyTerminate {
   type: 'LOBBY_TERMINATE';
   sender: LobbyUserState;

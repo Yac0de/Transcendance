@@ -1,7 +1,7 @@
 <template>
   <div v-if="show" class="invite-popup">
     <div class="popup-content">
-      <p class="text-message">{{ inviter.nickname }} invited you to play!</p>
+      <p class="text-message">{{ inviter?.nickname }} invited you to play!</p>
       <div class="button-container">
         <button @click="accept" class="accept-button">
           Accept
@@ -20,16 +20,15 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import { eventBus } from '../../events/eventBus'
 import { UserData } from '../../types/models'
+import { LobbyInvitationFromFriend } from '../../types/lobby'
 import { fetchUserById } from '../../utils/fetch'
 
 const show = ref(false)
-const inviterName = ref('Debug User')
 
 const userStore = useUserStore()
 const router = useRouter()
 
 let lobbyId: string = '';
-let inviterId: number | null = 0;
 let inviter: UserData | null = null;
 
 const accept = () => {
@@ -55,7 +54,7 @@ const decline = () => {
 }
 
 onMounted(() => {
-  eventBus.on('LOBBY_INVITATION_FROM_FRIEND', async (message) => {
+  eventBus.on('LOBBY_INVITATION_FROM_FRIEND', async (message: LobbyInvitationFromFriend) => {
     lobbyId = message.lobbyId;
     inviter = await fetchUserById(message.sender.id);
     show.value = true;

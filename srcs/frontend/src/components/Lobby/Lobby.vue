@@ -1,7 +1,7 @@
 <template>
   <div class="lobby-container">
     <LeaveLobbyButton @leave-lobby="handleLeaveLobby" />
-    <Timer v-if="showTimer"/>
+    <Timer :remaining-seconds="remainingSeconds" v-if="showTimer"/>
     <div class="players-container">
       <div class="player-column">
         <PlayerItem :is-left="true"
@@ -46,6 +46,7 @@ const bothPlayerPresent = computed(() => {
   return challengedFriendId.value !== 0;
 });
 
+const remainingSeconds = ref<number>(0);
 const showReadyChecks = ref<boolean>(true);
 const showTimer = ref<boolean>(false);
 
@@ -73,15 +74,11 @@ onMounted(() => {
   eventBus.on('LOBBY_CREATED', async (message: LobbyCreated) => {
     lobbyId = message.lobbyId;
     isAcceptingPlayer = message.receiver.id === userStore.getId;
-    console.log("IS CLIENT THE ACCEPTING PLAYER", isAcceptingPlayer);
     challengedFriendId.value = isAcceptingPlayer ? message.sender.id : message.receiver.id;
-    console.log("ID OF CHALL", challengedFriendId.value);
     challengedFriend.value = await fetchUserById(challengedFriendId.value);
-    console.log("CHALL = ", challengedFriend.value.nickname);
   })
 
   eventBus.on('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
-    console.log('LOBBY PLAYER STATUS UPDATE, ID: ', message.userId);
     if (message.userId === userStore.getId) {
       player1Ready.value = player1Ready.value ? false : true 
     } else if (message.userId === challengedFriendId.value) {
@@ -90,6 +87,7 @@ onMounted(() => {
   })
 
   eventBus.on('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
+    remainingSeconds.value = message.remainingSecondsToStart;
     showReadyChecks.value = false;
     showTimer.value = true;
   })

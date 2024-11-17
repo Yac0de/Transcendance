@@ -1,26 +1,19 @@
 <!-- Timer.vue -->
 <template>
  <div class="timer">
-    {{ remainingTime }} 
+    {{ remainingSeconds }} 
  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { eventBus } from '../../events/eventBus'
+import { ref } from 'vue'
 
 const remainingTime = ref<number>(60);
 
-onMounted(() => {
-  eventBus.on('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
-    console.log("SEC REMAINING = ", message.remainingTime);
-    remainingTime.value = message.remainingTime;
-  })
-})
+const props = defineProps<{
+  remainingSeconds: number;
+}>();
 
-onUnmounted(() => {
-  eventBus.off('LOBBY_PREGAME_REMAINING_TIME')
-})
 </script>
 
 <style scoped>

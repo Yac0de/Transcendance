@@ -73,10 +73,8 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
-                console.log("RECEIVED: ");
                 try {
                     const message = JSON.parse(event.data);
-                    console.log(message);
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);

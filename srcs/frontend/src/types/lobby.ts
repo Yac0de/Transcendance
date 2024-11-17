@@ -50,7 +50,7 @@ export interface LobbyCreated {
 
 export interface LobbyPregameRemainingTime {
   type: 'LOBBY_PREGAME_REMAINING_TIME';
-  remaining_time: number;
+  remainingSecondsToStart: number;
   lobbyID: number;
 }
 

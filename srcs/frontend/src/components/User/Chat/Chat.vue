@@ -139,6 +139,10 @@ watch(() => chatStore.selectedFriendId, (newFriendId) => {
   } else {
     showChatInterface.value = true;
     selectFriend(newFriendId);
+
+	if (userStore.getWebSocketService) {
+      setupChatMessageHandler();
+    }
   }
 });
 

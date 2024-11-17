@@ -17,8 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useUserStore } from '../../../stores/user';
+import { useChatStore } from '../../../stores/chatStore';
 import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
@@ -29,6 +30,7 @@ import { ChatMessage } from '../../../types/chat';
 const showChatInterface = ref(false);
 const currentFriendId = ref<number | null>(null);
 const userStore = useUserStore();
+const chatStore = useChatStore();
 const friends = ref<Friend[]>([]);
 const fetchedConversationsTracker = ref<Set<number>>(new Set());
 const conversations = ref<{ [friendId: number]: Message[] }>({});
@@ -43,15 +45,19 @@ const currentConversation = computed(() =>
 		: []
 );
 
-const toggleChatInterface = () => {
+const toggleChatInterface = () => {	
 	showChatInterface.value = !showChatInterface.value;
-	if (userStore.getWebSocketService) {
+
+	if (showChatInterface.value && currentFriendId.value)
+    	chatStore.selectFriend(currentFriendId.value);
+
+	if (userStore.getWebSocketService)
 		setupChatMessageHandler();
-	}
 };
 
 const selectFriend = async (friendId: number) => {
 	currentFriendId.value = friendId;
+	chatStore.selectFriend(friendId);
 	await loadFriendDiscussion(friendId);
 };
 
@@ -78,6 +84,7 @@ const loadFriendDiscussion = async (friendId: number) => {
 };
 
 const sendMessage = (message: string) => {
+	console.log("Sending message to friend ID:", currentFriendId.value);
 	if (message.trim() && currentFriendId.value) {
 		if (userStore.getWebSocketService?.isConnected()) {
 			userStore.getWebSocketService?.sendChatMessage(
@@ -125,6 +132,19 @@ const fetchFriendList = async () => {
 		console.error('Failed to fetch friend list', error);
 	}
 };
+
+watch(() => chatStore.selectedFriendId, (newFriendId) => {
+  if (newFriendId === null) {
+    showChatInterface.value = false;
+  } else {
+    showChatInterface.value = true;
+    selectFriend(newFriendId);
+
+	if (userStore.getWebSocketService) {
+      setupChatMessageHandler();
+    }
+  }
+});
 
 onMounted(() => {
 	fetchFriendList();

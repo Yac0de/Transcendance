@@ -1,6 +1,6 @@
 <template>
 	<div class="message-input">
-		<input v-model="message" @keyup.enter="sendMessage" placeholder="Type a message..." />
+		<input ref="inputRef" v-model="message" @keyup.enter="sendMessage" placeholder="Type a message..." />
 		<button @click="sendMessage">Send</button>
 	</div>
 </template>
@@ -13,6 +13,7 @@ const emit = defineEmits<{
 }>();
 
 const message = ref('');
+const inputRef = ref<HTMLInputElement | null>(null);
 
 const sendMessage = () => {
 	if (message.value.trim()) {
@@ -20,6 +21,15 @@ const sendMessage = () => {
 		message.value = '';
 	}
 };
+
+const focusInput = () => {
+    if (inputRef.value)
+        inputRef.value.focus();
+};
+
+defineExpose({
+    focusInput
+});
 </script>
 
 <style scoped>

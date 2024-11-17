@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', {
 
     setWebSocketService(userId: number) {
       const store = useOnlineUsersStore();
-      const webSocketService: WebSocketService = new WebSocketService(userId, store);
+      const webSocketService: WebSocketService = new WebSocketService(userId, store, this);
       webSocketService.connect();
       this.webSocketService = webSocketService;
     },
@@ -80,7 +80,7 @@ export const useUserStore = defineStore('user', {
         this.$patch(userData)
 
         const store = useOnlineUsersStore();
-        const webSocketService = new WebSocketService(userData.id, store);
+        const webSocketService = new WebSocketService(userData.id, store, this);
         webSocketService.connect();
         this.webSocketService = webSocketService;
 

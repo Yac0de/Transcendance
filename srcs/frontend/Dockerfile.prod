@@ -9,7 +9,7 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 RUN npm install pinia
-RUN npm install socket.io-client
+RUN npm install mitt
 
 # Copy project files
 COPY . .

@@ -4,6 +4,7 @@ import SignInForm from '../components/Auth/SignInForm.vue'
 import SignUpForm from '../components/Auth/SignUpForm.vue'
 import PongGame from '../components/Game/PongGame.vue'
 import Account from '../components/User/Account/Account.vue'
+import Lobby from '../components/Lobby/Lobby.vue'
 import NotFound from '../components/General/NotFound.vue'
 import api from '../services/api'
 import { useUserStore } from '../stores/user'
@@ -21,6 +22,11 @@ const routes = [
   {
     path: '/pong', 
     component: PongGame, 
+    meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
+  },
+  {
+    path: '/lobby', 
+    component: Lobby, 
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
   },
   { 

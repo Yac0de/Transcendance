@@ -19,7 +19,13 @@ import (
 
 func Users(ctx *gin.RouterGroup) {
 	ctx.GET("/all", GetAllUsers)
-	ctx.GET("/", GetUserByNickname)
+	ctx.GET("/", func(ctx *gin.Context) {
+		if ctx.Query("nickname") != "" {
+			GetUserByNickname(ctx)
+		} else {
+			GetUserByID(ctx)
+		}
+	})
 	ctx.GET("", GetUser)
 
 	ctx.PUT("/update-profile", UpdateProfile)
@@ -44,6 +50,29 @@ func GetUser(ctx *gin.Context) {
 	id, ok := userId.(uint)
 	if exists == false || !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
+
+	var user models.UserResponse
+	result := database.DB.Raw("SELECT id, display_name, nickname, avatar FROM users WHERE id = ?", id).Scan(&user)
+
+	if result.Error != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
+func GetUserByID(ctx *gin.Context) {
+	id := ctx.Query("id")
+	if id == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
@@ -262,4 +291,3 @@ func ChangePassword(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"success": "Password updated successfully"})
 }
-

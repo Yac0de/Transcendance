@@ -1,7 +1,7 @@
-package main
+package models
 
 type Event struct {
-	Type string `json:"Type"`
+	Type string `json:"type"`
 }
 
 type MessageEvent struct {
@@ -13,10 +13,10 @@ type MessageEvent struct {
 
 type OnlineUsersEvent struct {
 	Event
-	Users []uint64 `json:"UsersOnline"`
+	Users []uint64 `json:"usersOnline"`
 }
 
 type UserStatusEvent struct {
 	Event
-	User uint64 `json:"User"`
+	User uint64 `json:"user"`
 }

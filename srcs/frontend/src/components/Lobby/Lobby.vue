@@ -28,7 +28,7 @@ import ReadyCheck from './ReadyCheck.vue'
 import Timer from './Timer.vue'
 import { useUserStore } from '../../stores/user'
 import { Friend, UserData } from '../../types/models';
-import { LobbyPlayerStatus, LobbyCreated } from '../../types/lobby';
+import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
 

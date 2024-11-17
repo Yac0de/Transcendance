@@ -6,18 +6,18 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useUserStore } from '../../stores/user'
+//import { useUserStore } from '../../stores/user'
 
 const router = useRouter();
 
 //let lobbyId: string = '';
-const userStore = useUserStore()
+//const userStore = useUserStore()
 
 const leaveLobby = () => {
-  const wsService = userStore.getWebSocketService
-  if (wsService && lobbyId !== '') {
-    //wsService.leaveAndTerminateLobby(lobbyId);
-  }
+  //const wsService = userStore.getWebSocketService
+  // if (wsService && lobbyId !== '') {
+  //   wsService.leaveAndTerminateLobby(lobbyId);
+  // }
   router.push('/');
 }
 </script>

@@ -24,14 +24,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useOnlineUsersStore } from '../../stores/onlineUsers'
-import { useUserStore } from '../../stores/user'
-import { Friend } from '../.../types/models';
+import { Friend } from '../../types/models';
 import api from '../../services/api';
 
 const isWaiting = ref(false);
 let friendList: Friend[] = [];
 const onlineUsersStore = useOnlineUsersStore();
-const userStore = useUserStore();
 const onlineUsers = computed(() => onlineUsersStore.getOnlineUsers);
 const onlineFriends = computed(() =>
   friendList.filter(friend => onlineUsers.value.includes(friend.id))
@@ -44,7 +42,7 @@ interface Props {
   selectedFriend?: number | null
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   selectedFriend: null
 })
 

@@ -4,12 +4,12 @@
       <div class="avatar-container">
         <div class="avatar-wrapper">
           <img
-            :src="isLeft ? api.user.getAvatarUrl(user_store.getAvatarPath) : api.user.getAvatarUrl(challengedFriend?.avatarPath)"
+            :src="isLeft ? api.user.getAvatarUrl(user_store.getAvatarPath) : api.user.getAvatarUrl(challengedFriend?.avatar ?? null)"
             :alt="(isLeft ? user_store.getNickname : challengedFriend?.nickname) + '\'s avatar'" class="avatar-image" />
         </div>
       </div>
       <div class="player-name">
-        {{ isLeft ? user_store.getNickname : challengedFriend.nickname }}
+        {{ isLeft ? user_store.getNickname : challengedFriend?.nickname }}
       </div>
     </div>
   </div>
@@ -17,11 +17,10 @@
 
 <script setup lang="ts">
 import { useUserStore } from '../../stores/user';
-import { computed, onMounted, watch } from 'vue';
 import api from '../../services/api';
 import type { UserData } from '../../types/models';
 
-const props = defineProps<{
+defineProps<{
   isLeft: boolean;
   challengedFriend?: UserData | null;
 }>();

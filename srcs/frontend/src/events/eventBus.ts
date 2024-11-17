@@ -18,6 +18,7 @@ type Events = {
   'LOBBY_CREATED': LobbyCreated;
   'LOBBY_PLAYER_STATUS': LobbyPlayerStatus;
   'LOBBY_TERMINATE': LobbyTerminate;
+  'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
 }
 
 export const eventBus = mitt<Events>();

@@ -7,7 +7,7 @@ import { eventBus } from '../events/eventBus';
 
 type MessageHandler<T> = (message: T) => void;
 type MessageHandlers = {
-    [key: string]: MessageHandler<ChatMessage | OnlineUsersMessage | UserStatusMessage>;
+    [key: string]: MessageHandler<any>;
 };
 
 export class WebSocketService {
@@ -54,7 +54,7 @@ export class WebSocketService {
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
-        this.messageHandlers[type] = handler as MessageHandler<ChatMessage | OnlineUsersMessage | UserStatusMessage>;
+        this.messageHandlers[type] = handler;
     }
 
     public connect(): void {
@@ -106,7 +106,7 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyInvitationToFriend = {
                 type: 'LOBBY_INVITATION_TO_FRIEND',
-                userID: this.userStore.getId,
+                userId: this.userStore.getId,
                 sender: {
                     id: this.userStore.getId,
                     isReady: false
@@ -135,7 +135,7 @@ export class WebSocketService {
                     id: this.userStore.getId,
                     isReady: false
                 },
-                lobbyID: lobbyId
+                lobbyId: lobbyId
             };
             this.ws.send(JSON.stringify(message));
         } else {
@@ -156,7 +156,7 @@ export class WebSocketService {
                     id: inviterId,
                     isReady: false
                 },
-                lobbyID: lobbyId
+                lobbyId: lobbyId
             };
             this.ws.send(JSON.stringify(message));
         } else {
@@ -168,8 +168,8 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_READY_STATUS',
-                userID: this.userStore.getId,
-                lobbyID: lobbyId,
+                userId: this.userStore.getId,
+                lobbyId: lobbyId,
             };
             this.ws.send(JSON.stringify(message));
         } else {
@@ -181,8 +181,8 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_UNREADY_STATUS',
-                userID: this.userStore.getId,
-                lobbyID: lobbyId
+                userId: this.userStore.getId,
+                lobbyId: lobbyId
             };
             this.ws.send(JSON.stringify(message));
         } else {
@@ -194,12 +194,12 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyAcceptFromFriend = {
                 type: 'LOBBY_TERMINATE',
-                userID: this.userStore.getId,
+                userId: this.userStore.getId,
                 sender: {
                     id: this.userStore.getId,
                     isReady: false
                 },
-                lobbyID: lobbyId
+                lobbyId: lobbyId
             };
             this.ws.send(JSON.stringify(message));
         } else {

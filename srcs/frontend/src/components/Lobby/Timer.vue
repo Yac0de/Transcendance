@@ -6,11 +6,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 
-const remainingTime = ref<number>(60);
-
-const props = defineProps<{
+defineProps<{
   remainingSeconds: number;
 }>();
 

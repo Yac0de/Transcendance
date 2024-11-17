@@ -51,7 +51,7 @@ export default {
         });
     },
 
-    getAvatarUrl(avatarPath: string): string {
+    getAvatarUrl(avatarPath: string | null): string  {
         const defaultAvatarPath = 'default.png';
         const finalAvatarPath = avatarPath || defaultAvatarPath;
         return `${API_BASE_URL}/users/avatar/${finalAvatarPath}`;

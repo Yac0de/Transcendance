@@ -27,7 +27,7 @@ import PlayerScrolldown from './PlayerScrolldown.vue'
 import ReadyCheck from './ReadyCheck.vue'
 import Timer from './Timer.vue'
 import { useUserStore } from '../../stores/user'
-import { Friend, UserData } from '../../types/models';
+import { UserData } from '../../types/models';
 import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
@@ -54,9 +54,9 @@ const handleLeaveLobby = () => {
   console.log('Leaving lobby...')
 }
 
-const handleFriendSelected = (friend: Friend) => {
+const handleFriendSelected = (friendId: number) => {
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.inviteFriendToLobbyMessage(friend);
+    userStore.getWebSocketService?.inviteFriendToLobbyMessage(friendId);
   } else {
     console.error('WebSocket is not connected');
   }

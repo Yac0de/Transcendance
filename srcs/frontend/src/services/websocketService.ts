@@ -1,9 +1,34 @@
 import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
 import { ChatMessage } from '../types/chat';
-import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyTerminate, LobbyPlayerStatus } from '../types/lobby';
+import { UserData } from '../types/models';
+import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate } from '../types/lobby';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
-import { useUserStore } from '../stores/user';
 import { eventBus } from '../events/eventBus';
+
+//This is needed because we can't get the return type of userStore inside the constructor of a class that is an attribute of
+//this very store, because it creates circular dependencies, so we create an interface that helps up set the return type of
+//our userStore
+interface IUserStore {
+    id: number | null;
+    nickname: string | null;
+    displayname: string | null;
+    avatar: string | null;
+    webSocketService: WebSocketService | null;
+
+    getId: number | null;
+    getNickname: string | null;
+    getDisplayName: string | null;
+    getAvatarPath: string | null;
+    isSignedIn: boolean;
+    getWebSocketService: WebSocketService | null;
+
+    setUser: (userData: UserData) => void;
+    setWebSocketService: (userId: number) => void;
+    fetchUser: () => Promise<void>;
+    clearUser: () => void;
+    loadUserFromStorage: () => boolean;
+    initializeStore: () => Promise<boolean>;
+}
 
 type MessageHandler<T> = (message: T) => void;
 type MessageHandlers = {
@@ -14,10 +39,10 @@ export class WebSocketService {
     public ws: WebSocket | null = null;
     public clientId: number;
     public onlineUsersStore: ReturnType<typeof useOnlineUsersStore>;
-    public userStore: ReturnType<typeof useUserStore>;
+    public userStore: IUserStore;
     public messageHandlers: MessageHandlers = {};
 
-    constructor(clientId: number, onlineUsersStore: ReturnType<typeof useOnlineUsersStore>, userStore: ReturnType<typeof useUserStore>) {
+    constructor(clientId: number, onlineUsersStore: ReturnType<typeof useOnlineUsersStore>, userStore: IUserStore) {
         this.clientId = clientId;
         this.onlineUsersStore = onlineUsersStore;
         this.userStore = userStore;
@@ -106,9 +131,9 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyInvitationToFriend = {
                 type: 'LOBBY_INVITATION_TO_FRIEND',
-                userId: this.userStore.getId,
+                userId: this.userStore.getId!,
                 sender: {
-                    id: this.userStore.getId,
+                    id: this.userStore.getId!,
                     isReady: false
                 },
                 receiver: {
@@ -126,13 +151,13 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyAcceptFromFriend = {
                 type: 'LOBBY_ACCEPT_FROM_FRIEND',
-                user: this.userStore.getId,
+                user: this.userStore.getId!,
                 sender: {
                     id: inviterId,
                     isReady: false
                 },
                 receiver: {
-                    id: this.userStore.getId,
+                    id: this.userStore.getId!,
                     isReady: false
                 },
                 lobbyId: lobbyId
@@ -147,9 +172,9 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyDenyFromFriend = {
                 type: 'LOBBY_DENY_FROM_FRIEND',
-                user: this.userStore.getId,
+                user: this.userStore.getId!,
                 sender: {
-                    id: this.userStore.getId,
+                    id: this.userStore.getId!,
                     isReady: false
                 },
                 receiver: {
@@ -168,7 +193,7 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_READY_STATUS',
-                userId: this.userStore.getId,
+                userId: this.userStore.getId!,
                 lobbyId: lobbyId,
             };
             this.ws.send(JSON.stringify(message));
@@ -181,7 +206,7 @@ export class WebSocketService {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_UNREADY_STATUS',
-                userId: this.userStore.getId,
+                userId: this.userStore.getId!,
                 lobbyId: lobbyId
             };
             this.ws.send(JSON.stringify(message));
@@ -192,11 +217,10 @@ export class WebSocketService {
 
     public leaveAndTerminateLobby(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: LobbyAcceptFromFriend = {
+            const message: LobbyTerminate = {
                 type: 'LOBBY_TERMINATE',
-                userId: this.userStore.getId,
                 sender: {
-                    id: this.userStore.getId,
+                    id: this.userStore.getId!,
                     isReady: false
                 },
                 lobbyId: lobbyId

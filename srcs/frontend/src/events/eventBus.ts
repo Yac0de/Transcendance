@@ -7,7 +7,8 @@ import type {
   LobbyDenyFromFriend,
   LobbyCreated,
   LobbyPlayerStatus,
-  LobbyTerminate
+  LobbyTerminate,
+  LobbyPregameRemainingTime
 } from '../types/lobby';
 
 type Events = {

@@ -8,7 +8,6 @@ export interface LobbyInvitationToFriend {
   userId: number;
   sender: LobbyUserState;
   receiver: LobbyUserState;
-  lobbyId: string;
 }
 
 export interface LobbyInvitationFromFriend {
@@ -21,7 +20,7 @@ export interface LobbyInvitationFromFriend {
 
 export interface LobbyAcceptFromFriend {
   type: 'LOBBY_ACCEPT_FROM_FRIEND';
-  userId: number;
+  user: number;
   sender: LobbyUserState;
   receiver: LobbyUserState;
   lobbyId: string;
@@ -29,7 +28,7 @@ export interface LobbyAcceptFromFriend {
 
 export interface LobbyDenyFromFriend {
   type: 'LOBBY_DENY_FROM_FRIEND';
-  userId: number;
+  user: number;
   sender: LobbyUserState;
   receiver: LobbyUserState;
   lobbyId: string;

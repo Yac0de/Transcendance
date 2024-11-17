@@ -10,7 +10,7 @@
 					</div>
 				</div>
 			</div>
-			<ChatInput @send="handleSend" />
+			<ChatInput ref="chatInputRef" @send="handleSend" />
 		</template>
 		<template v-else>
 			<p class="no-friend-selected"> Select a friend to start chatting</p>
@@ -20,10 +20,11 @@
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue';
-import { ref, watch, nextTick } from 'vue';
+import { ref, watch, nextTick, onMounted } from 'vue';
 import { Friend, Message } from '../../../types/models';
 
 const messageContainer = ref<HTMLElement | null>(null);
+const chatInputRef = ref<InstanceType<typeof ChatInput> | null>(null);
 
 const scrollToBottom = () => {
 	nextTick(() => {
@@ -51,6 +52,19 @@ watch(() => props.messages, () => {
 	scrollToBottom();
 }, { deep: true });
 
+watch(() => props.currentFriend, (newFriend) => {
+    if (newFriend) {
+        nextTick(() => {
+            chatInputRef.value?.focusInput();
+        });
+    }
+}, { immediate: true });
+
+onMounted(() => {
+    nextTick(() => {
+        chatInputRef.value?.focusInput();
+    });
+});
 </script>
 
 <style scoped>

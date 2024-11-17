@@ -112,6 +112,7 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseUint(r.Header.Get("id"), 10, 64)
 	if err != nil {
+		conn.Close()
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Println(err)
 		return
@@ -126,6 +127,26 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	client.Hub.register <- client
 
+	// Envoyer un message de connexion réussie
+	// response := MessageEvent{
+	// 	Event: Event{
+	// 		Type: "CONNECT",
+	// 	},
+	// 	SenderID:   client.Id,
+	// 	ReceiverID: client.Id,
+	// 	Data:       "",
+	// }
+
+	// message, err := json.Marshal(response)
+	// if err != nil {
+	// 	log.Printf("Error encoding connect message: %v", err)
+	// 	conn.Close()
+	// 	return nil
+	// }
+
+	// client.Send <- message
+
+	// Démarrer les goroutines de lecture et d'écriture
 	go client.writePump()
 	go client.readPump()
 }

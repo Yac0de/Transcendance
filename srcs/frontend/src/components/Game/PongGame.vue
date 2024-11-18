@@ -9,6 +9,10 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
 const startTournament = () => {
   // TODO: Implement tournament logic 
   console.log('Starting tournament');
@@ -22,6 +26,7 @@ const startPlayerVsRobot = () => {
 const startPlayerVsFriend = () => {
   // TODO: Implement player vs friend logic 
   console.log('Starting Play VS Friend game');
+  router.push('/lobby');
 };
 </script>
 

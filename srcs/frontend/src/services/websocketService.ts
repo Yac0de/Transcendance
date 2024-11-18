@@ -1,39 +1,85 @@
-import { ChatMessage, OnlineUsersMessage, UserStatusMessage } from '../types/websocket';
+import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
+import { ChatMessage } from '../types/chat';
+import { UserData } from '../types/models';
+import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate } from '../types/lobby';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
+import { eventBus } from '../events/eventBus';
+
+//This is needed because we can't get the return type of userStore inside the constructor of a class that is an attribute of
+//this very store, because it creates circular dependencies, so we create an interface that helps up set the return type of
+//our userStore
+interface IUserStore {
+    id: number | null;
+    nickname: string | null;
+    displayname: string | null;
+    avatar: string | null;
+    webSocketService: WebSocketService | null;
+
+    getId: number | null;
+    getNickname: string | null;
+    getDisplayName: string | null;
+    getAvatarPath: string | null;
+    isSignedIn: boolean;
+    getWebSocketService: WebSocketService | null;
+
+    setUser: (userData: UserData) => void;
+    setWebSocketService: (userId: number) => void;
+    fetchUser: () => Promise<void>;
+    clearUser: () => void;
+    loadUserFromStorage: () => boolean;
+    initializeStore: () => Promise<boolean>;
+}
 
 type MessageHandler<T> = (message: T) => void;
 type MessageHandlers = {
-    [key: string]: MessageHandler<ChatMessage | OnlineUsersMessage | UserStatusMessage>;
+    [key: string]: MessageHandler<any>;
 };
 
 export class WebSocketService {
     public ws: WebSocket | null = null;
     public clientId: number;
     public onlineUsersStore: ReturnType<typeof useOnlineUsersStore>;
+    public userStore: IUserStore;
     public messageHandlers: MessageHandlers = {};
 
-    constructor(clientId: number, store: ReturnType<typeof useOnlineUsersStore>) {
+    constructor(clientId: number, onlineUsersStore: ReturnType<typeof useOnlineUsersStore>, userStore: IUserStore) {
         this.clientId = clientId;
-        this.onlineUsersStore = store;
+        this.onlineUsersStore = onlineUsersStore;
+        this.userStore = userStore;
         this.initMessageHandlers();
     }
 
     public initMessageHandlers(): void {
-        this.setMessageHandler<OnlineUsersMessage> ('ONLINE_USERS', (message: OnlineUsersMessage) => {
-            this.onlineUsersStore.setOnlineUsers(message.UsersOnline);
+        this.setMessageHandler<OnlineUsersMessage>('ONLINE_USERS', (message: OnlineUsersMessage) => {
+            this.onlineUsersStore.setOnlineUsers(message.usersOnline);
         });
 
         this.setMessageHandler<UserStatusMessage>('USER_DISCONNECTED', (message: UserStatusMessage) => {
-            this.onlineUsersStore.removeOnlineUser(message.User);
+            this.onlineUsersStore.removeOnlineUser(message.user);
         });
 
         this.setMessageHandler<UserStatusMessage>('NEW_CONNECTION', (message: UserStatusMessage) => {
-            this.onlineUsersStore.addOnlineUser(message.User);
+            this.onlineUsersStore.addOnlineUser(message.user);
+        });
+        this.setMessageHandler<LobbyInvitationFromFriend>('LOBBY_INVITATION_FROM_FRIEND', (message: LobbyInvitationFromFriend) => {
+            eventBus.emit('LOBBY_INVITATION_FROM_FRIEND', message);
+        });
+        this.setMessageHandler<LobbyInvitationToFriend>('LOBBY_INVITATION_TO_FRIEND', (message: LobbyInvitationToFriend) => {
+            eventBus.emit('LOBBY_INVITATION_TO_FRIEND', message);
+        });
+        this.setMessageHandler<LobbyCreated>('LOBBY_CREATED', (message: LobbyCreated) => {
+            eventBus.emit('LOBBY_CREATED', message);
+        });
+        this.setMessageHandler<LobbyPlayerStatus>('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
+            eventBus.emit('LOBBY_PLAYER_STATUS', message);
+        });
+        this.setMessageHandler<LobbyPregameRemainingTime>('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
+            eventBus.emit('LOBBY_PREGAME_REMAINING_TIME', message);
         });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
-        this.messageHandlers[type] = handler as MessageHandler<ChatMessage | OnlineUsersMessage | UserStatusMessage>;
+        this.messageHandlers[type] = handler;
     }
 
     public connect(): void {
@@ -54,7 +100,7 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    const handler = this.messageHandlers[message.Type];
+                    const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
                     }
@@ -66,25 +112,132 @@ export class WebSocketService {
             console.error('Could not connect to the ws: ', error);
         }
     }
-    public sendMessage(content: string, senderID: number, receiverID: number): void {
+
+    public sendChatMessage(content: string, senderID: number, receiverID: number): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: ChatMessage = {
-                Type: 'CHAT',
-                Data: content,
-                SenderID: senderID,
-                ReceiverID: receiverID
+                type: 'CHAT',
+                data: content,
+                senderID: senderID,
+                receiverID: receiverID
             };
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
         }
     }
+
+    public inviteFriendToLobbyMessage(friendId: number): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyInvitationToFriend = {
+                type: 'LOBBY_INVITATION_TO_FRIEND',
+                userId: this.userStore.getId!,
+                sender: {
+                    id: this.userStore.getId!,
+                    isReady: false
+                },
+                receiver: {
+                    id: friendId,
+                    isReady: false
+                },
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public acceptInviteFromFriend(lobbyId: string, inviterId: number): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyAcceptFromFriend = {
+                type: 'LOBBY_ACCEPT_FROM_FRIEND',
+                user: this.userStore.getId!,
+                sender: {
+                    id: inviterId,
+                    isReady: false
+                },
+                receiver: {
+                    id: this.userStore.getId!,
+                    isReady: false
+                },
+                lobbyId: lobbyId
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public denyInviteFromFriend(lobbyId: string, inviterId: number): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyDenyFromFriend = {
+                type: 'LOBBY_DENY_FROM_FRIEND',
+                user: this.userStore.getId!,
+                sender: {
+                    id: this.userStore.getId!,
+                    isReady: false
+                },
+                receiver: {
+                    id: inviterId,
+                    isReady: false
+                },
+                lobbyId: lobbyId
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public sendPlayerReadyMessage(lobbyId: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyPlayerStatus = {
+                type: 'LOBBY_PLAYER_READY_STATUS',
+                userId: this.userStore.getId!,
+                lobbyId: lobbyId,
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public sendPlayerUnreadyMessage(lobbyId: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyPlayerStatus = {
+                type: 'LOBBY_PLAYER_UNREADY_STATUS',
+                userId: this.userStore.getId!,
+                lobbyId: lobbyId
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public leaveAndTerminateLobby(lobbyId: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LobbyTerminate = {
+                type: 'LOBBY_TERMINATE',
+                sender: {
+                    id: this.userStore.getId!,
+                    isReady: false
+                },
+                lobbyId: lobbyId
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
     public disconnect(): void {
         if (this.ws) {
             this.ws.close();
             this.ws = null;
         }
     }
+
     public isConnected(): boolean {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }

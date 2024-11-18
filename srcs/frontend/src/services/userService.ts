@@ -13,6 +13,17 @@ export default {
         }
     },
 
+    async getOtherUserData(userId: number): Promise<UserData | null> {
+        try {
+            return await apiRequest(`/users/?id=${userId}`, { credentials: "include" });
+        } catch (error: unknown) {
+            if ((error as any).message === 'Unauthorized') {
+                return null;
+            }
+            throw new Error('Fetching other user data failed');
+        }
+    },
+
     async getProfileData(nickname: string): Promise<UserData | null> {
         const params = new URLSearchParams({ nickname }).toString();
         try {
@@ -40,7 +51,7 @@ export default {
         });
     },
 
-    getAvatarUrl(avatarPath: string): string {
+    getAvatarUrl(avatarPath: string | null): string  {
         const defaultAvatarPath = 'default.png';
         const finalAvatarPath = avatarPath || defaultAvatarPath;
         return `${API_BASE_URL}/users/avatar/${finalAvatarPath}`;

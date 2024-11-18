@@ -1,10 +1,8 @@
-package main
+package controllers
 
 import (
 	"bytes"
 	"log"
-	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -31,17 +29,9 @@ type Client struct {
 	Send chan []byte
 }
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-func (c *Client) readPump() {
+func (c *Client) ReadPump() {
 	defer func() {
-		c.Hub.unregister <- c
+		c.Hub.Unregister <- c
 		c.Conn.Close()
 	}()
 	c.Conn.SetReadLimit(maxMessageSize)
@@ -60,11 +50,11 @@ func (c *Client) readPump() {
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, []byte{'\n'}, []byte{' '}, -1))
 
-		c.Hub.broadcast <- message
+		c.Hub.Broadcast <- message
 	}
 }
 
-func (c *Client) writePump() {
+func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -100,53 +90,4 @@ func (c *Client) writePump() {
 
 		}
 	}
-}
-
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Println(err)
-		return
-	}
-
-	id, err := strconv.ParseUint(r.Header.Get("id"), 10, 64)
-	if err != nil {
-		conn.Close()
-		w.WriteHeader(http.StatusUnauthorized)
-		log.Println(err)
-		return
-	}
-
-	client := &Client{
-		Id:   id,
-		Hub:  hub,
-		Conn: conn,
-		Send: make(chan []byte, maxMessageSize),
-	}
-
-	client.Hub.register <- client
-
-	// Envoyer un message de connexion réussie
-	// response := MessageEvent{
-	// 	Event: Event{
-	// 		Type: "CONNECT",
-	// 	},
-	// 	SenderID:   client.Id,
-	// 	ReceiverID: client.Id,
-	// 	Data:       "",
-	// }
-
-	// message, err := json.Marshal(response)
-	// if err != nil {
-	// 	log.Printf("Error encoding connect message: %v", err)
-	// 	conn.Close()
-	// 	return nil
-	// }
-
-	// client.Send <- message
-
-	// Démarrer les goroutines de lecture et d'écriture
-	go client.writePump()
-	go client.readPump()
 }

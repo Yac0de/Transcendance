@@ -6,18 +6,26 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-//import { useUserStore } from '../../stores/user'
+import { useUserStore } from '../../stores/user'
+
+interface Props {
+  lobbyId?: string;
+}
 
 const router = useRouter();
+const userStore = useUserStore()
 
-//let lobbyId: string = '';
-//const userStore = useUserStore()
+const props = withDefaults(defineProps<Props>(), {
+  lobbyId: '',
+})
+
 
 const leaveLobby = () => {
-  //const wsService = userStore.getWebSocketService
-  // if (wsService && lobbyId !== '') {
-  //   wsService.leaveAndTerminateLobby(lobbyId);
-  // }
+  const wsService = userStore.getWebSocketService
+  if (wsService && props.lobbyId !== '') {
+    console.log("TERMINATING THE LOBBY: ", props.lobbyId);
+    wsService.leaveAndTerminateLobby(props.lobbyId);
+  }
   router.push('/');
 }
 </script>

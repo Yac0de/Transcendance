@@ -1,6 +1,12 @@
 <template>
-  <div class="lobby-container">
-    <LeaveLobbyButton @leave-lobby="handleLeaveLobby" />
+  <div class="lobby-container" :class="{ 'no-clicks': showNotification }">
+    <div v-if="showNotification" class="modal-overlay">
+      <div class="notification">
+        Lobby has been destroyed, you will be redirected to homepage. 
+        Maybe your opponent was scared ?
+      </div>
+    </div>
+    <LeaveLobbyButton :lobby-id="lobbyId"/>
     <Timer :remaining-seconds="remainingSeconds" v-if="showTimer"/>
     <div class="players-container">
       <div class="player-column">
@@ -31,7 +37,9 @@ import { UserData } from '../../types/models';
 import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const userStore = useUserStore();
 
 const player1Ready = ref<boolean>(false)
@@ -42,6 +50,8 @@ const challengedFriend = ref<UserData | null>(null);
 let challengedFriendId = ref<number>(0);
 let isAcceptingPlayer: boolean = false;
 
+const showNotification = ref<boolean>(false);
+
 const bothPlayerPresent = computed(() => {
   return challengedFriendId.value !== 0;
 });
@@ -49,10 +59,6 @@ const bothPlayerPresent = computed(() => {
 const remainingSeconds = ref<number>(0);
 const showReadyChecks = ref<boolean>(true);
 const showTimer = ref<boolean>(false);
-
-const handleLeaveLobby = () => {
-  console.log('Leaving lobby...')
-}
 
 const handleFriendSelected = (friendId: number) => {
   if (userStore.getWebSocketService?.isConnected()) {
@@ -94,11 +100,22 @@ onMounted(() => {
     showReadyChecks.value = false;
     showTimer.value = true;
   })
+
+  eventBus.on('LOBBY_DESTROYED', async (message: LobbyDestroyed) => {
+    console.log('LOBBY DESTROYED EVENT RECEIVED');
+    showNotification.value = true;
+    setTimeout(() => {
+      showNotification.value = false;
+      router.push('/');
+    }, 3000);
+  })
 })
 
 onUnmounted(() => {
   eventBus.off('LOBBY_CREATED')
   eventBus.off('LOBBY_PLAYER_STATUS')
+  eventBus.off('LOBBY_PREGAME_REMAINING_TIME')
+  eventBus.off('LOBBY_DESTROYED')
 })
 </script>
 
@@ -115,6 +132,24 @@ onUnmounted(() => {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   gap: 20px;
+}
+
+.no-clicks {
+  pointer-events: none;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: all;
 }
 
 .players-container {
@@ -138,11 +173,20 @@ onUnmounted(() => {
   margin: 0 20px;
 }
 
+.notification {
+  background: #2c3e50;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .players-container {
     flex-direction: column;
     gap: 20px;
   }
-
 }
 </style>

@@ -76,6 +76,9 @@ export class WebSocketService {
         this.setMessageHandler<LobbyPregameRemainingTime>('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
             eventBus.emit('LOBBY_PREGAME_REMAINING_TIME', message);
         });
+        this.setMessageHandler<LobbyDestroyed>('LOBBY_DESTROYED', (message: LobbyDestroyed) => {
+            eventBus.emit('LOBBY_DESTROYED', message);
+        });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -98,8 +101,12 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
+ console.log('Raw message received:', event.data);
+  console.log('Message length:', event.data.length);
+  console.log('Message bytes:', Array.from(new TextEncoder().encode(event.data)));
                 try {
                     const message = JSON.parse(event.data);
+                    console.log(message);
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);

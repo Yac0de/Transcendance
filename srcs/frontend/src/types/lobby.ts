@@ -58,3 +58,8 @@ export interface LobbyTerminate {
   sender: LobbyUserState;
   lobbyId: string;
 }
+
+export interface LobbyDestroyed {
+  type: 'LOBBY_DESTROYED';
+  lobbyId: string;
+}

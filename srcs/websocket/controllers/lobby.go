@@ -230,7 +230,10 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	safeSend(lobby.Sender.Send, jsonData)
 	safeSend(lobby.Receiver.Send, jsonData)
 	if lobby.PlayersReady[0] && lobby.PlayersReady[1] {
-		StartRoutine(h, lobby)
+		go func() {
+			time.Sleep(10 * time.Millisecond)
+			StartRoutine(h, lobby)
+		}()
 		return
 	}
 }

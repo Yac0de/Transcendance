@@ -1,7 +1,7 @@
 import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
-import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate } from '../types/lobby';
+import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 
@@ -14,6 +14,7 @@ interface IUserStore {
     displayname: string | null;
     avatar: string | null;
     webSocketService: WebSocketService | null;
+    isRedirectPending: boolean,
 
     getId: number | null;
     getNickname: string | null;
@@ -75,6 +76,9 @@ export class WebSocketService {
         });
         this.setMessageHandler<LobbyPregameRemainingTime>('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
             eventBus.emit('LOBBY_PREGAME_REMAINING_TIME', message);
+        });
+        this.setMessageHandler<LobbyDestroyed>('LOBBY_DESTROYED', () => {
+            eventBus.emit('LOBBY_DESTROYED');
         });
     }
 

@@ -11,6 +11,7 @@ export const useUserStore = defineStore('user', {
     displayname: null,
     avatar: null,
     webSocketService: null, 
+    isRedirectPending: false,
   }),
   getters: {
     getId: (state: UserState): number | null => state.id,

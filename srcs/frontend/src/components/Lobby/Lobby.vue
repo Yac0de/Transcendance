@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import LeaveLobbyButton from './LeaveLobbyButton.vue'
 import PlayerItem from './PlayerItem.vue'
 import PlayerScrolldown from './PlayerScrolldown.vue'
@@ -86,7 +86,10 @@ onMounted(() => {
     }
   })
 
-  eventBus.on('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
+  eventBus.on('LOBBY_PREGAME_REMAINING_TIME', async (message: LobbyPregameRemainingTime) => {
+    if (showReadyChecks.value === true) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
     remainingSeconds.value = message.remainingSecondsToStart;
     showReadyChecks.value = false;
     showTimer.value = true;

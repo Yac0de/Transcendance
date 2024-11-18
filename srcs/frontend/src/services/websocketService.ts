@@ -14,6 +14,7 @@ interface IUserStore {
     displayname: string | null;
     avatar: string | null;
     webSocketService: WebSocketService | null;
+    isRedirectPending: boolean,
 
     getId: number | null;
     getNickname: string | null;
@@ -101,12 +102,8 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
- console.log('Raw message received:', event.data);
-  console.log('Message length:', event.data.length);
-  console.log('Message bytes:', Array.from(new TextEncoder().encode(event.data)));
                 try {
                     const message = JSON.parse(event.data);
-                    console.log(message);
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);

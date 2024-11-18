@@ -13,7 +13,8 @@ export interface UserState {
   nickname: string | null;
   displayname: string | null;
   avatar: string | null;
-  webSocketService: InstanceType<typeof WebSocketService> | null, 
+  webSocketService: InstanceType<typeof WebSocketService> | null; 
+  isRedirectPending: boolean;
 }
 
 export interface Credentials {

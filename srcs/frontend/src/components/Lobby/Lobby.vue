@@ -12,14 +12,14 @@
       <div class="player-column">
         <PlayerItem :is-left="true"
           :challenged-friend="challengedFriend" />
-        <ReadyCheck :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
+        <ReadyCheck :both-players-ready="player1Ready && player2Ready" :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
       </div>
       <div class="versus">VS</div>
       <div class="player-column">
         <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
           :challenged-friend="challengedFriend"
           @friend-selected="handleFriendSelected" />
-        <ReadyCheck :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
+        <ReadyCheck :both-players-ready="player1Ready && player2Ready" :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
       </div>
     </div>
   </div>
@@ -104,8 +104,10 @@ onMounted(() => {
   eventBus.on('LOBBY_DESTROYED', async (message: LobbyDestroyed) => {
     console.log('LOBBY DESTROYED EVENT RECEIVED');
     showNotification.value = true;
+    userStore.isRedirectPending = true;
     setTimeout(() => {
       showNotification.value = false;
+      userStore.isRedirectPending = false;
       router.push('/');
     }, 3000);
   })

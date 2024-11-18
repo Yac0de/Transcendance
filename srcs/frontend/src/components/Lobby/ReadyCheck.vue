@@ -4,6 +4,7 @@
       class="ready-button" 
       :class="{ 'ready': isPlayerReady }" 
       @click="isPlayerReady ? toggleUnready() : toggleReady()"
+      :disabled="disabled || bothPlayersReady"
     >
       {{ isPlayerReady ? 'Ready!' : 'Not Ready' }}
     </button>
@@ -19,16 +20,18 @@ interface Props {
   disabled?: boolean;
   lobbyId?: string;
   isPlayerReady: boolean;
+  bothPlayersReady?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   lobbyId: '',
   isPlayerReady: false,
+  bothPlayersReady: false
 })
 
 const toggleReady = () => {
-  if (props.disabled) return
+  if (props.disabled && props.bothPlayersReady) return
   if (userStore.getWebSocketService?.isConnected()) {
     userStore.getWebSocketService?.sendPlayerReadyMessage(props.lobbyId);
   } else {
@@ -37,7 +40,7 @@ const toggleReady = () => {
 }
 
 const toggleUnready = () => {
-  if (props.disabled) return
+  if (props.disabled && props.bothPlayersReady) return
   if (userStore.getWebSocketService?.isConnected()) {
     userStore.getWebSocketService?.sendPlayerUnreadyMessage(props.lobbyId);
   } else {

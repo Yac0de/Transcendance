@@ -1,6 +1,5 @@
 services:
   # PostgreSQL database service
-
   db:
     image: postgres
     container_name: postgres
@@ -55,10 +54,15 @@ services:
     container_name: frontend_prod
     ports:
       - '8000:80'
+      - '8443:443'
     networks:
       - transcendance_net
     depends_on:
       - db
+      - backend
+      - websocket
+    volumes:
+      - ./frontend/certs:/etc/nginx/certs
 
   # Backend en Go
   backend:

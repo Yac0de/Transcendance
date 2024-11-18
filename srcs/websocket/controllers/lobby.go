@@ -25,7 +25,7 @@ type Lobby struct {
 	PlayersReady [2]bool         `json:"playersReady"`
 	Mutex        sync.Mutex      `json:"-"`
 	Destroy      chan struct{}   `json:"-"`
-	// Instance    *Game          `json:"instance"`
+	Game    *Game          `json:"game"`
 }
 
 type LobbyUserState struct {

@@ -32,6 +32,11 @@ let lobbyId: string = '';
 let inviter: UserData | null = null;
 
 const accept = () => {
+  if (userStore.isRedirectPending) {
+    show.value = false;
+    return
+  }
+
   const wsService = userStore.getWebSocketService
   if (wsService) {
     if (inviter) {

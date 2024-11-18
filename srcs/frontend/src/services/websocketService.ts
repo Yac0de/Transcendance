@@ -4,6 +4,7 @@ import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
+import { useChatStore } from '../stores/chatStore.ts';
 
 //This is needed because we can't get the return type of userStore inside the constructor of a class that is an attribute of
 //this very store, because it creates circular dependencies, so we create an interface that helps up set the return type of
@@ -51,6 +52,17 @@ export class WebSocketService {
     }
 
     public initMessageHandlers(): void {
+        this.setMessageHandler<ChatMessage>('CHAT', (message: ChatMessage) => {
+            const conversationId = message.senderID === this.clientId ? message.receiverID : message.senderID;
+            if (conversationId) {
+                const chatStore = useChatStore();
+                if (chatStore.selectedFriendId !== conversationId) {
+                    chatStore.addUnreadMessage(conversationId);
+                }
+            } else
+                console.warn('Unable to determine conversation ID for message:', message);
+        });
+
         this.setMessageHandler<OnlineUsersMessage>('ONLINE_USERS', (message: OnlineUsersMessage) => {
             this.onlineUsersStore.setOnlineUsers(message.usersOnline);
         });
@@ -107,9 +119,10 @@ export class WebSocketService {
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
-                    }
+                    } else
+                        console.warn(`No handler found for message type: ${message.type}`);
                 } catch (e) {
-                    console.error('Error parsing message, invalid format ?', e);
+                    console.error('Error parsing WebSocket message:', e);
                 }
             };
         } catch (error) {

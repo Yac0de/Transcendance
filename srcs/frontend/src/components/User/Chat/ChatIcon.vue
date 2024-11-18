@@ -2,14 +2,22 @@
 	<div class="chat-icon-container">
 		<div class="chat-icon" @click="$emit('toggle')">
 			<i class="fas fa-comment"></i>
+			<span v-if="unreadMessages > 0" class="notification-badge">{{ unreadMessages }}</span>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useChatStore } from '../../../stores/chatStore';
+
+const chatStore = useChatStore();
+
 defineEmits<{
 	(e: 'toggle'): void;
 }>();
+
+const unreadMessages = computed(() => chatStore.totalUnreadMessages);
 </script>
 
 <style scoped>
@@ -38,6 +46,23 @@ defineEmits<{
 .chat-icon i {
 	color: white;
 	font-size: 24px;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 640px) {

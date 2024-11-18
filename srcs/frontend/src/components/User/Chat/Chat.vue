@@ -99,28 +99,44 @@ const sendMessage = (message: string) => {
 };
 
 const setupChatMessageHandler = () => {
-	if (!userStore.getWebSocketService) {
-		return;
-	}
+  const webSocketService = userStore.getWebSocketService;
+  if (!webSocketService || !webSocketService.isConnected()) {
+    console.log("WebSocket not ready.");
+    return;
+  }
 
-	userStore.getWebSocketService.setMessageHandler('CHAT', (message: ChatMessage) => {
-		const messageToPush: Message = {
-			content: message.data,
-			senderId: message.senderID,
-			receiverId: message.receiverID,
-			createdAt: new Date().toISOString()
-		};
+  webSocketService.setMessageHandler('*', (eventType: string, data: any) => {
+    console.log(`Global WebSocket handler: Received event ${eventType}`, data);
+  });
 
-		const conversationId = messageToPush.senderId === userStore.getId
-			? messageToPush.receiverId
-			: messageToPush.senderId;
+  webSocketService.setMessageHandler('CHAT', (message: ChatMessage) => {
+    console.log("Specific 'CHAT' handler: Received message:", message);
+    const messageToPush: Message = {
+      content: message.data,
+      senderId: message.senderID,
+      receiverId: message.receiverID,
+      createdAt: new Date().toISOString()
+    };
 
-		if (!conversations.value[conversationId]) {
-			conversations.value[conversationId] = [];
-		}
-		conversations.value[conversationId].push(messageToPush);
-	});
+    const conversationId = messageToPush.senderId === userStore.getId
+      ? messageToPush.receiverId
+      : messageToPush.senderId;
+
+    if (!conversations.value[conversationId]) {
+      conversations.value[conversationId] = [];
+    }
+    conversations.value[conversationId].push(messageToPush);
+
+    if (conversationId !== currentFriendId.value) {
+      chatStore.addUnreadMessage(conversationId);
+    }
+  });
+
+  console.log("WebSocket handlers set up.");
 };
+
+
+
 
 const fetchFriendList = async () => {
 	try {

@@ -8,7 +8,7 @@ import type {
   LobbyCreated,
   LobbyPlayerStatus,
   LobbyTerminate,
-  LobbyPregameRemainingTime
+  LobbyPregameRemainingTime,
 } from '../types/lobby';
 
 type Events = {
@@ -20,7 +20,7 @@ type Events = {
   'LOBBY_PLAYER_STATUS': LobbyPlayerStatus;
   'LOBBY_TERMINATE': LobbyTerminate;
   'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
-  'LOBBY_DESTROYED': LobbyDestroyed;
+  'LOBBY_DESTROYED': void;
 }
 
 export const eventBus = mitt<Events>();

@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import LeaveLobbyButton from './LeaveLobbyButton.vue'
 import PlayerItem from './PlayerItem.vue'
 import PlayerScrolldown from './PlayerScrolldown.vue'
@@ -101,8 +101,7 @@ onMounted(() => {
     showTimer.value = true;
   })
 
-  eventBus.on('LOBBY_DESTROYED', async (message: LobbyDestroyed) => {
-    console.log('LOBBY DESTROYED EVENT RECEIVED');
+  eventBus.on('LOBBY_DESTROYED', async () => {
     showNotification.value = true;
     userStore.isRedirectPending = true;
     setTimeout(() => {

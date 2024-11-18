@@ -23,7 +23,6 @@ const props = withDefaults(defineProps<Props>(), {
 const leaveLobby = () => {
   const wsService = userStore.getWebSocketService
   if (wsService && props.lobbyId !== '') {
-    console.log("TERMINATING THE LOBBY: ", props.lobbyId);
     wsService.leaveAndTerminateLobby(props.lobbyId);
   }
   router.push('/');

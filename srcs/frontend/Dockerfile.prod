@@ -9,23 +9,10 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 RUN npm install pinia
-RUN npm install socket.io-client
+RUN npm install mitt
 
 # Copy project files
 COPY . .
 
 # Build the app
 RUN npm run build
-
-# Stage 2: Serve with NGINX
-FROM nginx:alpine
-
-# Copy the built app from previous stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-
-# Copy NGINX configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-EXPOSE 8000
-
-CMD ["nginx", "-g", "daemon off;"]

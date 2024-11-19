@@ -20,9 +20,10 @@
     </nav>
     <div class="content">
       <router-view></router-view>
+      <InvitePopUp />
+      <FriendList v-if="userStore.isSignedIn" />
+      <Chat v-if="userStore.isSignedIn" />
     </div>
-    <FriendList v-if="userStore.isSignedIn" />
-    <Chat v-if="userStore.isSignedIn" />
   </div>
 </template>
 
@@ -33,6 +34,7 @@ import { useUserStore } from './stores/user';
 import api from './services/api';
 import FriendList from './components/User/Friend/FriendMenu.vue';
 import Chat from './components/User/Chat/Chat.vue';
+import InvitePopUp from './components/Lobby/InvitePopUp.vue';
 
 const userStore = useUserStore();
 const router = useRouter();

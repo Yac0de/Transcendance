@@ -1,7 +1,9 @@
 <template>
 	<div class="current-discussion">
 		<template v-if="currentFriend">
-			<h4>{{ currentFriend.nickname }}</h4>
+			<router-link :to="`/${currentFriend.nickname}`" class="friend-profile-link">
+                <h4>{{ currentFriend.nickname }}</h4>
+            </router-link>
 			<div class="messages" ref="messageContainer">
 				<div v-for="message in messages" :key="`${message.senderId} - ${message.createdAt}`"
 					:class="['message-wrapper', message.senderId === userId ? 'user-message' : 'receiver-message']">
@@ -155,6 +157,16 @@ onMounted(() => {
 	background-color: #f1f3f4;
 	color: #333;
 	border-bottom-left-radius: 4px;
+}
+
+.friend-profile-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.friend-profile-link:hover h4 {
+    text-decoration: underline;
+    color: #1a73e8;
 }
 
 @media (max-width: 640px) {

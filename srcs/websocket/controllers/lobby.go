@@ -247,8 +247,8 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 	lobby.Timestamps.Pregame = time.Now()
 	lobby.Destroy = make(chan struct{})
 	lobby.Game = NewGame(lobby.Sender.Id, lobby.Receiver.Id)
-	// gameTicker := time.NewTicker(GameTickRate)
-	gameTicker := time.NewTicker(time.Second * 2)
+	gameTicker := time.NewTicker(GameTickRate)
+	//gameTicker := time.NewTicker(time.Second * 2)
 	lobby.Game.resetBall()
 	go func() {
 		for {
@@ -261,7 +261,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 					lobby.Game.Update()
 					evt := GameEvent{
 						Event: models.Event{
-							Type: "GAME_STATE",
+							Type: "GAME_EVENT",
 						},
 
 						LobbyId: lobby.Id,

@@ -32,6 +32,8 @@ type Paddle struct {
 	Speed            float64 `json:"-"`
 	Player1Y         float64 `json:"player1Y"`
 	Player2Y         float64 `json:"player2Y"`
+	Player1X         float64 `json:"player1X"`
+	Player2X         float64 `json:"player2X"`
 	Player1Direction int     `json:"player1YDirection"`
 	Player2Direction int     `json:"player2YDirection"`
 }
@@ -108,6 +110,8 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Speed:    PaddleSpeed,
 				Player1Y: CanvasHeight / 2,
 				Player2Y: CanvasHeight / 2,
+				Player1X: Paddle1DistanceWall,
+				Player2X: Paddle2DistanceWall,
 			},
 
 			Score: Score{

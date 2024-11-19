@@ -2,6 +2,7 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
+import { GameEvent } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 
@@ -79,6 +80,9 @@ export class WebSocketService {
         });
         this.setMessageHandler<LobbyDestroyed>('LOBBY_DESTROYED', () => {
             eventBus.emit('LOBBY_DESTROYED');
+        });
+        this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
+            eventBus.emit('GAME_EVENT', message);
         });
     }
 

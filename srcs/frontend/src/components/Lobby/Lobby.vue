@@ -101,6 +101,11 @@ onMounted(() => {
     showTimer.value = true;
   })
 
+  eventBus.on('GAME_EVENT', async (message: GameEvent) => {
+    console.log("GAME EVENT RECEIVED")
+    router.push('/game');
+  })
+
   eventBus.on('LOBBY_DESTROYED', async () => {
     showNotification.value = true;
     userStore.isRedirectPending = true;

@@ -151,9 +151,17 @@ const fetchFriendList = async () => {
 	}
 };
 
-watch(() => chatStore.selectedFriendId, (newFriendId) => {
-    showChatInterface.value = newFriendId !== -1;
-    currentFriendId.value = newFriendId === -1 ? null : newFriendId;
+watch(() => chatStore.selectedFriendId, async (newFriendId) => {
+    if (newFriendId === -1) {
+        showChatInterface.value = false;
+        currentFriendId.value = null;
+    } else {
+        chatStore.unreadMessagesCount[newFriendId] = 0;
+
+        showChatInterface.value = true;
+        currentFriendId.value = newFriendId;
+        await loadFriendDiscussion(newFriendId);
+    }
 });
 
 onMounted(() => {

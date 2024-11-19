@@ -45,14 +45,19 @@ const currentConversation = computed(() =>
 		: []
 );
 
-const toggleChatInterface = () => {	
-	showChatInterface.value = !showChatInterface.value;
+const toggleChatInterface = () => {
+    showChatInterface.value = !showChatInterface.value;
 
-	if (showChatInterface.value && currentFriendId.value)
-    	chatStore.selectFriend(currentFriendId.value);
+    if (!showChatInterface.value) {
+        chatStore.unreadMessagesCount[chatStore.selectedFriendId ?? 0] = 0;
+        chatStore.selectFriend(null);
+    } else if (currentFriendId.value) {
+        chatStore.selectFriend(currentFriendId.value);
+    }
 
-	if (userStore.getWebSocketService)
-		setupChatMessageHandler();
+    if (userStore.getWebSocketService) {
+        setupChatMessageHandler();
+    }
 };
 
 const selectFriend = async (friendId: number) => {
@@ -99,44 +104,41 @@ const sendMessage = (message: string) => {
 };
 
 const setupChatMessageHandler = () => {
-  const webSocketService = userStore.getWebSocketService;
-  if (!webSocketService || !webSocketService.isConnected()) {
-    console.log("WebSocket not ready.");
-    return;
-  }
-
-  webSocketService.setMessageHandler('*', (eventType: string, data: any) => {
-    console.log(`Global WebSocket handler: Received event ${eventType}`, data);
-  });
-
-  webSocketService.setMessageHandler('CHAT', (message: ChatMessage) => {
-    console.log("Specific 'CHAT' handler: Received message:", message);
-    const messageToPush: Message = {
-      content: message.data,
-      senderId: message.senderID,
-      receiverId: message.receiverID,
-      createdAt: new Date().toISOString()
-    };
-
-    const conversationId = messageToPush.senderId === userStore.getId
-      ? messageToPush.receiverId
-      : messageToPush.senderId;
-
-    if (!conversations.value[conversationId]) {
-      conversations.value[conversationId] = [];
+    const webSocketService = userStore.getWebSocketService;
+    if (!webSocketService?.isConnected()) {
+        console.log("WebSocket not ready.");
+        return;
     }
-    conversations.value[conversationId].push(messageToPush);
 
-    if (conversationId !== currentFriendId.value) {
-      chatStore.addUnreadMessage(conversationId);
-    }
-  });
+    webSocketService.setMessageHandler('CHAT', (message: ChatMessage) => {
+        const conversationId = message.senderID === userStore.getId
+            ? message.receiverID
+            : message.senderID;
 
-  console.log("WebSocket handlers set up.");
+        if (!conversationId) {
+            console.warn('Unable to determine conversation ID for message:', message);
+            return;
+        }
+
+        const newMessage: Message = {
+            content: message.data,
+            senderId: message.senderID,
+            receiverId: message.receiverID,
+            createdAt: new Date().toISOString(),
+        };
+
+        conversations.value[conversationId] = [
+            ...(conversations.value[conversationId] || []),
+            newMessage,
+        ];
+
+        if (conversationId !== chatStore.selectedFriendId) {
+            chatStore.addUnreadMessage(conversationId);
+        }
+    });
+
+    console.log("WebSocket handlers set up.");
 };
-
-
-
 
 const fetchFriendList = async () => {
 	try {

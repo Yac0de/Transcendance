@@ -53,14 +53,20 @@ export class WebSocketService {
 
     public initMessageHandlers(): void {
         this.setMessageHandler<ChatMessage>('CHAT', (message: ChatMessage) => {
-            const conversationId = message.senderID === this.clientId ? message.receiverID : message.senderID;
-            if (conversationId) {
-                const chatStore = useChatStore();
-                if (chatStore.selectedFriendId !== conversationId) {
-                    chatStore.addUnreadMessage(conversationId);
-                }
-            } else
+            const conversationId = message.senderID === this.clientId
+                ? message.receiverID
+                : message.senderID;
+
+            if (!conversationId) {
                 console.warn('Unable to determine conversation ID for message:', message);
+                return;
+            }
+
+            const chatStore = useChatStore();
+            if (chatStore.selectedFriendId !== conversationId) {
+                console.log(`Adding unread message for conversation ID: ${conversationId}`);
+                chatStore.addUnreadMessage(conversationId);
+            }
         });
 
         this.setMessageHandler<OnlineUsersMessage>('ONLINE_USERS', (message: OnlineUsersMessage) => {

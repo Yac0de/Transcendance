@@ -22,7 +22,7 @@ up:
 # Production environment (excludes frontend)
 prod:
 	@echo "Building and starting production environment..."
-	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) up -d --build frontend_prod backend db adminer websocket alertmanager prometheus node-exporter postgres-exporter grafana
+	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) up -d --build frontend_prod backend db adminer websocket alertmanager prometheus node-exporter postgres-exporter grafana nginx
 	@echo "Production environment is up on port 8000"
 
 # Stop and remove containers

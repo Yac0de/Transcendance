@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 	"websocket/models"
 
 	"github.com/google/uuid"
@@ -48,7 +47,6 @@ func (h *Hub) RemoveClient(client *Client) {
 		}
 	}
 	go func() {
-		time.Sleep(200 * time.Millisecond)
 		NotifyClients(h, client.Id, "USER_DISCONNECTED")
 	}()
 	delete(h.Clients, client.Id)

@@ -104,6 +104,7 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
+                    console.log(message)
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);

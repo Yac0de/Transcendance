@@ -1,53 +1,67 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"sync"
 	"time"
+	"websocket/models"
+
+	"github.com/google/uuid"
 )
 
+type GameEvent struct {
+	models.Event
+	LobbyId    uuid.UUID `json:"lobbyId"`
+	UserId     uint64    `json:"userId"`
+	State      GameState `json:"state"`
+	KeyPressed string    `json:"keyPressed"`
+}
+
 type Ball struct {
-	X, Y   float64
-	DX, DY float64 //vitesse de la ball et direction
-	Radius float64
+	X      float64 `json:"x"`
+	Y      float64 `json:"y"`
+	DX, DY float64 `json:"-"` //vitesse de la ball et direction
+	Radius float64 `json:"-"`
 }
 
 type Paddle struct {
-	Width            float64
-	Height           float64
-	Speed            float64
-	Player1Y         float64
-	Player2Y         float64
-	Player1Direction int
-	Player2Direction int
+	Width            float64 `json:"width"`
+	Height           float64 `json:"height"`
+	Speed            float64 `json:"-"`
+	Player1Y         float64 `json:"player1Y"`
+	Player2Y         float64 `json:"player2Y"`
+	Player1Direction int     `json:"player1YDirection"`
+	Player2Direction int     `json:"player2YDirection"`
 }
 
 type Score struct {
-	Player1 int
-	Player2 int
+	Player1 int `json:"player1"`
+	Player2 int `json:"player2"`
 }
 
 type GameState struct {
-	Ball     Ball
-	Paddles  Paddle
-	Score    Score
-	IsActive bool
-	Winner   uint64
-	mutex    sync.RWMutex
-	IsPaused bool
-	PauseTime time.Time
+	Ball      Ball       `json:"ball"`
+	Paddles   Paddle     `json:"paddle"`
+	Score     Score      `json:"score"`
+	IsActive  bool       `json:"isActive"`
+	Winner    uint64     `json:"winner"`
+	mutex     sync.Mutex `json:"-"`
+	IsPaused  bool       `json:"isPaused"`
+	PauseTime time.Time  `json:"pauseTime"`
 }
 
 type Player struct {
-	ID       uint64
-	Position float64
+	ID       uint64  `json:"id"`
+	Position float64 `json:"position"`
 }
 
 type Game struct {
-	Player1   *Player
-	Player2   *Player
-	State     *GameState
+	Player1 Player    `json:"player1"`
+	Player2 Player    `json:"player2"`
+	State   GameState `json:"state"`
+	Status  string    `json:"status"`
 }
 
 type GameCommand struct {
@@ -68,20 +82,18 @@ const (
 
 // create instance of game and init all data
 func NewGame(player1ID, player2ID uint64) *Game {
-
 	return &Game{
-
-		Player1: &Player{
+		Player1: Player{
 			ID:       player1ID,
 			Position: CanvasHeight / 2,
 		},
 
-		Player2: &Player{
+		Player2: Player{
 			ID:       player2ID,
 			Position: CanvasHeight / 2,
 		},
 
-		State: &GameState{
+		State: GameState{
 			Ball: Ball{
 				X:      CanvasWidth / 2,
 				Y:      CanvasHeight / 2,
@@ -105,9 +117,9 @@ func NewGame(player1ID, player2ID uint64) *Game {
 
 			IsActive: true,
 		},
+		Status: "PREGAME",
 	}
 }
-
 
 func (g *Game) Update() {
 	g.State.mutex.Lock()
@@ -118,12 +130,12 @@ func (g *Game) Update() {
 	}
 
 	if g.State.IsPaused {
-        if time.Since(g.State.PauseTime) >= PointPauseTime {
-            g.State.IsPaused = false
-        } else {
-            return
-        }
-    }
+		if time.Since(g.State.PauseTime) >= PointPauseTime {
+			g.State.IsPaused = false
+		} else {
+			return
+		}
+	}
 	// Update paddles
 	if g.State.Paddles.Player1Direction != 0 {
 		newY := g.State.Paddles.Player1Y + float64(g.State.Paddles.Player1Direction)*paddleSpeed
@@ -243,4 +255,23 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 			g.State.Paddles.Player2Direction = 0
 		}
 	}
+}
+
+func handleGameMessage(h *Hub, data []byte) {
+	var evt GameEvent
+	if err := json.Unmarshal(data, &evt); err != nil {
+		fmt.Printf("Error GameEvent type unmarshall\n")
+		return
+	}
+	lobby := h.Lobbies[evt.LobbyId]
+	if lobby == nil {
+		return
+	}
+
+	cmd := GameCommand{
+		PlayerID: evt.UserId,
+		Command:  evt.KeyPressed,
+	}
+
+	lobby.Game.HandleCommand(cmd)
 }

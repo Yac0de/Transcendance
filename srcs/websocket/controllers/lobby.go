@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 )
 
-const(
-	PointPauseTime = 3 * time.Second
-	GameTickRate = 16 * time.Millisecond
+const (
+	PointPauseTime = 10 * time.Second
+	GameTickRate   = 16 * time.Millisecond
 )
 
 type LobbyTimestamps struct {
@@ -30,7 +30,7 @@ type Lobby struct {
 	PlayersReady [2]bool         `json:"playersReady"`
 	Mutex        sync.Mutex      `json:"-"`
 	Destroy      chan struct{}   `json:"-"`
-	Game    *Game          `json:"game"`
+	Game         *Game           `json:"game"`
 }
 
 type LobbyUserState struct {
@@ -60,7 +60,7 @@ func HandleLobby(h *Hub, event string, data []byte) {
 	}
 	switch event {
 	case "LOBBY_INVITATION_TO_FRIEND":
-		LobbyInvitation( request LobbyEventh, request)
+		LobbyInvitation(h, request)
 	case "LOBBY_ACCEPT_FROM_FRIEND":
 		LobbyCreation(h, request)
 	case "LOBBY_DENY_FROM_FRIEND":
@@ -71,8 +71,6 @@ func HandleLobby(h *Hub, event string, data []byte) {
 		LobbyUpdatePlayerStatus(h, request)
 	case "LOBBY_PLAYER_UNREADY_STATUS":
 		LobbyUpdatePlayerStatus(h, request)
-	case strings.HasPrefix(event.Type, "LOBBY_GAME")
-		handleGameMessage(h, request)
 	}
 }
 
@@ -193,7 +191,7 @@ func LobbyTerminate(h *Hub, request LobbyEvent) {
 		safeClose(lobby.Destroy)
 	}
 	delete(h.Lobbies, request.LobbyId)
-}LOBBY_
+}
 
 func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	lobby, exists := h.Lobbies[request.LobbyId]
@@ -248,46 +246,34 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 func StartRoutine(h *Hub, lobby *Lobby) {
 	lobby.Timestamps.Pregame = time.Now()
 	lobby.Destroy = make(chan struct{})
+	lobby.Game = NewGame(lobby.Sender.Id, lobby.Receiver.Id)
+	// gameTicker := time.NewTicker(GameTickRate)
+	gameTicker := time.NewTicker(time.Second * 2)
+	lobby.Game.resetBall()
 	go func() {
 		for {
 			select {
 			case <-lobby.Destroy:
-				fmt.Printf("routine destroyed lobby %+v\n", lobby.Id)
+				gameTicker.Stop()
 				return
-			default:
-				limit := lobby.Timestamps.Pregame.Add(time.Minute)
-				if limit.Compare(time.Now()) <= 0 {
-					event := LobbyEvent{
+			case <-gameTicker.C:
+				if lobby.Game != nil && lobby.Game.State.IsActive {
+					lobby.Game.Update()
+					evt := GameEvent{
+						Event: models.Event{
+							Type: "GAME_STATE",
+						},
+
 						LobbyId: lobby.Id,
+						State:   lobby.Game.State,
 					}
-					LobbyTerminate(h, event)
-					return
+					stateJson, _ := json.Marshal(evt)
+					safeSend(lobby.Sender.Send, stateJson)
+					safeSend(lobby.Receiver.Send, stateJson)
 				}
-				lobby.DispatchTimer(limit.Sub(time.Now()))
-				time.Sleep(time.Second)
 			}
 		}
 	}()
-	gameTicker := time.NewTicker(GameTickRate)
-    go func() {
-        for {
-            select {
-            case <-lobby.Destroy:
-                gameTicker.Stop()
-                return
-            case <-gameTicker.C:
-                if lobby.Game != nil && lobby.Game.State.IsActive {
-                    lobby.Game.Update()
-                    stateJson, _ := json.Marshal(map[string]interface{}{
-                        "type": "GAME_STATE",
-                        "data": lobby.Game.State,
-                    })
-                    safeSend(lobby.Sender.Send, stateJson)
-                    safeSend(lobby.Receiver.Send, stateJson)
-                }
-            }
-        }
-    }()
 }
 
 func (lobby *Lobby) DispatchTimer(timeLeft time.Duration) {
@@ -306,8 +292,6 @@ func (lobby *Lobby) DispatchTimer(timeLeft time.Duration) {
 		fmt.Printf("Impossible to parse RemainingTime type: ", err.Error())
 		return
 	}
-
-	fmt.Printf("Destroy: %+v\n\n", lobby.Destroy)
 	safeSend(lobby.Sender.Send, jsonData)
 	safeSend(lobby.Receiver.Send, jsonData)
 }
@@ -323,10 +307,9 @@ func NewLobby(h *Hub, request LobbyEvent) (*Lobby, error) {
 		return nil, fmt.Errorf("Receiver.Id doesn't exists %d", request.Receiver.Id)
 	}
 	newSession := &Lobby{
-		Id:       request.LobbyId,
-		Sender:   sender,
-		Receiver: receiver,
-		// Instance: nil,
+		Id:           request.LobbyId,
+		Sender:       sender,
+		Receiver:     receiver,
 		Timestamps:   LobbyTimestamps{},
 		Status:       "LOBBY_CREATION",
 		PlayersReady: [2]bool{false, false},
@@ -341,25 +324,4 @@ func indexOf(element uint64, data []uint64) int {
 		}
 	}
 	return -1
-}
-
-func handleGameMessage(h *Hub, request LobbyEvent) {
-    lobby := h.Lobbies[request.LobbyId]
-    if lobby == nil {
-        return
-    }
-
-    // Crée la commande directement à partir du UserId
-    command := strings.TrimPrefix(request.Type, "LOBBY_GAME_") // Ex: LOBBY_GAME_UP -> UP
-    gameCmd := GameCommand{
-        Command: command,
-    }
-
-    if request.UserId == lobby.Sender.Id {
-        gameCmd.PlayerID = lobby.Game.Player1.ID
-    } else if request.UserId == lobby.Receiver.Id {
-        gameCmd.PlayerID = lobby.Game.Player2.ID
-    }
-
-    lobby.Game.HandleCommand(gameCmd)
 }

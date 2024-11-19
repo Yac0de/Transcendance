@@ -56,6 +56,7 @@ watch(() => props.currentFriend, (newFriend) => {
     if (newFriend) {
         nextTick(() => {
             chatInputRef.value?.focusInput();
+			scrollToBottom();
         });
     }
 }, { immediate: true });

@@ -89,18 +89,30 @@ const loadFriendDiscussion = async (friendId: number) => {
 
 
 const sendMessage = (message: string) => {
-	console.log("Sending message to friend ID:", currentFriendId.value);
-	if (message.trim() && currentFriendId.value) {
-		if (userStore.getWebSocketService?.isConnected()) {
-			userStore.getWebSocketService?.sendChatMessage(
-				message,
-				userStore.getId ?? 0,
-				currentFriendId.value
-			);
-		} else {
-			console.error('WebSocket is not connected');
-		}
-	}
+    console.log("Sending message to friend ID:", currentFriendId.value);
+    if (message.trim() && currentFriendId.value) {
+        const newMessage: Message = {
+            content: message,
+            senderId: userStore.getId ?? 0,
+            receiverId: currentFriendId.value,
+            createdAt: new Date().toISOString(),
+        };
+
+        if (!conversations.value[currentFriendId.value]) {
+            conversations.value[currentFriendId.value] = [];
+        }
+        conversations.value[currentFriendId.value].push(newMessage);
+
+        if (userStore.getWebSocketService?.isConnected()) {
+            userStore.getWebSocketService?.sendChatMessage(
+                message,
+                userStore.getId ?? 0,
+                currentFriendId.value
+            );
+        } else {
+            console.error('WebSocket is not connected');
+        }
+    }
 };
 
 const setupChatMessageHandler = () => {
@@ -120,6 +132,11 @@ const setupChatMessageHandler = () => {
             return;
         }
 
+        // Ignorer les messages envoyés par soi-même
+        if (message.senderID === userStore.getId) {
+            return;
+        }
+
         const newMessage: Message = {
             content: message.data,
             senderId: message.senderID,
@@ -127,10 +144,10 @@ const setupChatMessageHandler = () => {
             createdAt: new Date().toISOString(),
         };
 
-        conversations.value[conversationId] = [
-            ...(conversations.value[conversationId] || []),
-            newMessage,
-        ];
+        if (!conversations.value[conversationId]) {
+            conversations.value[conversationId] = [];
+        }
+        conversations.value[conversationId].push(newMessage);
 
         if (conversationId !== chatStore.selectedFriendId) {
             chatStore.addUnreadMessage(conversationId);

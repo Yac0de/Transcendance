@@ -6,6 +6,9 @@
 					:class="['friend-item', { 'active': currentFriendId === friend.id }]"
 					@click="$emit('select-friend', friend.id)">
 					{{ friend.nickname }}
+					<span v-if="getUnreadCount(friend.id) > 0" class="unread-badge">
+                        {{ getUnreadCount(friend.id) }}
+                    </span>
 				</li>
 			</ul>
 		</div>
@@ -14,6 +17,7 @@
 
 <script setup lang="ts">
 import { Friend } from '../../../types/models';
+import { useChatStore } from '../../../stores/chatStore';
 
 defineProps<{
 	friends: Friend[];
@@ -24,6 +28,11 @@ defineEmits<{
 	(e: 'select-friend', friendId: number): void;
 }>();
 
+const chatStore = useChatStore();
+
+const getUnreadCount = (friendId: number) => {
+    return chatStore.getUnreadCountForFriend(friendId);
+};
 </script>
 
 <style scoped>
@@ -62,6 +71,7 @@ defineEmits<{
 }
 
 .friend-item {
+	position: relative;
 	padding: 12px 16px;
 	margin-bottom: 8px;
 	background-color: #f8f9fa;
@@ -81,6 +91,21 @@ defineEmits<{
 	background-color: #e2e8f0;
 	font-weight: 500;
 	color: #1a73e8;
+}
+
+.unread-badge {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 12px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
 }
 
 @media (max-width: 640px) {

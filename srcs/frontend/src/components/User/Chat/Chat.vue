@@ -24,7 +24,7 @@ import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
 import ChatDiscussion from './ChatDiscussion.vue';
-import { Friend, Message, ChatHistory } from '../../../types/models';
+import { Friend, Message } from '../../../types/models';
 import { ChatMessage } from '../../../types/chat';
 
 const showChatInterface = ref(false);
@@ -49,44 +49,44 @@ const toggleChatInterface = () => {
     showChatInterface.value = !showChatInterface.value;
 
     if (!showChatInterface.value) {
-        chatStore.unreadMessagesCount[chatStore.selectedFriendId ?? 0] = 0;
-        chatStore.selectFriend(null);
-    } else if (currentFriendId.value) {
-        chatStore.selectFriend(currentFriendId.value);
-    }
-
-    if (userStore.getWebSocketService) {
-        setupChatMessageHandler();
+        // close chat
+        currentFriendId.value = null;
+        chatStore.selectFriend(-1);
+    } else {
+        // open chat
+        if (currentFriendId.value) {
+            chatStore.selectFriend(currentFriendId.value);
+        }
+        userStore.getWebSocketService?.isConnected() && setupChatMessageHandler();
     }
 };
 
 const selectFriend = async (friendId: number) => {
-	currentFriendId.value = friendId;
-	chatStore.selectFriend(friendId);
-	await loadFriendDiscussion(friendId);
+    if (friendId !== -1) {
+        currentFriendId.value = friendId;
+        chatStore.selectFriend(friendId);
+        await loadFriendDiscussion(friendId);
+    }
 };
 
 const loadFriendDiscussion = async (friendId: number) => {
-	if (fetchedConversationsTracker.value.has(friendId)) {
-		return;
-	}
+    if (friendId === -1 || fetchedConversationsTracker.value.has(friendId)) return;
 
-	try {
-		const messages: ChatHistory | null = await api.chat.getChatHistory(friendId);
-		const formattedMessages = messages?.conversation?.map(msg => ({
-			content: msg.content,
-			senderId: msg.senderId,
-			receiverId: msg.receiverId,
-			createdAt: msg.createdAt
-		})) || [];
-
-		const conversationId = friendId;
-		conversations.value[conversationId] = formattedMessages;
-		fetchedConversationsTracker.value.add(friendId);
-	} catch (error) {
-		console.error('Failed to load discussion history', error);
-	}
+    try {
+        const messages = await api.chat.getChatHistory(friendId);
+        conversations.value[friendId] = messages?.conversation?.map(msg => ({
+            content: msg.content,
+            senderId: msg.senderId,
+            receiverId: msg.receiverId,
+            createdAt: msg.createdAt,
+        })) || [];
+        fetchedConversationsTracker.value.add(friendId);
+    } catch (error) {
+        console.error('Failed to load discussion history', error);
+    }
 };
+
+
 
 const sendMessage = (message: string) => {
 	console.log("Sending message to friend ID:", currentFriendId.value);
@@ -152,16 +152,8 @@ const fetchFriendList = async () => {
 };
 
 watch(() => chatStore.selectedFriendId, (newFriendId) => {
-  if (newFriendId === null) {
-    showChatInterface.value = false;
-  } else {
-    showChatInterface.value = true;
-    selectFriend(newFriendId);
-
-	if (userStore.getWebSocketService) {
-      setupChatMessageHandler();
-    }
-  }
+    showChatInterface.value = newFriendId !== -1;
+    currentFriendId.value = newFriendId === -1 ? null : newFriendId;
 });
 
 onMounted(() => {

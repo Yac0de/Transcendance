@@ -2,20 +2,16 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 export const useChatStore = defineStore('chat', () => {
-  const selectedFriendId = ref<number | null>(null);
+  const selectedFriendId = ref<number>(-1);
   const unreadMessagesCount = ref<{ [friendId: number]: number }>({});
 
-  const selectFriend = (friendId: number) => {
+  const selectFriend = (friendId: number | -1) => {
     selectedFriendId.value = friendId;
-    if (unreadMessagesCount.value[friendId]) {
-      unreadMessagesCount.value[friendId] = 0;
-    }
+    if (friendId !== -1) unreadMessagesCount.value[friendId] = 0;
   };
 
   const addUnreadMessage = (friendId: number) => {
-    if (!unreadMessagesCount.value[friendId]) {
-      unreadMessagesCount.value[friendId] = 0;
-    }
+    unreadMessagesCount.value[friendId] = unreadMessagesCount.value[friendId] || 0;
     unreadMessagesCount.value[friendId]++;
   };
 
@@ -25,7 +21,7 @@ export const useChatStore = defineStore('chat', () => {
 
   const toggleFriend = (friendId: number) => {
     if (selectedFriendId.value === friendId) {
-      selectedFriendId.value = null;
+      selectedFriendId.value = -1;
     } else {
       selectedFriendId.value = friendId;
     }

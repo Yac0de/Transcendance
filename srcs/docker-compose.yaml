@@ -52,17 +52,29 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
     container_name: frontend_prod
+    volumes:
+      - frontend_build:/app/dist  # Create a named volume for build files
+    networks:
+      - transcendance_net
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
     ports:
       - '8000:80'
       - '8443:443'
+    volumes:
+      - frontend_build:/usr/share/nginx/html  # Use the same named volume
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/certs:/etc/nginx/certs
     networks:
       - transcendance_net
     depends_on:
-      - db
+      - frontend_prod
       - backend
       - websocket
-    volumes:
-      - ./frontend/certs:/etc/nginx/certs
 
   # Backend en Go
   backend:
@@ -183,6 +195,7 @@ volumes:
   db_data:
   grafana-data:
   prometheus_data:
+  frontend_build:
 
 networks:
   transcendance_net:

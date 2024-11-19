@@ -10,6 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const(
+	PointPauseTime = 3 * time.Second
+	GameTickRate = 16 * time.Millisecond
+)
+
 type LobbyTimestamps struct {
 	Pregame   time.Time `json:"pregame"`
 	GameStart time.Time `json:"start"`
@@ -55,7 +60,7 @@ func HandleLobby(h *Hub, event string, data []byte) {
 	}
 	switch event {
 	case "LOBBY_INVITATION_TO_FRIEND":
-		LobbyInvitation(h, request)
+		LobbyInvitation( request LobbyEventh, request)
 	case "LOBBY_ACCEPT_FROM_FRIEND":
 		LobbyCreation(h, request)
 	case "LOBBY_DENY_FROM_FRIEND":
@@ -66,6 +71,8 @@ func HandleLobby(h *Hub, event string, data []byte) {
 		LobbyUpdatePlayerStatus(h, request)
 	case "LOBBY_PLAYER_UNREADY_STATUS":
 		LobbyUpdatePlayerStatus(h, request)
+	case strings.HasPrefix(event.Type, "LOBBY_GAME")
+		handleGameMessage(h, request)
 	}
 }
 
@@ -186,7 +193,7 @@ func LobbyTerminate(h *Hub, request LobbyEvent) {
 		safeClose(lobby.Destroy)
 	}
 	delete(h.Lobbies, request.LobbyId)
-}
+}LOBBY_
 
 func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	lobby, exists := h.Lobbies[request.LobbyId]
@@ -261,6 +268,26 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 			}
 		}
 	}()
+	gameTicker := time.NewTicker(GameTickRate)
+    go func() {
+        for {
+            select {
+            case <-lobby.Destroy:
+                gameTicker.Stop()
+                return
+            case <-gameTicker.C:
+                if lobby.Game != nil && lobby.Game.State.IsActive {
+                    lobby.Game.Update()
+                    stateJson, _ := json.Marshal(map[string]interface{}{
+                        "type": "GAME_STATE",
+                        "data": lobby.Game.State,
+                    })
+                    safeSend(lobby.Sender.Send, stateJson)
+                    safeSend(lobby.Receiver.Send, stateJson)
+                }
+            }
+        }
+    }()
 }
 
 func (lobby *Lobby) DispatchTimer(timeLeft time.Duration) {
@@ -314,4 +341,25 @@ func indexOf(element uint64, data []uint64) int {
 		}
 	}
 	return -1
+}
+
+func handleGameMessage(h *Hub, request LobbyEvent) {
+    lobby := h.Lobbies[request.LobbyId]
+    if lobby == nil {
+        return
+    }
+
+    // Crée la commande directement à partir du UserId
+    command := strings.TrimPrefix(request.Type, "LOBBY_GAME_") // Ex: LOBBY_GAME_UP -> UP
+    gameCmd := GameCommand{
+        Command: command,
+    }
+
+    if request.UserId == lobby.Sender.Id {
+        gameCmd.PlayerID = lobby.Game.Player1.ID
+    } else if request.UserId == lobby.Receiver.Id {
+        gameCmd.PlayerID = lobby.Game.Player2.ID
+    }
+
+    lobby.Game.HandleCommand(gameCmd)
 }

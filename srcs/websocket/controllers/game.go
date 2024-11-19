@@ -1,4 +1,4 @@
-package game
+package controllers
 
 import (
 	"fmt"
@@ -35,6 +35,8 @@ type GameState struct {
 	IsActive bool
 	Winner   uint64
 	mutex    sync.RWMutex
+	IsPaused bool
+	PauseTime time.Time
 }
 
 type Player struct {
@@ -43,12 +45,9 @@ type Player struct {
 }
 
 type Game struct {
-	ID        string
 	Player1   *Player
 	Player2   *Player
 	State     *GameState
-	StartTime time.Time
-	EndTime   time.Time
 }
 
 type GameCommand struct {
@@ -71,7 +70,6 @@ const (
 func NewGame(player1ID, player2ID uint64) *Game {
 
 	return &Game{
-		ID: generateGameID(),
 
 		Player1: &Player{
 			ID:       player1ID,
@@ -107,13 +105,9 @@ func NewGame(player1ID, player2ID uint64) *Game {
 
 			IsActive: true,
 		},
-		StartTime: time.Now(),
 	}
 }
 
-func generateGameID() string {
-	return fmt.Sprintf("game_%d", time.Now().UnixNano())
-}
 
 func (g *Game) Update() {
 	g.State.mutex.Lock()
@@ -123,6 +117,13 @@ func (g *Game) Update() {
 		return
 	}
 
+	if g.State.IsPaused {
+        if time.Since(g.State.PauseTime) >= PointPauseTime {
+            g.State.IsPaused = false
+        } else {
+            return
+        }
+    }
 	// Update paddles
 	if g.State.Paddles.Player1Direction != 0 {
 		newY := g.State.Paddles.Player1Y + float64(g.State.Paddles.Player1Direction)*paddleSpeed
@@ -183,13 +184,11 @@ func (g *Game) Update() {
 	if g.State.Score.Player1 == WinningScore {
 		g.State.IsActive = false
 		g.State.Winner = g.Player1.ID
-		g.EndTime = time.Now()
 	}
 
 	if g.State.Score.Player2 == WinningScore {
 		g.State.IsActive = false
 		g.State.Winner = g.Player2.ID
-		g.EndTime = time.Now()
 	}
 }
 
@@ -197,6 +196,8 @@ func (g *Game) resetBall() {
 	g.State.Ball.X = CanvasWidth / 2
 	g.State.Ball.Y = CanvasHeight / 2
 	g.State.Ball.DY = 0
+	g.State.IsPaused = true
+	g.State.PauseTime = time.Now()
 
 	// pour mettre la direction de balle a droite ou a gauche selon l ancien but marqué
 	if g.State.Ball.DX > 0 {

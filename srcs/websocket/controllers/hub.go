@@ -3,10 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"strings"
 	"websocket/models"
-
-	"github.com/google/uuid"
 )
 
 type Hub struct {
@@ -16,6 +15,13 @@ type Hub struct {
 	Unregister chan *Client
 	Lobbies    map[uuid.UUID]*Lobby
 }
+
+// type GameMessage struct {
+// 	Type     string          `json:"type"`
+// 	Command  string          `json:"command,omitempty"`
+// 	PlayerID uint64          `json:"playerId,omitempty"`
+// 	State    *GameState `json:"state,omitempty"`
+// }
 
 func NewHub() *Hub {
 	return &Hub{
@@ -72,6 +78,8 @@ func (h *Hub) Run() {
 				HandleChatMessage(h, message)
 			case strings.HasPrefix(event.Type, "LOBBY_"):
 				HandleLobby(h, event.Type, message)
+			case event.Type == "GAME_EVENT":
+				handleGameMessage(h, message)
 			default:
 				fmt.Printf("models.Event not handled: %+v\n", event)
 			}

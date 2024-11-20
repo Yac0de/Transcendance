@@ -2,6 +2,7 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
+import { GameEvent } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 import { useChatStore } from '../stores/chatStore.ts';
@@ -102,6 +103,9 @@ export class WebSocketService {
         this.setMessageHandler<LobbyDestroyed>('LOBBY_DESTROYED', () => {
             eventBus.emit('LOBBY_DESTROYED');
         });
+        this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
+            eventBus.emit('GAME_EVENT', message);
+        });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -126,6 +130,7 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
+                    console.log(message)
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
@@ -253,6 +258,14 @@ export class WebSocketService {
                 lobbyId: lobbyId
             };
             this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public sendGameEvent(game_event: GameEvent): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify(game_event));
         } else {
             console.warn("Can't send a message, ws is not connected");
         }

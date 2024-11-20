@@ -2,7 +2,7 @@ export interface GameEvent {
     type: 'GAME_EVENT';
     lobbyId: string;
     userId: number;
-    state: GameState;
+    state?: GameState;
     keyPressed: string;
 }
 
@@ -14,7 +14,9 @@ export interface Ball {
 export interface Paddle {
     width: number;
     height: number;
+    player1X: number;
     player1Y: number;
+    player2X: number;
     player2Y: number;
     player1Direction: number;
     player2Direction: number;
@@ -45,9 +47,4 @@ export interface Game {
     player2: Player;
     state: GameState;
     status: string;
-}
-
-export interface GameCommand {
-    playerID: number;
-    command: string;
 }

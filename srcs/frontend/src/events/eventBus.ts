@@ -1,4 +1,5 @@
 import mitt from 'mitt'
+import { GameEvent } from '../types/game.ts';
 
 import type { 
   LobbyInvitationToFriend,
@@ -21,6 +22,7 @@ type Events = {
   'LOBBY_TERMINATE': LobbyTerminate;
   'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
   'LOBBY_DESTROYED': void;
+  'GAME_EVENT' : GameEvent;
 }
 
 export const eventBus = mitt<Events>();

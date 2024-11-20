@@ -101,7 +101,7 @@ onMounted(() => {
     showTimer.value = true;
   })
 
-  eventBus.on('GAME_EVENT', async (message: GameEvent) => {
+  eventBus.on('GAME_EVENT', async () => {
     console.log("GAME EVENT RECEIVED")
     router.push({
       path: '/game', 

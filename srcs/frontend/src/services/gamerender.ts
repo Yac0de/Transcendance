@@ -21,7 +21,7 @@ function drawRoundedRectangle(
     ctx.closePath();
 }
 
-export function drawPaddle(ctx: HTMLCanvasElement, state: GameState): void {
+export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): void {
     ctx.fillStyle = 'white';
     drawRoundedRectangle(
         ctx,
@@ -43,7 +43,7 @@ export function drawPaddle(ctx: HTMLCanvasElement, state: GameState): void {
     ctx.fill();
 }
 
-export function drawBall(ctx: HTMLCanvasElement, state: GameState) : void {
+export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) : void {
     ctx.beginPath();
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
     ctx.fillStyle = 'green';

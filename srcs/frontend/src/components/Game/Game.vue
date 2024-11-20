@@ -13,11 +13,11 @@ Copy<template>
 </template>
 
 <script setup lang="ts">
-import { GameEvent, Ball, Paddle, Player, Score, GameState, Game, GameCommand } from '../../types/game'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { GameEvent } from '../../types/game'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall } from '../../services/gamerender';
-import { userStore, useUserStore } from '../../stores/user';
+import { useUserStore } from '../../stores/user';
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -30,8 +30,8 @@ const handlePressUp = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId,
-        userId: userStore.getId,
+        lobbyId: route.query.lobbyId as string,
+        userId: userStore.getId!,
         keyPressed: 'UP'
       };
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
@@ -46,8 +46,8 @@ const handleReleaseUp = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId,
-        userId: userStore.getId,
+        lobbyId: route.query.lobbyId as string,
+        userId: userStore.getId!,
         keyPressed: 'STOP'
       };
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
@@ -63,8 +63,8 @@ const handlePressDown = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId,
-        userId: userStore.getId,
+        lobbyId: route.query.lobbyId as string,
+        userId: userStore.getId!,
         keyPressed: 'DOWN'
       };
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
@@ -80,8 +80,8 @@ const handleReleaseDown = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId,
-        userId: userStore.getId,
+        lobbyId: route.query.lobbyId as string,
+        userId: userStore.getId!,
         keyPressed: 'STOP'
       };
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
@@ -98,15 +98,15 @@ onMounted(() => {
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
 
-  eventBus.on('GAME_EVENT', async (message: GameState) => {
+  eventBus.on('GAME_EVENT', async (message: GameEvent) => {
     console.log(message.type)
     if (canvasRef.value) {
-      const ctx = canvasRef.value.getContext('2d')
+      const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-        drawPaddle(ctx, message.state);
-        drawBall(ctx, message.state);
+        drawPaddle(ctx, message.state!);
+        drawBall(ctx, message.state!);
       }
     }
   })

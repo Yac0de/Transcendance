@@ -59,6 +59,7 @@ const handleReleaseUp = (event: KeyboardEvent): void => {
 
 const handlePressDown = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowDown' || event.code === 'KeyS') {
+    event.preventDefault();
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
@@ -75,6 +76,7 @@ const handlePressDown = (event: KeyboardEvent): void => {
 
 const handleReleaseDown = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowDown' || event.code === 'KeyS') {
+    event.preventDefault();
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',

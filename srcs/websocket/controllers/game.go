@@ -105,7 +105,7 @@ func NewGame(player1ID, player2ID uint64) *Game {
 			},
 
 			Paddles: Paddle{
-				Width:    30,
+				Width:    20,
 				Height:   120,
 				Speed:    PaddleSpeed,
 				Player1Y: (CanvasHeight / 2) - 120 / 2,

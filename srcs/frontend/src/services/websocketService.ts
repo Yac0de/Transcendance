@@ -5,6 +5,7 @@ import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFrie
 import { GameEvent } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
+import { useChatStore } from '../stores/chatStore.ts';
 
 const WS_URL = import.meta.env.PROD
   ? 'wss://localhost:8443/ws'  // Production through Nginx
@@ -56,6 +57,23 @@ export class WebSocketService {
     }
 
     public initMessageHandlers(): void {
+        this.setMessageHandler<ChatMessage>('CHAT', (message: ChatMessage) => {
+            const conversationId = message.senderID === this.clientId
+                ? message.receiverID
+                : message.senderID;
+
+            if (!conversationId) {
+                console.warn('Unable to determine conversation ID for message:', message);
+                return;
+            }
+
+            const chatStore = useChatStore();
+            if (chatStore.selectedFriendId !== conversationId) {
+                console.log(`Adding unread message for conversation ID: ${conversationId}`);
+                chatStore.addUnreadMessage(conversationId);
+            }
+        });
+
         this.setMessageHandler<OnlineUsersMessage>('ONLINE_USERS', (message: OnlineUsersMessage) => {
             this.onlineUsersStore.setOnlineUsers(message.usersOnline);
         });
@@ -116,9 +134,10 @@ export class WebSocketService {
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
-                    }
+                    } else
+                        console.warn(`No handler found for message type: ${message.type}`);
                 } catch (e) {
-                    console.error('Error parsing message, invalid format ?', e);
+                    console.error('Error parsing WebSocket message:', e);
                 }
             };
         } catch (error) {

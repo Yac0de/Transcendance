@@ -6,6 +6,10 @@ import { GameEvent } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 
+const WS_URL = import.meta.env.PROD
+  ? 'wss://localhost:8443/ws'  // Production through Nginx
+  : 'ws://localhost:4001/ws'      // Development direct access
+
 //This is needed because we can't get the return type of userStore inside the constructor of a class that is an attribute of
 //this very store, because it creates circular dependencies, so we create an interface that helps up set the return type of
 //our userStore
@@ -92,7 +96,7 @@ export class WebSocketService {
 
     public connect(): void {
         try {
-            const url = `ws://localhost:4001/ws?id=${this.clientId}`
+            const url = WS_URL + `?id=${this.clientId}`
             console.log(url);
             this.ws = new WebSocket(url);
             this.ws.onopen = () => {

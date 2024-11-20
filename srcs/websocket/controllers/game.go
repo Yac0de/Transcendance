@@ -77,7 +77,7 @@ const (
 	BallSpeed           = 5
 	PaddleSpeed         = 7
 	Paddle1DistanceWall = 30
-	Paddle2DistanceWall = 770
+	Paddle2DistanceWall = 740
 	WinningScore        = 5
 	paddleSpeed         = 8.0
 )
@@ -105,11 +105,11 @@ func NewGame(player1ID, player2ID uint64) *Game {
 			},
 
 			Paddles: Paddle{
-				Width:    60,
+				Width:    30,
 				Height:   120,
 				Speed:    PaddleSpeed,
-				Player1Y: CanvasHeight / 2,
-				Player2Y: CanvasHeight / 2,
+				Player1Y: (CanvasHeight / 2) - 120 / 2,
+				Player2Y: (CanvasHeight / 2) - 120 / 2,
 				Player1X: Paddle1DistanceWall,
 				Player2X: Paddle2DistanceWall,
 			},
@@ -161,7 +161,7 @@ func (g *Game) Update() {
 	}
 
 	// Ball collision with paddles
-	if g.State.Ball.X <= Paddle1DistanceWall {
+	if g.State.Ball.X <= Paddle1DistanceWall + g.State.Paddles.Width + g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height {
 			g.State.Ball.DX = BallSpeed
@@ -173,7 +173,7 @@ func (g *Game) Update() {
 		}
 	}
 
-	if g.State.Ball.X >= Paddle2DistanceWall {
+	if g.State.Ball.X >= Paddle2DistanceWall - g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height {
 			g.State.Ball.DX = -BallSpeed
@@ -263,6 +263,7 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 
 func handleGameMessage(h *Hub, data []byte) {
 	var evt GameEvent
+	fmt.Printf("DATA: %s\n", string(data))
 	if err := json.Unmarshal(data, &evt); err != nil {
 		fmt.Printf("Error GameEvent type unmarshall\n")
 		return
@@ -276,6 +277,7 @@ func handleGameMessage(h *Hub, data []byte) {
 		PlayerID: evt.UserId,
 		Command:  evt.KeyPressed,
 	}
+	fmt.Printf("CMD: %+v\n", cmd)
 
 	lobby.Game.HandleCommand(cmd)
 }

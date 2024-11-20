@@ -240,6 +240,14 @@ export class WebSocketService {
         }
     }
 
+    public sendGameEvent(game_event: GameEvent): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify(game_event));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
     public disconnect(): void {
         if (this.ws) {
             this.ws.close();

@@ -1,4 +1,5 @@
 export interface GameEvent {
+    type: 'GAME_EVENT';
     lobbyId: string;
     userId: number;
     state: GameState;

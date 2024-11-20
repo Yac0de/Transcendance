@@ -103,8 +103,11 @@ onMounted(() => {
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
     console.log("GAME EVENT RECEIVED")
-    router.push('/game');
-  })
+    router.push({
+      path: '/game', 
+      query: {lobbyId: lobbyId }
+    });
+  });
 
   eventBus.on('LOBBY_DESTROYED', async () => {
     showNotification.value = true;
@@ -112,7 +115,7 @@ onMounted(() => {
     setTimeout(() => {
       showNotification.value = false;
       userStore.isRedirectPending = false;
-      router.push('/');
+      router.push('/'); 
     }, 3000);
   })
 })

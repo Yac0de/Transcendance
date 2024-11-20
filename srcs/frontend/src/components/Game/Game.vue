@@ -1,4 +1,4 @@
-<template>
+Copy<template>
   <div class="game-container">
     <div class="canvas-wrapper">
       <canvas
@@ -17,16 +17,90 @@ import { GameEvent, Ball, Paddle, Player, Score, GameState, Game, GameCommand } 
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall } from '../../services/gamerender';
+import { userStore, useUserStore } from '../../stores/user';
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
+
+const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
+const handlePressUp = (event: KeyboardEvent): void => {
+  if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+    if (userStore.getWebSocketService?.isConnected()) {
+      const gameEvent: GameEvent = {
+        type: 'GAME_EVENT',
+        lobbyId: route.query.lobbyId,
+        userId: userStore.getId,
+        keyPressed: 'UP'
+      };
+      userStore.getWebSocketService?.sendGameEvent(gameEvent);
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }
+}
+
+const handleReleaseUp = (event: KeyboardEvent): void => {
+  if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+    if (userStore.getWebSocketService?.isConnected()) {
+      const gameEvent: GameEvent = {
+        type: 'GAME_EVENT',
+        lobbyId: route.query.lobbyId,
+        userId: userStore.getId,
+        keyPressed: 'STOP'
+      };
+      userStore.getWebSocketService?.sendGameEvent(gameEvent);
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }
+}
+
+const handlePressDown = (event: KeyboardEvent): void => {
+  if (event.code === 'ArrowDown' || event.code === 'KeyS') {
+    if (userStore.getWebSocketService?.isConnected()) {
+      const gameEvent: GameEvent = {
+        type: 'GAME_EVENT',
+        lobbyId: route.query.lobbyId,
+        userId: userStore.getId,
+        keyPressed: 'DOWN'
+      };
+      userStore.getWebSocketService?.sendGameEvent(gameEvent);
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }
+}
+
+const handleReleaseDown = (event: KeyboardEvent): void => {
+  if (event.code === 'ArrowDown' || event.code === 'KeyS') {
+    if (userStore.getWebSocketService?.isConnected()) {
+      const gameEvent: GameEvent = {
+        type: 'GAME_EVENT',
+        lobbyId: route.query.lobbyId,
+        userId: userStore.getId,
+        keyPressed: 'STOP'
+      };
+      userStore.getWebSocketService?.sendGameEvent(gameEvent);
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }
+}
+
 onMounted(() => {
+  // Add key listener
+  window.addEventListener('keydown', handlePressUp)
+  window.addEventListener('keydown', handlePressDown)
+  window.addEventListener('keyup', handleReleaseUp)
+  window.addEventListener('keyup', handleReleaseDown)
+
   eventBus.on('GAME_EVENT', async (message: GameState) => {
     console.log(message.type)
     if (canvasRef.value) {
       const ctx = canvasRef.value.getContext('2d')
       if (ctx) {
-        // You can add initial canvas setup here
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
         drawPaddle(ctx, message.state);
@@ -34,15 +108,24 @@ onMounted(() => {
       }
     }
   })
-  // Initialize canvas context if needed
 })
 
 onUnmounted(() => {
+  // Remove key listener
+  window.removeEventListener('keydown', handlePressUp)
+  window.removeEventListener('keydown', handlePressDown)
+  window.removeEventListener('keyup', handleReleaseUp)
+  window.removeEventListener('keyup', handleReleaseDown)
+
   eventBus.off('GAME_EVENT')
 })
 </script>
 
 <style scoped>
+body {
+  margin: 0;
+  overflow: hidden;
+}
 .game-container {
   width: 100%;
   min-height: 100vh;

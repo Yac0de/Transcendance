@@ -105,7 +105,7 @@ func NewGame(player1ID, player2ID uint64) *Game {
 			},
 
 			Paddles: Paddle{
-				Width:    20,
+				Width:    10,
 				Height:   120,
 				Speed:    PaddleSpeed,
 				Player1Y: (CanvasHeight / 2) - 120 / 2,
@@ -156,32 +156,34 @@ func (g *Game) Update() {
 	g.State.Ball.Y += g.State.Ball.DY
 
 	// Ball collision with top and bottom walls
-	if g.State.Ball.Y <= 0 || g.State.Ball.Y >= CanvasHeight {
+	if g.State.Ball.Y - g.State.Ball.Radius <= 0 || g.State.Ball.Y + g.State.Ball.Radius >= CanvasHeight {
 		g.State.Ball.DY = -g.State.Ball.DY
 	}
 
-	// Ball collision with paddles
-	if g.State.Ball.X <= Paddle1DistanceWall + g.State.Paddles.Width + g.State.Ball.Radius {
-		if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
-			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height {
-			g.State.Ball.DX = BallSpeed
-			g.State.Ball.DY = calculedeviation(
-				g.State.Ball.Y,
-				g.State.Paddles.Player1Y,
-				g.State.Paddles.Height,
-			)
+	if g.State.Ball.DX < 0 {
+		if g.State.Ball.X <= Paddle1DistanceWall+g.State.Paddles.Width+g.State.Ball.Radius { // on sait que la balle est dans une pos horizontal qui depqssse pqs 
+			if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
+				g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height {
+				g.State.Ball.DX = BallSpeed
+				g.State.Ball.DY = calculedeviation(
+					g.State.Ball.Y,
+					g.State.Paddles.Player1Y,
+					g.State.Paddles.Height,
+				)
+			}
 		}
 	}
-
-	if g.State.Ball.X >= Paddle2DistanceWall - g.State.Ball.Radius {
-		if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
-			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height {
-			g.State.Ball.DX = -BallSpeed
-			g.State.Ball.DY = calculedeviation(
-				g.State.Ball.Y,
-				g.State.Paddles.Player2Y,
-				g.State.Paddles.Height,
-			)
+	if g.State.Ball.DX > 0 {
+		if g.State.Ball.X >= Paddle2DistanceWall - g.State.Ball.Radius {
+			if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
+				g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height {
+				g.State.Ball.DX = -BallSpeed
+				g.State.Ball.DY = calculedeviation(
+					g.State.Ball.Y,
+					g.State.Paddles.Player2Y,
+					g.State.Paddles.Height,
+				)
+			}
 		}
 	}
 
@@ -189,11 +191,14 @@ func (g *Game) Update() {
 	if g.State.Ball.X <= 0 {
 		g.State.Score.Player2++
 		g.resetBall()
+		g.resetPaddle()
 	}
 
 	if g.State.Ball.X >= CanvasWidth {
 		g.State.Score.Player1++
 		g.resetBall()
+		g.resetPaddle()
+
 	}
 
 	// Check for winner
@@ -221,6 +226,11 @@ func (g *Game) resetBall() {
 	} else {
 		g.State.Ball.DX = BallSpeed
 	}
+}
+
+func (g *Game) resetPaddle() {
+	g.State.Paddles.Player1Y = (CanvasHeight / 2) - 120 / 2
+	g.State.Paddles.Player2Y = (CanvasHeight / 2) - 120 / 2
 }
 
 func calculedeviation(ballY, paddleY, paddleHeight float64) float64 {

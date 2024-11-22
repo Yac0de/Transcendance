@@ -31,6 +31,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import PlayerTile from './PlayerTile.vue';
 import UserData from '../../types/models';
 import { useUserStore } from '../../stores/user'
+import { eventBus } from '../../events/eventBus'
 
 const userStore = useUserStore();
 
@@ -38,7 +39,7 @@ defineProps<{
   tournamentCode: string;
 }>();
 
-const players = ref<(UserData | null)[]>([
+const playersId = ref<(UserData | null)[]>([
   { username: userStore.getNickname, status: 'ready', avatar: userStore.getAvatarPath },
   null,
   null,

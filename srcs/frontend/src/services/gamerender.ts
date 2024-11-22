@@ -5,7 +5,6 @@ export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): voi
     ctx.fillStyle = 'white';
     ctx.fillRect(state.paddle.player1X,state.paddle.player1Y , state.paddle.width, state.paddle.height);
     ctx.fillRect(state.paddle.player2X,state.paddle.player2Y , state.paddle.width, state.paddle.height);
-
 }
 
 export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) : void {

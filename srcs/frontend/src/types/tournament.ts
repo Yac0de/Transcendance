@@ -9,3 +9,13 @@ export interface createTournamentLobby {
   userId: number;
   code: number;
 }
+
+export interface TournamentLobbyState {
+  type: 'TOURNAMENT_LOBBY_STATE';
+  creatorId: number;
+  code: number;
+  player1Id: number;
+  player2Id: number;
+  player3Id: number;
+  player4Id: number;
+}

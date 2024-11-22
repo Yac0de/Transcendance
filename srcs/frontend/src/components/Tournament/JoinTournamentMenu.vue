@@ -37,7 +37,7 @@ const handleJoin = () => {
 
 onMounted(() => {
   eventBus.on('JOIN_TOURNAMENT_WITH_CODE', (message: joinTournamentWithCode) => {
-    console.log("JOIN SUCCESS IN SERVER");
+    console.log("TOURNAMENT LOBBY STATE !");
   })
 })
 

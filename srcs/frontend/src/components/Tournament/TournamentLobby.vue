@@ -49,6 +49,16 @@ const handleStartTournament = () => {
   // Implement tournament start logic
   console.log('Starting tournament...', tournamentCode.value);
 };
+
+onMounted(() => {
+  eventBus.on('TOURNAMENT_LOBBY_STATE', (message: tournamentLobbyState) => {
+    console.log("TOURNAMENT LOBBY STATE: ", message);
+  })
+})
+
+onUnmounted(() => {
+  eventBus.off('TOURNAMENT_LOBBY_STATE');
+})
 </script>
 
 <style scoped>

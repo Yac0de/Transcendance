@@ -1,14 +1,18 @@
 <template>
-  <div class="game-container">
-    <GameHeader :player-1-id="player1Id" :player-2-id="player2Id" :state="currentGameState"/>
-    <div class="canvas-wrapper">
-      <canvas
+  <div class="container">
+    <div class="game-container">
+      <GameHeader :player-1-id="player1Id" :player-2-id="player2Id":state="currentGameState"/>
+      <div class="canvas-wrapper">
+        <canvas
         id="gameCanvas"
         width="800"
         height="600"
         ref="canvasRef"
         class="game-canvas"
-      ></canvas>
+        >
+        </canvas>
+        <div class="vertical-line"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -150,24 +154,38 @@ body {
   margin: 0;
   overflow: hidden;
 }
-.game-container {
+.container {
   width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f0f0f0;
+}
+
+.game-container {
+  background: #e5c4dc;
+  border: solid 8px #e5c4dc;
+  border-radius: 1% 1% 1% 1%;
 }
 
 .canvas-wrapper {
-  border: 2px solid #333;
-  border-radius: 4px;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.vertical-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  background-color: #5b3c54;
+  transform: translateX(-50%);
 }
 
 .game-canvas {
-  display: block; /* Removes bottom margin/spacing */
+  position: relative;
+  display: block;
+  border-radius: 0% 0% 1% 1%;
 }
 </style>

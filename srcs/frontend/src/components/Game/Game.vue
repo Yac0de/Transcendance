@@ -1,5 +1,6 @@
 Copy<template>
   <div class="game-container">
+    <GameHeader :state="currentGameState"/>
     <div class="canvas-wrapper">
       <canvas
         id="gameCanvas"
@@ -14,16 +15,24 @@ Copy<template>
 
 <script setup lang="ts">
 import { GameEvent } from '../../types/game'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall } from '../../services/gamerender';
 import { useUserStore } from '../../stores/user';
 import { useRoute } from 'vue-router'
+import GameHeader from './GameHeader.vue';
 
 const route = useRoute()
 
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+
+const currentGameState = reactive({
+  score: { player1: 0, player2: 0 },
+  remainingTime: 300,
+  paddle: { player1X: 30, player1Y: 240, player2X: 740, player2Y: 240 },
+  ball: { x: 400, y: 300 },
+});
 
 const handlePressUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
@@ -103,8 +112,13 @@ onMounted(() => {
     if (canvasRef.value) {
       const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {
+        Object.assign(currentGameState, message.state);
+
+        ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+
         ctx.fillStyle = 'black'
-        ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+        ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
       }
@@ -132,6 +146,7 @@ body {
   width: 100%;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: #f0f0f0;

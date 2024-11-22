@@ -35,6 +35,7 @@ export interface GameState {
     winner: number;
     isPaused: boolean;
     pauseTime: string;
+    remainingTime: number;
 }
 
 export interface Player {

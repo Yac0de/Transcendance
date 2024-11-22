@@ -52,6 +52,7 @@ type GameState struct {
 	mutex     sync.Mutex `json:"-"`
 	IsPaused  bool       `json:"isPaused"`
 	PauseTime time.Time  `json:"pauseTime"`
+	RemainingTime int    `json:"remainingTime"`
 }
 
 type Player struct {
@@ -120,6 +121,7 @@ func NewGame(player1ID, player2ID uint64) *Game {
 			},
 
 			IsActive: true,
+			RemainingTime: 300,
 		},
 		Status: "PREGAME",
 	}
@@ -140,6 +142,23 @@ func (g *Game) Update() {
 			return
 		}
 	}
+
+	now := time.Now()
+    if now.Sub(g.State.PauseTime) >= time.Second {
+        g.State.PauseTime = now
+        if g.State.RemainingTime > 0 {
+            g.State.RemainingTime--
+        } else {
+            g.State.IsActive = false
+            if g.State.Score.Player1 > g.State.Score.Player2 {
+                g.State.Winner = g.Player1.ID
+            } else if g.State.Score.Player2 > g.State.Score.Player1 {
+                g.State.Winner = g.Player2.ID
+            }
+            return
+        }
+    }
+
 	// Update paddles
 	if g.State.Paddles.Player1Direction != 0 {
 		newY := g.State.Paddles.Player1Y + float64(g.State.Paddles.Player1Direction)*paddleSpeed

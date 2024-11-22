@@ -4,13 +4,12 @@ export interface GameEvent {
     userId: number;
     state?: GameState;
     keyPressed: string;
-}
-
-export interface GameData {
-    type: 'GAME_DATA';
-    lobbyId: string;
     player1Id: number;
     player2Id: number;
+}
+
+export interface GameStart {
+    type: 'GAME_DATA';
 }
 
 export interface Ball {

@@ -106,8 +106,8 @@ export class WebSocketService {
         this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
             eventBus.emit('GAME_EVENT', message);
         });
-        this.setMessageHandler<GameData>('GAME_DATA',(message: GameData)  => {
-            eventBus.emit('GAME_DATA', message);
+        this.setMessageHandler<GameStart>('GAME_START',(message: GameStart)  => {
+            eventBus.emit('GAME_START', message);
         });
     }
 

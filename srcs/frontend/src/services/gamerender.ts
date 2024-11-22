@@ -7,10 +7,33 @@ export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): voi
     ctx.fillRect(state.paddle.player2X,state.paddle.player2Y , state.paddle.width, state.paddle.height);
 }
 
-export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) : void {
+const trailLength = 15; // Nombre de positions précédentes à conserver
+let previousPositions: {x: number, y: number}[] = [];
+
+export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
+    // Ajouter la position actuelle
+    previousPositions.push({x: state.ball.x, y: state.ball.y});
+    
+    // Garder seulement les N dernières positions
+    if (previousPositions.length > trailLength) {
+        previousPositions.shift();
+    }
+
+    // Dessiner la traînée
+    previousPositions.forEach((pos, index) => {
+        const alpha = (index + 1) / trailLength;
+        const radius = 10 * ((index + 1) / trailLength); // Le rayon diminue pour les anciennes positions
+        ctx.beginPath();
+        ctx.fillStyle = state.isBoostActive 
+            ? `rgba(255, 0, 0, ${alpha * 0.3})`  // Rouge pour le boost
+            : `rgba(255, 255, 255, ${alpha * 0.3})`; // Blanc normal
+        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Dessiner la balle principale
     ctx.beginPath();
+    ctx.fillStyle = state.isBoostActive ? 'red' : 'rgba(94, 84, 142)';
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
-    ctx.fillStyle = 'green';
     ctx.fill();
-    ctx.closePath();
 }

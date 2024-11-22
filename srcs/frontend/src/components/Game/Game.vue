@@ -27,6 +27,7 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const handlePressUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+    event.preventDefault();
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
@@ -43,6 +44,7 @@ const handlePressUp = (event: KeyboardEvent): void => {
 
 const handleReleaseUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+    event.preventDefault();
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
@@ -91,12 +93,30 @@ const handleReleaseDown = (event: KeyboardEvent): void => {
   }
 }
 
+const handleSpace = (event: KeyboardEvent): void => {
+ if (event.code === 'Space') {
+   event.preventDefault();
+   if (userStore.getWebSocketService?.isConnected()) {
+     const gameEvent: GameEvent = {
+       type: 'GAME_EVENT', 
+       lobbyId: route.query.lobbyId as string,
+       userId: userStore.getId!,
+       keyPressed: 'SPACE'
+     };
+     userStore.getWebSocketService?.sendGameEvent(gameEvent);
+   } else {
+     console.error('WebSocket is not connected');
+   }
+ }
+}
+
 onMounted(() => {
   // Add key listener
   window.addEventListener('keydown', handlePressUp)
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
+  window.addEventListener('keydown', handleSpace)
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
     console.log(message.type)
@@ -118,6 +138,8 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handlePressDown)
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
+  window.removeEventListener('keydown', handleSpace)
+
 
   eventBus.off('GAME_EVENT')
 })

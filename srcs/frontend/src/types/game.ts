@@ -35,6 +35,9 @@ export interface GameState {
     winner: number;
     isPaused: boolean;
     pauseTime: string;
+    collisions: number;    
+    boostReady: boolean;   
+    isBoostActive: boolean; 
 }
 
 export interface Player {

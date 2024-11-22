@@ -12,7 +12,7 @@ import (
 
 const (
 	PointPauseTime = 1 * time.Second
-	GameTickRate   = 20 * time.Millisecond
+	GameTickRate   = 16 * time.Millisecond
 )
 
 type LobbyTimestamps struct {

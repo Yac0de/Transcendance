@@ -39,14 +39,18 @@
     <div v-else-if="currentView === 'create'" class="create-view">
       <h2 class="view-title">Create Tournament</h2>
       <!-- CreateTournament component will go here -->
+      <TournamentLobby :tournament-code="tournamentCode"/>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '../../stores/user'
 import JoinTournamentMenu from './JoinTournamentMenu.vue'
+import TournamentLobby from './TournamentLobby.vue'
+import { eventBus } from '../../events/eventBus'
 
 type ViewState = 'menu' | 'join' | 'create'
 
@@ -57,10 +61,17 @@ interface Tournament {
   status: 'pending' | 'active' | 'completed'
 }
 
+const userStore = useUserStore();
 const router = useRouter()
 const currentView = ref<ViewState>('menu')
+const tournamentCode = ref<string>('')
 
 const handleCreateTournament = (): void => {
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.createTournamentLobby(tournamentCode.value)
+  } else {
+    console.error('WebSocket is not connected');
+  }
   currentView.value = 'create'
 }
 
@@ -71,6 +82,18 @@ const handleJoinTournament = (): void => {
 const handleBack = (): void => {
   currentView.value = 'menu'
 }
+
+onMounted(() => {
+  eventBus.on('CREATE_TOURNAMENT_LOBBY', (message: joinTournamentWithCode) => {
+    console.log("TOURNAMENT LOBBY CREATED WITH SUCCESS, CODE = ", message.code);
+    tournamentCode.value = message.code
+    currentView.value = 'create'
+  })
+})
+
+onUnmounted(() => {
+  eventBus.off('CREATE_TOURNAMENT_LOBBY');
+})
 </script>
 
 <style scoped>

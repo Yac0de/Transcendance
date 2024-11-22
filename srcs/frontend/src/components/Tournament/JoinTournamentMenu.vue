@@ -18,13 +18,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import type { joinTournamentWithCode } from '../types/tournament'
+import { useUserStore } from '../../stores/user'
+import { eventBus } from '../../events/eventBus'
 
-const tournamentCode = ref('')
+const tournamentCode = ref<string>('')
+const userStore = useUserStore()
 
 const handleJoin = () => {
   console.log('Joining tournament with code:', tournamentCode.value)
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.joinTournamentWithCode(tournamentCode.value)
+  } else {
+    console.error('WebSocket is not connected');
+  }
 }
+
+onMounted(() => {
+  eventBus.on('JOIN_TOURNAMENT_WITH_CODE', (message: joinTournamentWithCode) => {
+    console.log("JOIN SUCCESS IN SERVER");
+  })
+})
+
+onUnmounted(() => {
+  eventBus.off('JOIN_TOURNAMENT_WITH_CODE');
+})
+
 </script>
 
 <style scoped>

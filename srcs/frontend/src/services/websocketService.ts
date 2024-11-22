@@ -84,6 +84,12 @@ export class WebSocketService {
         this.setMessageHandler<LobbyDestroyed>('LOBBY_DESTROYED', () => {
             eventBus.emit('LOBBY_DESTROYED');
         });
+        this.setMessageHandler<joinTournamentWithCode>('JOIN_TOURNAMENT_WITH_CODE', () => {
+            eventBus.emit('JOIN_TOURNAMENT_WITH_CODE');
+        });
+        this.setMessageHandler<createTournamentLobby>('CREATE_TOURNAMENT_LOBBY', () => {
+            eventBus.emit('CREATE_TOURNAMENT_LOBBY');
+        });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -233,6 +239,34 @@ export class WebSocketService {
                 },
                 lobbyId: lobbyId
             };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public joinTournamentWithCode(code: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: joinTournamentWithCode = {
+                type: 'JOIN_TOURNAMENT_WITH_CODE',
+                userId: this.userStore.getId!,
+                code: code
+            };
+            console.log("JOIN TOURNAMENT WITH CODE -> ", message);
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public createTournamentLobby(): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: joinTournamentWithCode = {
+                type: 'JOIN_TOURNAMENT_WITH_CODE',
+                userId: this.userStore.getId!,
+                code:'' 
+            };
+            console.log("CREATE TOURNAMENT LOBBY -> ", message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

@@ -1,4 +1,4 @@
-Copy<template>
+<template>
   <div class="game-container">
     <GameHeader :state="currentGameState"/>
     <div class="canvas-wrapper">
@@ -14,7 +14,7 @@ Copy<template>
 </template>
 
 <script setup lang="ts">
-import { GameEvent } from '../../types/game'
+import { GameEvent, GameData } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall } from '../../services/gamerender';
@@ -108,7 +108,6 @@ onMounted(() => {
   window.addEventListener('keyup', handleReleaseDown)
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
-    console.log(message.type)
     if (canvasRef.value) {
       const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {

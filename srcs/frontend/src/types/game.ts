@@ -6,6 +6,13 @@ export interface GameEvent {
     keyPressed: string;
 }
 
+export interface GameData {
+    type: 'GAME_DATA';
+    lobbyId: string;
+    player1Id: number;
+    player2Id: number;
+}
+
 export interface Ball {
     x: number;
     y: number;

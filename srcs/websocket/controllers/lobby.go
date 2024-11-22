@@ -52,6 +52,10 @@ type LobbyErrorEvent struct {
 	Error   string    `json:"error"`
 }
 
+type GameStart struct {
+	models.Event
+}
+
 func HandleLobby(h *Hub, event string, data []byte) {
 	var request LobbyEvent
 	if err := json.Unmarshal(data, &request); err != nil {
@@ -249,6 +253,21 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 	lobby.Game = NewGame(lobby.Sender.Id, lobby.Receiver.Id)
 	gameTicker := time.NewTicker(GameTickRate)
 	//gameTicker := time.NewTicker(time.Second * 2)
+
+	gameStart := GameStart{
+		Event: models.Event{
+			Type: "GAME_START",
+		},
+	}
+
+	dataJson, err := json.Marshal(gameStart)
+	if err != nil {
+		fmt.Printf("Impossible to parse GameStart type: ", err.Error())
+		return
+	}
+	safeSend(lobby.Sender.Send, dataJson)
+	safeSend(lobby.Receiver.Send, dataJson)
+
 	lobby.Game.resetBall()
 	go func() {
 		for {
@@ -264,8 +283,10 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 							Type: "GAME_EVENT",
 						},
 
-						LobbyId: lobby.Id,
-						State:   lobby.Game.State,
+						LobbyId:   lobby.Id,
+						State:     lobby.Game.State,
+						Player1Id: lobby.Sender.Id,
+						Player2Id: lobby.Receiver.Id,
 					}
 					stateJson, _ := json.Marshal(evt)
 					safeSend(lobby.Sender.Send, stateJson)

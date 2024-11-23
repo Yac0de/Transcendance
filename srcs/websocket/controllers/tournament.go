@@ -3,7 +3,10 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"websocket/models"
+
+	"github.com/google/uuid"
 )
 
 type Tournament struct {
@@ -12,18 +15,16 @@ type Tournament struct {
 	Player2 *Client `json:"player2"`
 	Player3 *Client `json:"player3"`
 	Player4 *Client `json:"player4"`
-	// Mutex   sync.Mutex    `json:"-"`
-	// Destroy chan struct{} `json:"-"`
 }
 
 type TournamentEvent struct {
 	models.Event
 	Code    string `json:"code"`
 	UserId  uint64 `json:"userId"`
-	Player1 uint64 `json:"player1"`
-	Player2 uint64 `json:"player2"`
-	Player3 uint64 `json:"player3"`
-	Player4 uint64 `json:"player4"`
+	Player1 uint64 `json:"player1id"`
+	Player2 uint64 `json:"player2id"`
+	Player3 uint64 `json:"player3id"`
+	Player4 uint64 `json:"player4id"`
 }
 
 type TournamentErrorEvent struct {
@@ -47,11 +48,8 @@ func HandleTournament(h *Hub, event string, data []byte) {
 }
 
 func NewTournament(h *Hub, request TournamentEvent) *Tournament {
-	if _, exist := h.Tournaments[request.Code]; exist {
-		return nil
-	}
 	return &Tournament{
-		Id:      request.Code,
+		Id:      uuid.New().String(),
 		Player1: h.Clients[request.UserId],
 		Player2: nil,
 		Player3: nil,
@@ -77,17 +75,10 @@ func SendTournamentError(h *Hub, request TournamentEvent, errorMessage string) {
 }
 
 func CreateTournament(h *Hub, request TournamentEvent) {
-	if _, exist := h.Clients[request.UserId]; !exist {
-		SendTournamentError(h, request, fmt.Sprintf("Client id <%s> does not log", request.UserId))
-		return
-	}
-
 	tournament := NewTournament(h, request)
-	if tournament == nil {
-		SendTournamentError(h, request, fmt.Sprintf("Tournament <%s> code already exist.", request.Code))
-		return
-	}
 	h.Tournaments[tournament.Id] = tournament
+	request.Player1 = tournament.Player1.Id
+	request.Code = tournament.Id
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
 		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
@@ -97,8 +88,14 @@ func CreateTournament(h *Hub, request TournamentEvent) {
 }
 
 func JoinTournament(h *Hub, request TournamentEvent) {
-	tournament, exist := h.Tournaments[request.Code]
-	if !exist {
+	var tournament *Tournament = nil
+	for id, tn := range h.Tournaments {
+		uid := strings.Split(id, "-")[0]
+		if request.Code == uid {
+			tournament = tn
+		}
+	}
+	if tournament == nil {
 		SendTournamentError(h, request, fmt.Sprintf("Tournament with code <%s> does not exist", request.UserId))
 		return
 	}

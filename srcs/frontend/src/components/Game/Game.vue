@@ -1,6 +1,6 @@
 <template>
   <div class="game-container">
-    <GameHeader :state="currentGameState"/>
+    <GameHeader :player-1-id="player1Id" :player-2-id="player2Id" :state="currentGameState"/>
     <div class="canvas-wrapper">
       <canvas
         id="gameCanvas"
@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { GameEvent, GameData } from '../../types/game'
+import { GameEvent, GameData, Score } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall } from '../../services/gamerender';
@@ -27,12 +27,13 @@ const route = useRoute()
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
-const currentGameState = reactive({
+const player1Id = ref<number | null>(null)
+const player2Id = ref<number | null>(null)
+
+const currentGameState: GameState = reactive({
   score: { player1: 0, player2: 0 },
-  remainingTime: 300,
-  paddle: { player1X: 30, player1Y: 240, player2X: 740, player2Y: 240 },
-  ball: { x: 400, y: 300 },
-});
+  remainingTime: 300
+})
 
 const handlePressUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
@@ -108,6 +109,14 @@ onMounted(() => {
   window.addEventListener('keyup', handleReleaseDown)
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
+
+    if (player1Id.value === null) {
+      player1Id.value = message.player1id;
+    }
+    if (player2Id.value === null) {
+      player2Id.value = message.player2id;
+    }
+
     if (canvasRef.value) {
       const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {

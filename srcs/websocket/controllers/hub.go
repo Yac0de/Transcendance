@@ -9,19 +9,13 @@ import (
 )
 
 type Hub struct {
-	Clients    map[uint64]*Client
-	Broadcast  chan []byte
-	Register   chan *Client
-	Unregister chan *Client
-	Lobbies    map[uuid.UUID]*Lobby
+	Clients     map[uint64]*Client
+	Broadcast   chan []byte
+	Register    chan *Client
+	Unregister  chan *Client
+	Lobbies     map[uuid.UUID]*Lobby
+	Tournaments map[string]*Tournament
 }
-
-// type GameMessage struct {
-// 	Type     string          `json:"type"`
-// 	Command  string          `json:"command,omitempty"`
-// 	PlayerID uint64          `json:"playerId,omitempty"`
-// 	State    *GameState `json:"state,omitempty"`
-// }
 
 func NewHub() *Hub {
 	return &Hub{
@@ -80,6 +74,8 @@ func (h *Hub) Run() {
 				HandleLobby(h, event.Type, message)
 			case event.Type == "GAME_EVENT":
 				handleGameMessage(h, message)
+			case strings.HasPrefix(event.Type, "TOURNAMENT_"):
+				HandleTournament(h, event.Type, message)
 			default:
 				fmt.Printf("models.Event not handled: %+v\n", event)
 			}

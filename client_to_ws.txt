@@ -32,5 +32,3 @@ export interface joinTournamentWithCode {
 }
 
 It will also send another message to all the other client in the lobby. Something like this:
- 
-

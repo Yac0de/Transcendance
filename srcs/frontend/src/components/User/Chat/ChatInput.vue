@@ -1,6 +1,6 @@
 <template>
 	<div class="message-input">
-		<input ref="inputRef" v-model="message" @keyup.enter="sendMessage" placeholder="Type a message..." />
+		<input ref="inputRef" maxlength="800" v-model="message" @keyup.enter="sendMessage" placeholder="Type a message..." />
 		<button 
 			class="action-button challenge-btn" 
 			:class="{ 'disabled': !isOnline }"
@@ -63,15 +63,18 @@ defineExpose({
 
 <style scoped>
 .message-input {
-	padding: 16px;
+	padding: 12px 16px;
 	border-top: 1px solid #e0e0e0;
 	display: flex;
 	gap: 8px;
 	background-color: #fff;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .message-input input {
-	flex-grow: 1;
+	flex: 1;
+	min-width: 0; /* Prevents input from overflowing */
 	padding: 10px 16px;
 	border: 1px solid #e0e0e0;
 	border-radius: 24px;
@@ -87,8 +90,14 @@ defineExpose({
 	box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
 }
 
+.action-buttons {
+	display: flex;
+	gap: 8px;
+	flex-shrink: 0; /* Prevents buttons from shrinking */
+}
+
 .message-input .action-button {
-	padding: 10px 20px;
+	padding: 10px;
 	background-color: #1a73e8;
 	color: white;
 	border: none;
@@ -97,6 +106,16 @@ defineExpose({
 	font-size: 14px;
 	font-weight: 500;
 	transition: all 0.2s ease;
+	flex-shrink: 0;
+}
+
+.message-input .challenge-btn {
+	width: 40px;
+	padding: 10px 0;
+}
+
+.message-input .send-btn {
+	padding: 10px 20px;
 }
 
 .message-input .action-button.disabled {
@@ -116,10 +135,15 @@ defineExpose({
 
 @media (max-width: 640px) {
 	.message-input {
-		padding: 12px;
+		padding: 8px;
 	}
+	
 	.message-input input {
 		font-size: 16px;
+	}
+
+	.message-input .send-btn {
+		padding: 10px 16px;
 	}
 }
 </style>

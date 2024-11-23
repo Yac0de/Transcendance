@@ -3,7 +3,7 @@
       <div class="scoreP1">
         <div class="player-info">
           <div class="avatar-container">
-          <img :src="api.user.getAvatarUrl(player1?.avatar)" class="avatar" alt="Player 1 avatar">
+          <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" alt="Player 1 avatar">
           </div>
           <span>{{ player1?.nickname || 'Player 1' }} {{ state.score.player1 }}</span>
         </div>
@@ -17,7 +17,7 @@
         <div class="player-info">
           <span>{{ player2?.nickname || 'Player 2' }} {{ state.score.player2 }}</span>
           <div class="avatar-container">
-            <img :src="api.user.getAvatarUrl(player2?.avatar)" class="avatar" alt="Player 2 avatar">
+            <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" alt="Player 2 avatar">
           </div>
         </div>
       </div>
@@ -33,8 +33,8 @@ import api from '../../services/api';
 
 const props = defineProps<{
   state: GameState
-  player1Id: number | null
-  player2Id: number | null
+  player1id: number | null
+  player2id: number | null
 }>()
 
 const player1 = ref<UserData | null>(null)
@@ -42,10 +42,10 @@ const player2 = ref<UserData | null>(null)
 
 const fetchPlayerData = async () => {
   if (props.player1Id) {
-    player1.value = await fetchUserById(props.player1Id)
+    player1.value = await fetchUserById(props.player1id)
   }
   if (props.player2Id) {
-    player2.value = await fetchUserById(props.player2Id)
+    player2.value = await fetchUserById(props.player2id)
     console.log(player2.value.nickname)
   }
 }
@@ -53,7 +53,7 @@ const fetchPlayerData = async () => {
 onMounted(fetchPlayerData)
 
 // Watch for changes in player IDs and refetch data when they change
-watch([() => props.player1Id, () => props.player2Id], fetchPlayerData)
+watch([() => props.player1id, () => props.player2id], fetchPlayerData)
 </script>
 
 <style scoped>

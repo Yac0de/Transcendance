@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="game-container">
-      <GameHeader :player-1-id="player1Id" :player-2-id="player2Id":state="currentGameState"/>
+      <GameHeader :player1id="player1Id" :player2id="player2Id":state="currentGameState"/>
       <div class="canvas-wrapper">
         <canvas
         id="gameCanvas"
@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { GameEvent, GameData, Score } from '../../types/game'
+import { GameEvent, GameState } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall } from '../../services/gamerender';
@@ -35,8 +35,16 @@ const player1Id = ref<number | null>(null)
 const player2Id = ref<number | null>(null)
 
 const currentGameState: GameState = reactive({
-  score: { player1: 0, player2: 0 },
-  remainingTime: 300
+    ball: { x: 0, y: 0 },  // Assuming Ball has x, y properties
+    score: { 
+        player1: 0, 
+        player2: 0 
+    },
+    isActive: false,
+    winner: 0,  // or 0, depending on how you represent no winner
+    isPaused: false,
+    pauseTime: '',  // or null, depending on how you handle empty time
+    remainingTime: 300
 })
 
 const handlePressUp = (event: KeyboardEvent): void => {
@@ -46,7 +54,7 @@ const handlePressUp = (event: KeyboardEvent): void => {
         type: 'GAME_EVENT',
         lobbyId: route.query.lobbyId as string,
         userId: userStore.getId!,
-        keyPressed: 'UP'
+        keyPressed: 'UP',
       };
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
     } else {
@@ -115,10 +123,10 @@ onMounted(() => {
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
 
     if (player1Id.value === null) {
-      player1Id.value = message.player1id;
+      player1Id.value = message.player1id ?? null;
     }
     if (player2Id.value === null) {
-      player2Id.value = message.player2id;
+      player2Id.value = message.player2id ?? null;
     }
 
     if (canvasRef.value) {

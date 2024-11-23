@@ -4,8 +4,8 @@ export interface GameEvent {
     userId: number;
     state?: GameState;
     keyPressed: string;
-    player1Id: number;
-    player2Id: number;
+    player1id?: number;
+    player2id?: number;
 }
 
 export interface GameStart {
@@ -35,7 +35,7 @@ export interface Score {
 
 export interface GameState {
     ball: Ball;
-    paddle: Paddle;
+    paddle?: Paddle;
     score: Score;
     isActive: boolean;
     winner: number;

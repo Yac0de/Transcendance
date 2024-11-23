@@ -18,6 +18,7 @@
       <div class="player-column">
         <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
           :challenged-friend="challengedFriend"
+          :isWaiting="isWaitingForResponse"
           @friend-selected="handleFriendSelected" />
         <ReadyCheck :both-players-ready="player1Ready && player2Ready" :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
       </div>
@@ -37,10 +38,12 @@ import { UserData } from '../../types/models';
 import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore();
+const isWaitingForResponse = ref<boolean>(false)
 
 const player1Ready = ref<boolean>(false)
 const player2Ready = ref<boolean>(false)
@@ -76,7 +79,16 @@ const handlePlayer2Ready = (isReady: boolean) => {
   player2Ready.value = isReady
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const friendId = route.query.friendId;
+  if (friendId) {
+    const numericFriendId = parseInt(friendId as string);
+    isWaitingForResponse.value = true;
+    if (userStore.getWebSocketService?.isConnected()) {
+      userStore.getWebSocketService?.inviteFriendToLobbyMessage(numericFriendId);
+    }
+  }
+
   eventBus.on('LOBBY_CREATED', async (message: LobbyCreated) => {
     lobbyId = message.lobbyId;
     isAcceptingPlayer = message.receiver.id === userStore.getId;

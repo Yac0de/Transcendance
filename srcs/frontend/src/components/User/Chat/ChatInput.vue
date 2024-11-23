@@ -1,17 +1,34 @@
 <template>
 	<div class="message-input">
 		<input ref="inputRef" v-model="message" @keyup.enter="sendMessage" placeholder="Type a message..." />
-		<button @click="sendMessage">Send</button>
+		<button 
+			class="action-button challenge-btn" 
+			:class="{ 'disabled': !isOnline }"
+			@click="handleChallengeClick"
+			:disabled="!isOnline"
+			title="Challenge to a match"
+		>
+			<i class="fas fa-gamepad"></i>
+		</button>
+		<button class="action-button" @click="sendMessage">Send</button>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useOnlineUsersStore } from '../../../stores/onlineUsers'
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const emit = defineEmits<{
 	(e: 'send', message: string): void;
 }>();
 
+const props = defineProps<{
+	currentFriendId: number;
+}>();
+
+const onlineUsersStore = useOnlineUsersStore();
 const message = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
 
@@ -20,6 +37,18 @@ const sendMessage = () => {
 		emit('send', message.value);
 		message.value = '';
 	}
+};
+
+const isOnline = computed(() => {
+	return onlineUsersStore.isUserOnline(props.currentFriendId);
+});
+
+const handleChallengeClick = () => {
+    if (!isOnline.value) return;
+    router.push({        // Then navigate to lobby
+        path: '/lobby',
+        query: { friendId: props.currentFriendId.toString() }
+    });
 };
 
 const focusInput = () => {
@@ -58,7 +87,7 @@ defineExpose({
 	box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
 }
 
-.message-input button {
+.message-input .action-button {
 	padding: 10px 20px;
 	background-color: #1a73e8;
 	color: white;
@@ -70,12 +99,18 @@ defineExpose({
 	transition: all 0.2s ease;
 }
 
-.message-input button:hover {
+.message-input .action-button.disabled {
+	background-color: #ccc;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.message-input .action-button:hover:not(.disabled) {
 	background-color: #1557b0;
 	transform: translateY(-1px);
 }
 
-.message-input button:active {
+.message-input .action-button:active:not(.disabled) {
 	transform: translateY(0);
 }
 
@@ -83,7 +118,6 @@ defineExpose({
 	.message-input {
 		padding: 12px;
 	}
-
 	.message-input input {
 		font-size: 16px;
 	}

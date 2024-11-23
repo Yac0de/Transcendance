@@ -2,8 +2,10 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
+import { GameEvent } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
+import { useChatStore } from '../stores/chatStore.ts';
 
 const WS_URL = import.meta.env.PROD
   ? 'wss://localhost:8443/ws'  // Production through Nginx
@@ -55,6 +57,23 @@ export class WebSocketService {
     }
 
     public initMessageHandlers(): void {
+        this.setMessageHandler<ChatMessage>('CHAT', (message: ChatMessage) => {
+            const conversationId = message.senderID === this.clientId
+                ? message.receiverID
+                : message.senderID;
+
+            if (!conversationId) {
+                console.warn('Unable to determine conversation ID for message:', message);
+                return;
+            }
+
+            const chatStore = useChatStore();
+            if (chatStore.selectedFriendId !== conversationId) {
+                console.log(`Adding unread message for conversation ID: ${conversationId}`);
+                chatStore.addUnreadMessage(conversationId);
+            }
+        });
+
         this.setMessageHandler<OnlineUsersMessage>('ONLINE_USERS', (message: OnlineUsersMessage) => {
             this.onlineUsersStore.setOnlineUsers(message.usersOnline);
         });
@@ -84,12 +103,15 @@ export class WebSocketService {
         this.setMessageHandler<LobbyDestroyed>('LOBBY_DESTROYED', () => {
             eventBus.emit('LOBBY_DESTROYED');
         });
+        this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
+            eventBus.emit('GAME_EVENT', message);
+        });
         this.setMessageHandler<joinTournamentWithCode>('JOIN_TOURNAMENT_WITH_CODE', () => {
             eventBus.emit('JOIN_TOURNAMENT_WITH_CODE');
         });
         this.setMessageHandler<createTournamentLobby>('CREATE_TOURNAMENT_LOBBY', () => {
             eventBus.emit('CREATE_TOURNAMENT_LOBBY');
-        });
+       
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -114,12 +136,14 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
+                    console.log(message)
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
-                    }
+                    } else
+                        console.warn(`No handler found for message type: ${message.type}`);
                 } catch (e) {
-                    console.error('Error parsing message, invalid format ?', e);
+                    console.error('Error parsing WebSocket message:', e);
                 }
             };
         } catch (error) {
@@ -268,6 +292,9 @@ export class WebSocketService {
             };
             console.log("CREATE TOURNAMENT LOBBY -> ", message);
             this.ws.send(JSON.stringify(message));
+    public sendGameEvent(game_event: GameEvent): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify(game_event));
         } else {
             console.warn("Can't send a message, ws is not connected");
         }

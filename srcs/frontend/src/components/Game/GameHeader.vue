@@ -41,12 +41,11 @@ const player1 = ref<UserData | null>(null)
 const player2 = ref<UserData | null>(null)
 
 const fetchPlayerData = async () => {
-  if (props.player1Id) {
-    player1.value = await fetchUserById(props.player1id)
+  if (props.player1id) {
+    player1.value = await fetchUserById(props.player1id ?? null)
   }
-  if (props.player2Id) {
-    player2.value = await fetchUserById(props.player2id)
-    console.log(player2.value.nickname)
+  if (props.player2id) {
+    player2.value = await fetchUserById(props.player2id ?? null)
   }
 }
 

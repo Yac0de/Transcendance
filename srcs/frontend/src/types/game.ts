@@ -9,7 +9,7 @@ export interface GameEvent {
 }
 
 export interface GameStart {
-    type: 'GAME_DATA';
+    type: 'GAME_START';
 }
 
 export interface Ball {

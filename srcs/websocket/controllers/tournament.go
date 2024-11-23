@@ -110,10 +110,18 @@ func JoinTournament(h *Hub, request TournamentEvent) {
 		SendTournamentError(h, request, fmt.Sprintf("Tournament with code <%s> already full", request.Code))
 		return
 	}
+	success, err := json.Marshal(&request)
+	if err != nil {
+		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
+		return
+	}
+	safeSend(clientJoined.Send, success)
+
 	request.Player1 = tournament.Player1.Id
 	request.Player2 = tournament.Player2.Id
 	request.Player3 = tournament.Player3.Id
 	request.Player4 = tournament.Player4.Id
+	request.Type = "TOURNAMENT_EVENT"
 
 	jsonData, err := json.Marshal(&request)
 	if err != nil {

@@ -23,24 +23,18 @@ function drawRoundedRectangle(
 
 export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): void {
     ctx.fillStyle = 'white';
-    drawRoundedRectangle(
-        ctx,
+    ctx.fillRect(
         state.paddle.player1X,
         state.paddle.player1Y,
         state.paddle.width,
         state.paddle.height,
-        10
     );
-    ctx.fill();
-    drawRoundedRectangle(
-        ctx,
+    ctx.fillRect(
         state.paddle.player2X,
         state.paddle.player2Y,
         state.paddle.width,
         state.paddle.height,
-        10
     );
-    ctx.fill();
 }
 
 export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) : void {

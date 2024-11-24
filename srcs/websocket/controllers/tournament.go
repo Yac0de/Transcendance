@@ -45,6 +45,8 @@ func HandleTournament(h *Hub, event string, data []byte) {
 		CreateTournament(h, request)
 	case "TOURNAMENT_JOIN_WITH_CODE":
 		JoinTournament(h, request)
+	case "TOURNAMENT_LEAVE_WAITING_ROOM":
+		LeaveWaitingRoomTournament(h, request)
 	}
 }
 
@@ -160,4 +162,39 @@ func SendDataToPlayers(tournament *Tournament, datas []byte) {
 	if tournament.Player4 != nil {
 		safeSend(tournament.Player4.Send, datas)
 	}
+}
+
+func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
+	clientLeft := h.Clients[request.UserId]
+	tournament := h.Tournaments[request.Code]
+	if tournament.Player1 == clientLeft {
+		request.Type = "TOURNAMENT_TERMINATE"
+		jsonData, err := json.Marshal(&request)
+		if err != nil {
+			fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
+			return
+		}
+		SendDataToPlayers(tournament, jsonData)
+		delete(h.Tournaments, tournament.Id)
+
+	} else if tournament.Player2 == clientLeft {
+		tournament.Player2 = nil
+	} else if tournament.Player3 == clientLeft {
+		tournament.Player3 = nil
+	} else if tournament.Player4 == clientLeft {
+		tournament.Player4 = nil
+	}
+
+	request.Type = "TOURNAMENT_EVENT"
+	request.Player1 = getPlayerId(tournament.Player1)
+	request.Player2 = getPlayerId(tournament.Player2)
+	request.Player3 = getPlayerId(tournament.Player3)
+	request.Player4 = getPlayerId(tournament.Player4)
+
+	jsonData, err := json.Marshal(&request)
+	if err != nil {
+		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
+		return
+	}
+	SendDataToPlayers(tournament, jsonData)
 }

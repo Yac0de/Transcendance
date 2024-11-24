@@ -11,21 +11,25 @@ import (
 )
 
 type Tournament struct {
-	Id      string  `json:"id"`
-	Player1 *Client `json:"player1"`
-	Player2 *Client `json:"player2"`
-	Player3 *Client `json:"player3"`
-	Player4 *Client `json:"player4"`
+	Id      string    `json:"id"`
+	Player1 *Client   `json:"player1"`
+	Player2 *Client   `json:"player2"`
+	Player3 *Client   `json:"player3"`
+	Player4 *Client   `json:"player4"`
+	Game1   [2]uint64 `json:"game1"`
+	Game2   [2]uint64 `json:"game2"`
 }
 
 type TournamentEvent struct {
 	models.Event
-	Code    string `json:"code"`
-	UserId  uint64 `json:"userId"`
-	Player1 uint64 `json:"player1id"`
-	Player2 uint64 `json:"player2id"`
-	Player3 uint64 `json:"player3id"`
-	Player4 uint64 `json:"player4id"`
+	Code    string    `json:"code"`
+	UserId  uint64    `json:"userId"`
+	Player1 uint64    `json:"player1id"`
+	Player2 uint64    `json:"player2id"`
+	Player3 uint64    `json:"player3id"`
+	Player4 uint64    `json:"player4id"`
+	Game1   [2]uint64 `json:"game1"`
+	Game2   [2]uint64 `json:"game2"`
 }
 
 type TournamentErrorEvent struct {
@@ -47,6 +51,8 @@ func HandleTournament(h *Hub, event string, data []byte) {
 		JoinTournament(h, request)
 	case "TOURNAMENT_LEAVE_WAITING_ROOM":
 		LeaveWaitingRoomTournament(h, request)
+	case "TOURNAMENT_START":
+		StartTournament(h, request)
 	}
 }
 
@@ -57,6 +63,8 @@ func NewTournament(h *Hub, request TournamentEvent) *Tournament {
 		Player2: nil,
 		Player3: nil,
 		Player4: nil,
+		Game1:   [2]uint64{0, 0},
+		Game2:   [2]uint64{0, 0},
 	}
 }
 
@@ -197,4 +205,35 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 		return
 	}
 	SendDataToPlayers(tournament, jsonData)
+}
+
+func StartTournament(h *Hub, request TournamentEvent) {
+	tournament := h.Tournaments[request.Code]
+	if request.UserId != tournament.Player1.Id {
+		SendTournamentError(h, request, "Only the creator can start the tournament")
+		return
+	}
+	// if tournament.Player1 == nil || tournament.Player2 == nil || tournament.Player3 == nil || tournament.Player4 == nil {
+	// 	SendTournamentError(h, request, "Tournament is not full")
+	// 	return
+	// }
+	RefreshTournamentEvent(&request, tournament)
+	tournament.Game1[0] = request.Player1
+	tournament.Game1[1] = request.Player2
+	tournament.Game2[0] = request.Player3
+	tournament.Game2[1] = request.Player4
+
+	jsonData, err := json.Marshal(&request)
+	if err != nil {
+		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
+		return
+	}
+	SendDataToPlayers(tournament, jsonData)
+}
+
+func RefreshTournamentEvent(request *TournamentEvent, tournament *Tournament) {
+	request.Player1 = getPlayerId(tournament.Player1)
+	request.Player2 = getPlayerId(tournament.Player2)
+	request.Player3 = getPlayerId(tournament.Player3)
+	request.Player4 = getPlayerId(tournament.Player4)
 }

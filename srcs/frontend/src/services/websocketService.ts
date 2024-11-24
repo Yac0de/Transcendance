@@ -287,14 +287,38 @@ export class WebSocketService {
         }
     }
 
-    public createTournamentLobby(): void {
+    public createTournamentWaitingRoom(): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: joinTournamentWithCode = {
+            const message: TournamentCreate = {
                 type: 'TOURNAMENT_CREATE',
                 userId: this.userStore.getId!,
                 code:'' 
             };
             console.log("CREATE TOURNAMENT LOBBY -> ", message);
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public leaveTournamentWaitingRoom(code: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: LeaveTournamentWaitingRoom = {
+                type: 'LEAVE_TOURNAMENT_WAITING_ROOM',
+                userId: this.userStore.getId!,
+                code: code
+            };
+            console.log("LEAVE TOURNEY WAITING ROOM -> ", message);
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public sendTournamentStart(code: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentStart = {
+                type: 'TOURNAMENT_START',
+                userId: this.userStore.getId!,
+                code: code
+            };
+            console.log("TOURNAMENT START -> ", message);
             this.ws.send(JSON.stringify(message));
         }
     }

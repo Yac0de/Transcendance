@@ -10,6 +10,12 @@ export interface TournamentCreate {
   code: number;
 }
 
+export interface TournamentLeave {
+  type: 'TOURNAMENT_LEAVE_WAITING_ROOM';
+  userId: number;
+  code: number;
+}
+
 export interface TournamentEvent {
   type: string;
   creatorId: number;

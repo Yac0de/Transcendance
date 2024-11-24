@@ -15,10 +15,8 @@
         :player="user"
       />
     </div>
-    
-    <button 
+    <button v-if="creatorId === clientId"
       class="start-button"
-      :disabled="!canStartTournament"
       @click="handleStartTournament"
     >
       Start Tournament
@@ -27,70 +25,101 @@
 </template>
 
 <script setup lang="ts">
+//To allow start with only 4 players
+//:disabled="users.includes(null)"
+
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import PlayerTile from './PlayerTile.vue';
 import UserData from '../../types/models';
 import { useUserStore } from '../../stores/user'
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
+import { useRouter } from 'vue-router';
+import { TournamentCreate, TournamentEvent } from '../../types/tournament';
 
 const userStore = useUserStore();
-
-defineProps<{
-  tournamentCode: string;
-}>();
+const router = useRouter();
+const tournamentCode = ref<string>('');
+const creatorId = ref<number>(0);
+const clientId = ref<number>(userStore.getId);
 
 const users = ref<(UserData | null)[]>([null, null, null, null]); 
 
 const fetchMultipleUsers = async (userIds: number[]) => {
     try {
         const userPromises = userIds.map(id =>
-        id !== 0 ? fetchUserById(id) : Promise.resolve(null)
-      );
-        const users = await Promise.all(userPromises);
-        return users;
+            id !== 0 ? fetchUserById(id).catch(() => null) : Promise.resolve(null)
+        );
+        return await Promise.all(userPromises);
     } catch (error) {
         console.error("One or more fetches failed:", error);
-        throw error;
+        return Array(userIds.length).fill(null); // Return null users instead of throwing
     }
 };
 
 const handleStartTournament = () => {
-  // Implement tournament start logic
-  console.log('Starting tournament...', tournamentCode.value);
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.sendTournamentStart(tournamentCode.value)
+  } else {
+    console.error('WebSocket is not connected');
+  }
 };
 
 onMounted(() => {
-  eventBus.on('TOURNAMENT_EVENT', async (message: tournamentLobbyState) => {
-    console.log("TOURNAMENT EVENT: ", message);
+  eventBus.on('TOURNAMENT_EVENT', async (message: TournamentEvent) => {
+    try {
+      console.log("TOURNAMENT EVENT: ", message);
+      creatorId.value = message.player1id;
+      const playerIds = [
+        message.player1id,
+        message.player2id,
+        message.player3id,
+        message.player4id
+      ];
+      tournamentCode.value = message.code;
+      users.value = await fetchMultipleUsers(playerIds);
+    } catch (error) {
+      console.error("Failed to handle tournament event:", error);
+      users.value = [null, null, null, null];
+    }
+  });
 
-    const playerIds = [
-      message.player1id,
-      message.player2id,
-      message.player3id,
-      message.player4id
-    ];
+  eventBus.on('TOURNAMENT_CREATE', async (message: TournamentCreate) => {
+    try {
+      console.log("TOURNAMENT CREATE EVENT: ", message);
+      creatorId.value = message.player1id;
+      const playerIds = [
+        message.player1id,
+        message.player2id,
+        message.player3id,
+        message.player4id
+      ];
 
-    users.value = await fetchMultipleUsers(playerIds);
+      tournamentCode.value = message.code;
+      users.value = await fetchMultipleUsers(playerIds);
+    } catch (error) {
+      console.error("Failed to handle tournament event:", error);
+      users.value = [null, null, null, null];
+    }
   })
 
-  eventBus.on('TOURNAMENT_CREATE', async (message: tournamentCreate) => {
-    console.log("TOURNAMENT CREATE EVENT: ", message);
-
-    const playerIds = [
-      message.player1id,
-      message.player2id,
-      message.player3id,
-      message.player4id
-    ];
-
-    users.value = await fetchMultipleUsers(playerIds);
+  eventBus.on('TOURNAMENT_KILL', async () => {
+    console.log("TOURNEY OWNER HAS QUIT, REDIRECT TO HOMEPAGE");
+    router.push('/');
   })
 })
 
 onUnmounted(() => {
+  if (tournamentCode.value && userStore.getWebSocketService?.isConnected()) {
+    console.log("WILL SEND LEAVE");
+    userStore.getWebSocketService?.leaveTournamentWaitingRoom(tournamentCode.value)
+  } else {
+    console.error('WebSocket is not connected');
+  }
+
   eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_CREATE');
+  eventBus.off('TOURNAMENT_KILL');
 })
 </script>
 

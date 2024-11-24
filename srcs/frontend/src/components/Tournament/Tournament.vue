@@ -39,7 +39,7 @@
     <div v-else-if="currentView === 'create'" class="create-view">
       <h2 class="view-title">Create Tournament</h2>
       <!-- CreateTournament component will go here -->
-      <TournamentLobby :tournament-code="tournamentCode"/>
+      <TournamentLobby/>
     </div>
   </div>
 </template>
@@ -51,6 +51,7 @@ import { useUserStore } from '../../stores/user'
 import JoinTournamentMenu from './JoinTournamentMenu.vue'
 import TournamentLobby from './TournamentLobby.vue'
 import { eventBus } from '../../events/eventBus'
+import { TournamentJoinWithCode, TournamentCreate } from '../../types/tournament'
 
 type ViewState = 'menu' | 'join' | 'create'
 
@@ -68,7 +69,7 @@ const tournamentCode = ref<string>('')
 
 const handleCreateTournament = (): void => {
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.createTournamentLobby(tournamentCode.value)
+    userStore.getWebSocketService?.createTournamentWaitingRoom(tournamentCode.value)
   } else {
     console.error('WebSocket is not connected');
   }
@@ -89,10 +90,16 @@ onMounted(() => {
     tournamentCode.value = message.code
     currentView.value = 'create'
   })
+
+  eventBus.on('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
+    currentView.value = 'create'
+    console.log("TOURNAMENT JOINED WITH SUCCESS");
+  })
 })
 
 onUnmounted(() => {
   eventBus.off('TOURNAMENT_CREATE');
+  eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
 })
 </script>
 

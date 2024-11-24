@@ -84,10 +84,10 @@ const (
 	PaddleSpeed         = 3
 	Paddle1DistanceWall = 20
 	Paddle2DistanceWall = 760
-	WinningScore        = 100
+	WinningScore        = 5
 	paddleSpeed         = 8.0
 	collisionToBoost    = 6
-	boostMultiplier     = 2
+	boostMultiplier     = 5
 )
 
 // create instance of game and init all data

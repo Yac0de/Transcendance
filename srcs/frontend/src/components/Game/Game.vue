@@ -21,12 +21,14 @@
 import { GameEvent, GameState } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
-import { drawPaddle, drawBall } from '../../services/gamerender';
+import { drawPaddle, drawBall, drawEndGame } from '../../services/gamerender';
 import { useUserStore } from '../../stores/user';
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import GameHeader from './GameHeader.vue';
 
 const route = useRoute()
+const router = useRouter()
+let endGameTimeout: number | null = null;
 
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -44,7 +46,10 @@ const currentGameState: GameState = reactive({
     winner: 0,  // or 0, depending on how you represent no winner
     isPaused: false,
     pauseTime: '',  // or null, depending on how you handle empty time
-    remainingTime: 300
+    remainingTime: 300,
+    collisions: 0,          
+    boostReady: true,       
+    isBoostActive: false    
 })
 
 const handlePressUp = (event: KeyboardEvent): void => {
@@ -161,6 +166,15 @@ onMounted(() => {
 
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
+        if (!message.state!.isActive && message.state!.winner !== 0) {
+          drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
+          
+          if (!endGameTimeout){
+            endGameTimeout = window.setTimeout(() => {
+              router.push('/');
+            }, 5000)
+          }
+        }
       }
     }
   })
@@ -173,8 +187,9 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
   window.removeEventListener('keydown', handleSpace)
-
-
+  if (endGameTimeout) {
+        clearTimeout(endGameTimeout);
+    }
   eventBus.off('GAME_EVENT')
 })
 </script>

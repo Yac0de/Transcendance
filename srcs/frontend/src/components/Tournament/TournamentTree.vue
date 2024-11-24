@@ -1,39 +1,39 @@
 <!-- TournamentTree.vue -->
 <template>
-  <div class="wrapper">
-    <div class="item">
+  <div class="tournament-container">
+    <div class="bracket">
       <!-- Final -->
-      <div class="item-parent">
+      <div class="match-winner">
         <p>Tournament Winner</p>
       </div>
-      <div class="item-childrens">
+      <div class="match-connections">
         <!-- Semi-Final 1 -->
-        <div class="item-child">
-          <div class="item">
-            <div class="item-parent">
+        <div class="match-branch">
+          <div class="bracket">
+            <div class="match-winner">
               <p>Semi 1 Winner</p>
             </div>
-            <div class="item-childrens">
-              <div class="item-child">
-                <p>Player 1</p>
+            <div class="match-connections">
+              <div class="match-branch">
+                <p>Player 1:  {{ usersgame1[0]?.displayname }} </p>
               </div>
-              <div class="item-child">
-                <p>Player 2</p>
+              <div class="match-branch">
+                <p>Player 2:  {{ usersgame1[1]?.displayname }} </p>
               </div>
             </div>
           </div>
         </div>
         <!-- Semi-Final 2 -->
-        <div class="item-child">
-          <div class="item">
-            <div class="item-parent">
+        <div class="match-branch">
+          <div class="bracket">
+            <div class="match-winner">
               <p>Semi 2 Winner</p>
             </div>
-            <div class="item-childrens">
-              <div class="item-child">
+            <div class="match-connections">
+              <div class="match-branch">
                 <p>Player 3</p>
               </div>
-              <div class="item-child">
+              <div class="match-branch">
                 <p>Player 4</p>
               </div>
             </div>
@@ -45,22 +45,39 @@
 </template>
 
 <script setup lang="ts">
-// No script needed for now, just structure
+import { ref, onMounted } from 'vue'
+import { UserData } from '../../types/models'
+import { fetchMultipleUsers } from '../../utils/fetch'
+
+const usersgame1 = ref<(UserData | null)[]>([null, null]); 
+//const usersgame2 = ref<(UserData | null)[]>([null, null]); 
+
+const props = defineProps<{
+  game1array: number[]; 
+  game2array: number[]; 
+}>();
+
+onMounted(async () => {
+  usersgame1.value = await fetchMultipleUsers(props.game1array); 
+  console.log(usersgame1.value[0].displayname)
+  //const usersgame2 = ref<(UserData | null)[]>(await fetchMultipleUsers(game2array)); 
+})
+
 </script>
 
 <style scoped>
-.wrapper {
+.tournament-container {
   display: flex;
   height: 600px;
   justify-content: center;
 }
 
-.item {
+.bracket {
   display: flex;
   flex-direction: row-reverse;
 }
 
-.item p {
+.bracket p {
   padding: 20px;
   margin: 0;
   background-color: #f5f5f5;
@@ -69,14 +86,14 @@
   text-align: center;
 }
 
-.item-parent {
+.match-winner {
   position: relative;
   margin-left: 50px;
   display: flex;
   align-items: center;
 }
 
-.item-parent::after {
+.match-winner::after {
   position: absolute;
   content: '';
   width: 25px;
@@ -87,13 +104,13 @@
   transform: translateX(-100%);
 }
 
-.item-childrens {
+.match-connections {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.item-child {
+.match-branch {
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
@@ -102,7 +119,7 @@
   position: relative;
 }
 
-.item-child::before {
+.match-branch::before {
   content: '';
   position: absolute;
   background-color: #e0e0e0;
@@ -113,7 +130,7 @@
   height: 2px;
 }
 
-.item-child::after {
+.match-branch::after {
   content: '';
   position: absolute;
   background-color: #e0e0e0;
@@ -123,11 +140,11 @@
   top: 50%;
 }
 
-.item-child:last-child::after {
+.match-branch:last-child::after {
   transform: translateY(-100%);
 }
 
-.item-child:only-child::after {
+.match-branch:only-child::after {
   display: none;
 }
 </style>

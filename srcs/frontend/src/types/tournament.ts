@@ -16,6 +16,16 @@ export interface TournamentLeave {
   code: number;
 }
 
+export interface TournamentStart {
+  type: 'TOURNAMENT_START';
+  userId: number;
+  code: number;
+  player1id: number;
+  player2id: number;
+  player3id: number;
+  player4id: number;
+}
+
 export interface TournamentEvent {
   type: string;
   creatorId: number;

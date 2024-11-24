@@ -49,7 +49,7 @@
     </div>
     <div v-else-if="currentView === 'tournament-tree'" class="create-view">
       <!-- CreateTournament component will go here -->
-      <TournamentTree/>
+      <TournamentTree :game1array="game1array" :game2array="game2array"/>
     </div>
   </div>
 </template>
@@ -62,7 +62,7 @@ import JoinTournamentMenu from './JoinTournamentMenu.vue'
 import TournamentWaitingRoom from './TournamentWaitingRoom.vue'
 import TournamentTree from './TournamentTree.vue'
 import { eventBus } from '../../events/eventBus'
-import { TournamentJoinWithCode, TournamentCreate } from '../../types/tournament'
+import { TournamentJoinWithCode, TournamentCreate, TournamentStart } from '../../types/tournament'
 
 type ViewState = 'menu' | 'join' | 'waiting-room' | 'tournament-tree'
 
@@ -70,6 +70,8 @@ const userStore = useUserStore();
 const router = useRouter()
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
+const game1array = ref<number[]>([])
+const game2array = ref<number[]>([])
 
 const handleCreateTournament = (): void => {
   if (userStore.getWebSocketService?.isConnected()) {
@@ -95,14 +97,20 @@ const handleBack = (): void => {
 
 onMounted(() => {
   eventBus.on('TOURNAMENT_CREATE', (message: TournamentCreate) => {
-    console.log("TOURNAMENT WAITING ROOM CREATED WITH SUCCESS, CODE = ", message.code);
     tournamentCode.value = message.code
     currentView.value = 'waiting-room'
   })
 
   eventBus.on('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
     currentView.value = 'waiting-room'
-    console.log("TOURNAMENT JOINED WITH SUCCESS");
+  })
+
+  eventBus.on('TOURNAMENT_START', (message: TournamentStart) => {
+    currentView.value = 'tournament-tree'
+    game1array.value.push(message.game1[0])
+    game1array.value.push(message.game1[1])
+    game2array.value.push(message.game2[0])
+    game2array.value.push(message.game2[1])
   })
 })
 

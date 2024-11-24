@@ -33,7 +33,7 @@ import PlayerTile from './PlayerTile.vue';
 import UserData from '../../types/models';
 import { useUserStore } from '../../stores/user'
 import { eventBus } from '../../events/eventBus'
-import { fetchUserById } from '../../utils/fetch'
+import { fetchUserById, fetchMultipleUsers } from '../../utils/fetch'
 import { useRouter } from 'vue-router';
 import { TournamentCreate, TournamentEvent } from '../../types/tournament';
 
@@ -44,18 +44,6 @@ const creatorId = ref<number>(0);
 const clientId = ref<number>(userStore.getId);
 
 const users = ref<(UserData | null)[]>([null, null, null, null]); 
-
-const fetchMultipleUsers = async (userIds: number[]) => {
-    try {
-        const userPromises = userIds.map(id =>
-            id !== 0 ? fetchUserById(id).catch(() => null) : Promise.resolve(null)
-        );
-        return await Promise.all(userPromises);
-    } catch (error) {
-        console.error("One or more fetches failed:", error);
-        return Array(userIds.length).fill(null); // Return null users instead of throwing
-    }
-};
 
 const handleStartTournament = () => {
   if (userStore.getWebSocketService?.isConnected()) {

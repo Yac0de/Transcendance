@@ -2,6 +2,7 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave } from '../types/tournament';
 import { GameEvent } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
@@ -114,6 +115,10 @@ export class WebSocketService {
         })
         this.setMessageHandler<TournamentEvent>('TOURNAMENT_EVENT', (message: TournamentEvent) => {
             eventBus.emit('TOURNAMENT_EVENT', message);
+        })
+        this.setMessageHandler<TournamentStart>('TOURNAMENT_START', (message: TournamentStart) => {
+            console.log("YEAAAH");
+            eventBus.emit('TOURNAMENT_START', message);
         })
     }
 

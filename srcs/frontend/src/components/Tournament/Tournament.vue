@@ -1,13 +1,5 @@
 <template>
   <div class="tournament-container">
-    <button 
-      v-if="currentView !== 'menu'"
-      class="back-button"
-      @click="handleBack"
-    >
-      ← Back
-    </button>
-
     <!-- Main Menu View -->
     <div v-if="currentView === 'menu'" class="menu-view">
       <h1 class="tournament-title">Tournament Hub</h1>
@@ -90,6 +82,7 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
+    console.log("GO TO W ROON")
     currentView.value = 'waiting-room'
   })
 
@@ -104,7 +97,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   eventBus.off('TOURNAMENT_CREATE');
-  eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
+  //eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
 })
 </script>
 

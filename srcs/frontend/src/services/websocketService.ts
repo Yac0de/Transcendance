@@ -108,6 +108,7 @@ export class WebSocketService {
             eventBus.emit('GAME_EVENT', message);
         });
         this.setMessageHandler<TournamentJoin>('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoin) => {
+            console.log("JOIN CALLBACK");
             eventBus.emit('TOURNAMENT_JOIN_WITH_CODE', message);
         });
         this.setMessageHandler<TournamentCreate>('TOURNAMENT_CREATE', (message: TournamentCreate) => {
@@ -307,7 +308,7 @@ export class WebSocketService {
     public leaveTournamentWaitingRoom(code: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LeaveTournamentWaitingRoom = {
-                type: 'LEAVE_TOURNAMENT_WAITING_ROOM',
+                type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
                 userId: this.userStore.getId!,
                 code: code
             };

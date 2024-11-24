@@ -13,8 +13,9 @@ import type {
 } from '../types/lobby';
 
 import type { 
-   joinTournamentWithCode,
-   createTournamentLobby,
+   TournamentJoinWithCode,
+   TournamentCreate,
+   TournamentEvent
 } from '../types/tournament';
 
 type Events = {
@@ -27,9 +28,10 @@ type Events = {
   'LOBBY_TERMINATE': LobbyTerminate;
   'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
   'LOBBY_DESTROYED': void;
-  'TOURNAMENT_WITH_CODE': joinTournamentWithCode
-  'CREATE_TOURNAMENT_LOBBY': createTournamentLobby
   'GAME_EVENT' : GameEvent;
+  'TOURNAMENT_JOIN_WITH_CODE': TournamentJoinWithCode
+  'TOURNAMENT_CREATE': TournamentCreate
+  'TOURNAMENT_EVENT': TournamentEvent
 }
 
 export const eventBus = mitt<Events>();

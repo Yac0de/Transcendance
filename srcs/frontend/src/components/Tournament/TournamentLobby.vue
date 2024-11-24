@@ -10,9 +10,9 @@
     
     <div class="players-container">
       <PlayerTile 
-        v-for="(player, index) in players" 
+        v-for="(user, index) in users" 
         :key="index"
-        :player="player"
+        :player="user"
       />
     </div>
     
@@ -32,6 +32,7 @@ import PlayerTile from './PlayerTile.vue';
 import UserData from '../../types/models';
 import { useUserStore } from '../../stores/user'
 import { eventBus } from '../../events/eventBus'
+import { fetchUserById } from '../../utils/fetch'
 
 const userStore = useUserStore();
 
@@ -39,12 +40,20 @@ defineProps<{
   tournamentCode: string;
 }>();
 
-const playersId = ref<(UserData | null)[]>([
-  { username: userStore.getNickname, status: 'ready', avatar: userStore.getAvatarPath },
-  null,
-  null,
-  null,
-]);
+const users = ref<(UserData | null)[]>([null, null, null, null]); 
+
+const fetchMultipleUsers = async (userIds: number[]) => {
+    try {
+        const userPromises = userIds.map(id =>
+        id !== 0 ? fetchUserById(id) : Promise.resolve(null)
+      );
+        const users = await Promise.all(userPromises);
+        return users;
+    } catch (error) {
+        console.error("One or more fetches failed:", error);
+        throw error;
+    }
+};
 
 const handleStartTournament = () => {
   // Implement tournament start logic
@@ -52,13 +61,36 @@ const handleStartTournament = () => {
 };
 
 onMounted(() => {
-  eventBus.on('TOURNAMENT_LOBBY_STATE', (message: tournamentLobbyState) => {
-    console.log("TOURNAMENT LOBBY STATE: ", message);
+  eventBus.on('TOURNAMENT_EVENT', async (message: tournamentLobbyState) => {
+    console.log("TOURNAMENT EVENT: ", message);
+
+    const playerIds = [
+      message.player1id,
+      message.player2id,
+      message.player3id,
+      message.player4id
+    ];
+
+    users.value = await fetchMultipleUsers(playerIds);
+  })
+
+  eventBus.on('TOURNAMENT_CREATE', async (message: tournamentCreate) => {
+    console.log("TOURNAMENT CREATE EVENT: ", message);
+
+    const playerIds = [
+      message.player1id,
+      message.player2id,
+      message.player3id,
+      message.player4id
+    ];
+
+    users.value = await fetchMultipleUsers(playerIds);
   })
 })
 
 onUnmounted(() => {
-  eventBus.off('TOURNAMENT_LOBBY_STATE');
+  eventBus.off('TOURNAMENT_EVENT');
+  eventBus.off('TOURNAMENT_CREATE');
 })
 </script>
 

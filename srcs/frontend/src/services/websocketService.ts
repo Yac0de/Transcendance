@@ -106,12 +106,15 @@ export class WebSocketService {
         this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
             eventBus.emit('GAME_EVENT', message);
         });
-        this.setMessageHandler<joinTournamentWithCode>('JOIN_TOURNAMENT_WITH_CODE', () => {
-            eventBus.emit('JOIN_TOURNAMENT_WITH_CODE');
+        this.setMessageHandler<TournamentJoin>('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoin) => {
+            eventBus.emit('TOURNAMENT_JOIN_WITH_CODE', message);
         });
-        this.setMessageHandler<createTournamentLobby>('CREATE_TOURNAMENT_LOBBY', () => {
-            eventBus.emit('CREATE_TOURNAMENT_LOBBY');
-       
+        this.setMessageHandler<TournamentCreate>('TOURNAMENT_CREATE', (message: TournamentCreate) => {
+            eventBus.emit('TOURNAMENT_CREATE', message);
+        })
+        this.setMessageHandler<TournamentEvent>('TOURNAMENT_EVENT', (message: TournamentEvent) => {
+            eventBus.emit('TOURNAMENT_EVENT', message);
+        })
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -135,6 +138,7 @@ export class WebSocketService {
             };
             this.ws.onmessage = (event) => {
                 try {
+                    console.log(event.data)
                     const message = JSON.parse(event.data);
                     console.log(message)
                     const handler = this.messageHandlers[message.type];
@@ -272,7 +276,7 @@ export class WebSocketService {
     public joinTournamentWithCode(code: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: joinTournamentWithCode = {
-                type: 'JOIN_TOURNAMENT_WITH_CODE',
+                type: 'TOURNAMENT_JOIN_WITH_CODE',
                 userId: this.userStore.getId!,
                 code: code
             };
@@ -286,12 +290,15 @@ export class WebSocketService {
     public createTournamentLobby(): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: joinTournamentWithCode = {
-                type: 'JOIN_TOURNAMENT_WITH_CODE',
+                type: 'TOURNAMENT_CREATE',
                 userId: this.userStore.getId!,
                 code:'' 
             };
             console.log("CREATE TOURNAMENT LOBBY -> ", message);
             this.ws.send(JSON.stringify(message));
+        }
+    }
+
     public sendGameEvent(game_event: GameEvent): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(game_event));

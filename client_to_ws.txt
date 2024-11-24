@@ -5,7 +5,7 @@ to other clients to join the lobby. When a player creates a tournament, he is im
 (Sent with an empty string by the client, returned with a lobby code by the server)
 
 export interface createTournamentLobby {
-  type: 'CREATE_TOURNAMENT_LOBBY';
+  type: 'TOURNAMENT_CREATE';
   userId: number;
   code: number;
 }
@@ -16,7 +16,7 @@ If the client that sent the message receive the same message back, it means succ
 (player id will be 0 if no player is here yet.)
 
 export interface TournamentLobbyState {
-  type: 'TOURNAMENT_LOBBY_STATE';
+  type: 'TOURNAMENT_EVENT';
   creatorId: number;
   code: number;
   player1Id: number;
@@ -26,7 +26,7 @@ export interface TournamentLobbyState {
 }
 
 export interface joinTournamentWithCode {
-  type: 'JOIN_TOURNAMENT_WITH_CODE';
+  type: 'TOURNAMENT_JOIN_WITH_CODE';
   userId: number;
   code: string;
 }

@@ -36,13 +36,13 @@ const handleJoin = () => {
 }
 
 onMounted(() => {
-  eventBus.on('JOIN_TOURNAMENT_WITH_CODE', (message: joinTournamentWithCode) => {
-    console.log("TOURNAMENT LOBBY STATE !");
+  eventBus.on('TOURNAMENT_JOIN_WITH_CODE', (message: joinTournamentWithCode) => {
+    console.log("TOURNAMENT JOINED WITH SUCCESS");
   })
 })
 
 onUnmounted(() => {
-  eventBus.off('JOIN_TOURNAMENT_WITH_CODE');
+  eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
 })
 
 </script>

@@ -84,7 +84,7 @@ const handleBack = (): void => {
 }
 
 onMounted(() => {
-  eventBus.on('CREATE_TOURNAMENT_LOBBY', (message: joinTournamentWithCode) => {
+  eventBus.on('TOURNAMENT_CREATE', (message: TournamentCreate) => {
     console.log("TOURNAMENT LOBBY CREATED WITH SUCCESS, CODE = ", message.code);
     tournamentCode.value = message.code
     currentView.value = 'create'
@@ -92,7 +92,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  eventBus.off('CREATE_TOURNAMENT_LOBBY');
+  eventBus.off('TOURNAMENT_CREATE');
 })
 </script>
 

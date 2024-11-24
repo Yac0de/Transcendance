@@ -19,11 +19,12 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		Clients:    make(map[uint64]*Client),
-		Broadcast:  make(chan []byte),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Lobbies:    make(map[uuid.UUID]*Lobby),
+		Clients:     make(map[uint64]*Client),
+		Broadcast:   make(chan []byte),
+		Register:    make(chan *Client),
+		Unregister:  make(chan *Client),
+		Lobbies:     make(map[uuid.UUID]*Lobby),
+		Tournaments: make(map[string]*Tournament),
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 	"websocket/models"
 
 	"github.com/google/uuid"
@@ -76,6 +77,7 @@ func SendTournamentError(h *Hub, request TournamentEvent, errorMessage string) {
 
 func CreateTournament(h *Hub, request TournamentEvent) {
 	tournament := NewTournament(h, request)
+	fmt.Println(tournament)
 	h.Tournaments[tournament.Id] = tournament
 	request.Player1 = tournament.Player1.Id
 	request.Code = tournament.Id
@@ -117,18 +119,32 @@ func JoinTournament(h *Hub, request TournamentEvent) {
 	}
 	safeSend(clientJoined.Send, success)
 
-	request.Player1 = tournament.Player1.Id
-	request.Player2 = tournament.Player2.Id
-	request.Player3 = tournament.Player3.Id
-	request.Player4 = tournament.Player4.Id
-	request.Type = "TOURNAMENT_EVENT"
+	request.Code = tournament.Id
 
+	request.Player1 = getPlayerId(tournament.Player1)
+	request.Player2 = getPlayerId(tournament.Player2)
+	request.Player3 = getPlayerId(tournament.Player3)
+	request.Player4 = getPlayerId(tournament.Player4)
+
+	request.Type = "TOURNAMENT_EVENT"
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
 		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
 		return
 	}
-	SendDataToPlayers(tournament, jsonData)
+
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		SendDataToPlayers(tournament, jsonData)
+	}()
+}
+
+// Helper function
+func getPlayerId(player *Client) uint64 {
+	if player != nil {
+		return player.Id
+	}
+	return 0 // or whatever default value you want
 }
 
 func SendDataToPlayers(tournament *Tournament, datas []byte) {

@@ -1,21 +1,21 @@
-export interface joinTournamentWithCode {
-  type: 'JOIN_TOURNAMENT_WITH_CODE';
+export interface TournamentJoinWithCode {
+  type: 'TOURNAMENT_JOIN_WITH_CODE';
   userId: number;
   code: string;
 }
 
-export interface createTournamentLobby {
-  type: 'CREATE_TOURNAMENT_LOBBY';
+export interface TournamentCreate {
+  type: 'TOURNAMENT_CREATE';
   userId: number;
   code: number;
 }
 
-export interface TournamentLobbyState {
-  type: 'TOURNAMENT_LOBBY_STATE';
+export interface TournamentEvent {
+  type: string;
   creatorId: number;
   code: number;
-  player1Id: number;
-  player2Id: number;
-  player3Id: number;
-  player4Id: number;
+  player1id: number;
+  player2id: number;
+  player3id: number;
+  player4id: number;
 }

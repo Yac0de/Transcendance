@@ -4,11 +4,10 @@
     <div class="player-content">
       <div v-if="player" class="player-info">
         <div class="player-avatar">
-          {{ player.username.charAt(0).toUpperCase() }}
+          {{ player.displayname.charAt(0).toUpperCase() }}
         </div>
         <div class="player-details">
-          <span class="player-name">{{ player.username }}</span>
-          <span class="player-status" :class="player.status">{{ player.status }}</span>
+          <span class="player-name">{{ player.displayname }}</span>
         </div>
       </div>
       <div v-else class="waiting-text">

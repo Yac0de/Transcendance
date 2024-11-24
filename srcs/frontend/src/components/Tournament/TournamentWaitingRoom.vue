@@ -4,7 +4,7 @@
     <div class="code-display">
       <h3>Tournament Code</h3>
       <div class="code-box">
-        {{ tournamentCode }}
+        {{ tournamentCode.slice(0,8) }}
       </div>
     </div>
     

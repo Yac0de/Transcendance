@@ -218,11 +218,14 @@ func StartTournament(h *Hub, request TournamentEvent) {
 	// 	return
 	// }
 	RefreshTournamentEvent(&request, tournament)
+
 	tournament.Game1[0] = request.Player1
 	tournament.Game1[1] = request.Player2
 	tournament.Game2[0] = request.Player3
 	tournament.Game2[1] = request.Player4
 
+	request.Game1 = tournament.Game1
+	request.Game2 = tournament.Game2
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
 		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())

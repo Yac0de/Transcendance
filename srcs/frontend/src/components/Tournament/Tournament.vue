@@ -26,6 +26,13 @@
         >
           Join Tournament
         </button>
+
+        <button 
+          class="tournament-button join"
+          @click="handleTournamentTree"
+        >
+         SEE TREE FOR TEST 
+        </button>
       </div>
     </div>
 
@@ -35,11 +42,14 @@
       <JoinTournamentMenu />
     </div>
 
-    <!-- Create Tournament View (placeholder) -->
-    <div v-else-if="currentView === 'create'" class="create-view">
-      <h2 class="view-title">Create Tournament</h2>
+    <!-- Waiting room tournament view (placeholder) -->
+    <div v-else-if="currentView === 'waiting-room'" class="create-view">
       <!-- CreateTournament component will go here -->
-      <TournamentLobby/>
+      <TournamentWaitingRoom/>
+    </div>
+    <div v-else-if="currentView === 'tournament-tree'" class="create-view">
+      <!-- CreateTournament component will go here -->
+      <TournamentTree/>
     </div>
   </div>
 </template>
@@ -49,18 +59,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import JoinTournamentMenu from './JoinTournamentMenu.vue'
-import TournamentLobby from './TournamentLobby.vue'
+import TournamentWaitingRoom from './TournamentWaitingRoom.vue'
+import TournamentTree from './TournamentTree.vue'
 import { eventBus } from '../../events/eventBus'
 import { TournamentJoinWithCode, TournamentCreate } from '../../types/tournament'
 
-type ViewState = 'menu' | 'join' | 'create'
-
-interface Tournament {
-  id: string
-  name: string
-  participants: number
-  status: 'pending' | 'active' | 'completed'
-}
+type ViewState = 'menu' | 'join' | 'waiting-room' | 'tournament-tree'
 
 const userStore = useUserStore();
 const router = useRouter()
@@ -73,11 +77,16 @@ const handleCreateTournament = (): void => {
   } else {
     console.error('WebSocket is not connected');
   }
-  currentView.value = 'create'
+  currentView.value = 'waiting-room'
 }
 
 const handleJoinTournament = (): void => {
   currentView.value = 'join'
+}
+
+//JUST FOR TESTING
+const handleTournamentTree = (): void => {
+  currentView.value = 'tournament-tree'
 }
 
 const handleBack = (): void => {
@@ -86,13 +95,13 @@ const handleBack = (): void => {
 
 onMounted(() => {
   eventBus.on('TOURNAMENT_CREATE', (message: TournamentCreate) => {
-    console.log("TOURNAMENT LOBBY CREATED WITH SUCCESS, CODE = ", message.code);
+    console.log("TOURNAMENT WAITING ROOM CREATED WITH SUCCESS, CODE = ", message.code);
     tournamentCode.value = message.code
-    currentView.value = 'create'
+    currentView.value = 'waiting-room'
   })
 
   eventBus.on('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
-    currentView.value = 'create'
+    currentView.value = 'waiting-room'
     console.log("TOURNAMENT JOINED WITH SUCCESS");
   })
 })

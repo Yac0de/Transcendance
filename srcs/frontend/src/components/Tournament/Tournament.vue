@@ -26,13 +26,6 @@
         >
           Join Tournament
         </button>
-
-        <button 
-          class="tournament-button join"
-          @click="handleTournamentTree"
-        >
-         SEE TREE FOR TEST 
-        </button>
       </div>
     </div>
 
@@ -84,11 +77,6 @@ const handleCreateTournament = (): void => {
 
 const handleJoinTournament = (): void => {
   currentView.value = 'join'
-}
-
-//JUST FOR TESTING
-const handleTournamentTree = (): void => {
-  currentView.value = 'tournament-tree'
 }
 
 const handleBack = (): void => {

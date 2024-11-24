@@ -31,10 +31,10 @@
             </div>
             <div class="match-connections">
               <div class="match-branch">
-                <p>Player 3</p>
+                <p>Player 3:  {{ usersgame2[0]?.displayname }} </p>
               </div>
               <div class="match-branch">
-                <p>Player 4</p>
+                <p>Player 4:  {{ usersgame2[1]?.displayname }} </p>
               </div>
             </div>
           </div>
@@ -50,7 +50,7 @@ import { UserData } from '../../types/models'
 import { fetchMultipleUsers } from '../../utils/fetch'
 
 const usersgame1 = ref<(UserData | null)[]>([null, null]); 
-//const usersgame2 = ref<(UserData | null)[]>([null, null]); 
+const usersgame2 = ref<(UserData | null)[]>([null, null]); 
 
 const props = defineProps<{
   game1array: number[]; 
@@ -59,8 +59,8 @@ const props = defineProps<{
 
 onMounted(async () => {
   usersgame1.value = await fetchMultipleUsers(props.game1array); 
+  usersgame2.value = await fetchMultipleUsers(props.game2array); 
   console.log(usersgame1.value[0].displayname)
-  //const usersgame2 = ref<(UserData | null)[]>(await fetchMultipleUsers(game2array)); 
 })
 
 </script>

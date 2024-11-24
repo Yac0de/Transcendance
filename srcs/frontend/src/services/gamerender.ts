@@ -1,10 +1,19 @@
 import { GameState } from '../types/game'
 
-
 export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): void {
     ctx.fillStyle = 'white';
-    ctx.fillRect(state.paddle.player1X,state.paddle.player1Y , state.paddle.width, state.paddle.height);
-    ctx.fillRect(state.paddle.player2X,state.paddle.player2Y , state.paddle.width, state.paddle.height);
+    ctx.fillRect(
+        state.paddle?.player1X ?? 0,
+        state.paddle?.player1Y ?? 0,
+        state.paddle?.width ?? 0,
+        state.paddle?.height ?? 0,
+    );
+    ctx.fillRect(
+        state.paddle?.player2X ?? 0,
+        state.paddle?.player2Y ?? 0,
+        state.paddle?.width ?? 0,
+        state.paddle?.height ?? 0,
+    );
 }
 
 const trailLength = 15; // Nombre de positions précédentes à conserver

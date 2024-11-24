@@ -27,7 +27,6 @@ import { useOnlineUsersStore } from '../../stores/onlineUsers'
 import { Friend } from '../../types/models';
 import api from '../../services/api';
 
-const isWaiting = ref(false);
 let friendList: Friend[] = [];
 const onlineUsersStore = useOnlineUsersStore();
 const onlineUsers = computed(() => onlineUsersStore.getOnlineUsers);
@@ -40,10 +39,12 @@ const containerRef = ref<HTMLElement | null>(null);
 
 interface Props {
   selectedFriend?: number | null
+  isWaiting?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-  selectedFriend: null
+  selectedFriend: null,
+  isWaiting: false
 })
 
 const emit = defineEmits<{
@@ -55,7 +56,6 @@ const toggleDropdown = () => {
 }
 
 const selectFriend = (userId: number) => {
-  isWaiting.value = true;
   emit('friend-selected', userId)
   isOpen.value = false
 }

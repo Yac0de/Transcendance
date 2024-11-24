@@ -2,7 +2,7 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
-import { GameEvent } from '../types/game';
+import { GameEvent, GameStart } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 import { useChatStore } from '../stores/chatStore.ts';
@@ -106,6 +106,9 @@ export class WebSocketService {
         this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
             eventBus.emit('GAME_EVENT', message);
         });
+        this.setMessageHandler<GameStart>('GAME_START',(message: GameStart)  => {
+            eventBus.emit('GAME_START', message);
+        });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -130,7 +133,6 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    console.log(message)
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);

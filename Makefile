@@ -35,6 +35,7 @@ down:
 clean:
 	@echo "Cleaning Docker containers..."
 	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) down --remove-orphans
+	@docker volume rm -f srcs_frontend_build
 	@docker system prune --force
 	@echo "Cleanup complete."
 

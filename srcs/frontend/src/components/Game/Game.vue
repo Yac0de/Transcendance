@@ -1,29 +1,51 @@
-Copy<template>
-  <div class="game-container">
-    <div class="canvas-wrapper">
-      <canvas
+<template>
+  <div class="container">
+    <div class="game-container">
+      <GameHeader :player1id="player1Id" :player2id="player2Id":state="currentGameState"/>
+      <div class="canvas-wrapper">
+        <canvas
         id="gameCanvas"
         width="800"
         height="600"
         ref="canvasRef"
         class="game-canvas"
-      ></canvas>
+        >
+        </canvas>
+        <div class="vertical-line"></div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { GameEvent } from '../../types/game'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { GameEvent, GameState } from '../../types/game'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall } from '../../services/gamerender';
 import { useUserStore } from '../../stores/user';
 import { useRoute } from 'vue-router'
+import GameHeader from './GameHeader.vue';
 
 const route = useRoute()
 
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+
+const player1Id = ref<number | null>(null)
+const player2Id = ref<number | null>(null)
+
+const currentGameState: GameState = reactive({
+    ball: { x: 0, y: 0 },  // Assuming Ball has x, y properties
+    score: { 
+        player1: 0, 
+        player2: 0 
+    },
+    isActive: false,
+    winner: 0,  // or 0, depending on how you represent no winner
+    isPaused: false,
+    pauseTime: '',  // or null, depending on how you handle empty time
+    remainingTime: 300
+})
 
 const handlePressUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
@@ -33,7 +55,7 @@ const handlePressUp = (event: KeyboardEvent): void => {
         type: 'GAME_EVENT',
         lobbyId: route.query.lobbyId as string,
         userId: userStore.getId!,
-        keyPressed: 'UP'
+        keyPressed: 'UP',
       };
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
     } else {
@@ -119,12 +141,24 @@ onMounted(() => {
   window.addEventListener('keydown', handleSpace)
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
-    console.log(message.type)
+
+    if (player1Id.value === null) {
+      player1Id.value = message.player1id ?? null;
+    }
+    if (player2Id.value === null) {
+      player2Id.value = message.player2id ?? null;
+    }
+
     if (canvasRef.value) {
       const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {
+        Object.assign(currentGameState, message.state);
+
+        ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+
         ctx.fillStyle = 'black'
-        ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+        ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
       }
@@ -150,23 +184,38 @@ body {
   margin: 0;
   overflow: hidden;
 }
-.game-container {
+.container {
   width: 100%;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #f0f0f0;
+}
+
+.game-container {
+  background: #e5c4dc;
+  border: solid 8px #e5c4dc;
+  border-radius: 1% 1% 1% 1%;
 }
 
 .canvas-wrapper {
-  border: 2px solid #333;
-  border-radius: 4px;
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.vertical-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  background-color: #5b3c54;
+  transform: translateX(-50%);
 }
 
 .game-canvas {
-  display: block; /* Removes bottom margin/spacing */
+  position: relative;
+  display: block;
+  border-radius: 0% 0% 1% 1%;
 }
 </style>

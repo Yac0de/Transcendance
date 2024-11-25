@@ -54,10 +54,15 @@ type GameState struct {
 	mutex         sync.Mutex `json:"-"`
 	IsPaused      bool       `json:"isPaused"`
 	PauseTime     time.Time  `json:"pauseTime"`
-	Collisions    int        `json:"collisions"`
-	BoostReady    bool       `json:"boostReady"`
-	IsBoostActive bool       `json:"isBoostActive"`
+	Player1Boost BoostState  `json:"player1boost"`
+	Player2Boost BoostState  `json:"player2boost"`
 	RemainingTime int        `json:"remainingTime"`
+}
+
+type BoostState struct {
+	BallHit    int        `json:"ballhit"`
+	BoostReady    bool       `json:"boostReady"`
+	IsBoostActive bool       `json:"isboostactive"`
 }
 
 type Player struct {
@@ -86,8 +91,8 @@ const (
 	Paddle2DistanceWall = 760
 	WinningScore        = 5
 	paddleSpeed         = 8.0
-	collisionToBoost    = 6
-	boostMultiplier     = 5
+	collisionToBoost    = 3
+	boostMultiplier     = 2.5
 )
 
 // create instance of game and init all data
@@ -126,11 +131,18 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Player1: 0,
 				Player2: 0,
 			},
-
+			Player1Boost: BoostState{
+				BallHit:    0,
+				BoostReady:    false,
+				IsBoostActive: false,
+			},
+			Player2Boost: BoostState{
+				BallHit:    0,
+				BoostReady:    false,
+				IsBoostActive: false,
+			},
 			IsActive:      true,
-			Collisions:    0,
-			BoostReady:    false,
-			IsBoostActive: false,
+	
 			RemainingTime: 300,
 		},
 		Status: "PREGAME",
@@ -194,13 +206,21 @@ func (g *Game) Update() {
 		if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height &&
 			g.State.Ball.X-g.State.Ball.Radius > g.State.Paddles.Player1X {
-			g.State.Ball.DX = BallSpeed
+			
+			multiplier := 1.0
+			if g.State.Player1Boost.IsBoostActive {
+				multiplier = boostMultiplier
+				g.State.Player1Boost.IsBoostActive = false
+				g.State.Player1Boost.BoostReady = false
+			}
+
+			g.State.Ball.DX = BallSpeed * multiplier
 			g.State.Ball.DY = computeDeviation(
 				g.State.Ball.Y,
 				g.State.Paddles.Player1Y,
 				g.State.Paddles.Height,
-			)
-			g.incrementCollision()
+			) * multiplier
+			g.hitCounter(1)
 		}
 	}
 
@@ -209,13 +229,20 @@ func (g *Game) Update() {
 		if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height &&
 			g.State.Ball.X+g.State.Ball.Radius < g.State.Paddles.Player2X+g.State.Paddles.Width {
-			g.State.Ball.DX = -BallSpeed // Negative because ball should go left
+			
+			multiplier := 1.0
+			if g.State.Player2Boost.IsBoostActive {
+				multiplier = boostMultiplier
+				g.State.Player2Boost.IsBoostActive = false
+				g.State.Player2Boost.BoostReady = false
+			}
+			g.State.Ball.DX = -BallSpeed * multiplier // Negative because ball should go left
 			g.State.Ball.DY = computeDeviation(
 				g.State.Ball.Y,
 				g.State.Paddles.Player2Y,
 				g.State.Paddles.Height,
-			)
-			g.incrementCollision()
+			) * multiplier
+			g.hitCounter(2)
 		}
 	}
 	//Top part of the paddle collision
@@ -236,6 +263,7 @@ func (g *Game) Update() {
 					g.State.Paddles.Width,
 				)
 				g.State.Ball.DY = -BallSpeed
+
 			}
 		}
 	}
@@ -255,6 +283,7 @@ func (g *Game) Update() {
 					g.State.Paddles.Width,
 				)
 				g.State.Ball.DY = BallSpeed
+
 			}
 		}
 	}
@@ -275,6 +304,7 @@ func (g *Game) Update() {
 					g.State.Paddles.Width,
 				)
 				g.State.Ball.DY = -BallSpeed
+
 			}
 		}
 	}
@@ -293,6 +323,7 @@ func (g *Game) Update() {
 					g.State.Paddles.Width,
 				)
 				g.State.Ball.DY = BallSpeed
+
 			}
 		}
 	}
@@ -339,26 +370,6 @@ func (g *Game) isBallBelowPaddle() bool {
 	}
 }
 
-func (g *Game) resetBall() {
-	g.State.Ball.X = CanvasWidth / 2
-	g.State.Ball.Y = CanvasHeight / 2
-	g.State.Ball.DY = 0
-	g.State.IsPaused = true
-	g.State.PauseTime = time.Now()
-	g.State.Collisions = 0
-	g.State.IsBoostActive = false
-
-	if g.State.Ball.DX > 0 {
-		g.State.Ball.DX = -BallSpeed
-	} else {
-		g.State.Ball.DX = BallSpeed
-	}
-}
-
-func (g *Game) resetPaddle() {
-	g.State.Paddles.Player1Y = (CanvasHeight / 2) - 120/2
-	g.State.Paddles.Player2Y = (CanvasHeight / 2) - 120/2
-}
 
 func computeDeviation(ballY, paddleY, paddleHeight float64) float64 {
 	// trouve la position du milieu du paddel
@@ -384,6 +395,69 @@ func computeSideDeviation(ballX, paddleX, paddleWidth float64) float64 {
 	return horizontalSpeed
 }
 
+func (g *Game) resetBall() {
+	g.State.Ball.X = CanvasWidth / 2
+	g.State.Ball.Y = CanvasHeight / 2
+	g.State.Ball.DY = 0
+	g.State.IsPaused = true
+	g.State.PauseTime = time.Now()
+	g.State.Player1Boost.BallHit = 0
+	g.State.Player1Boost.BoostReady = false
+	g.State.Player1Boost.IsBoostActive = false
+	g.State.Player2Boost.BallHit = 0
+	g.State.Player2Boost.BoostReady = false
+	g.State.Player2Boost.IsBoostActive = false
+
+
+	if g.State.Ball.DX > 0 {
+		g.State.Ball.DX = -BallSpeed
+	} else {
+		g.State.Ball.DX = BallSpeed
+	}
+}
+
+func (g *Game) resetPaddle() {
+	g.State.Paddles.Player1Y = (CanvasHeight / 2) - 120/2
+	g.State.Paddles.Player2Y = (CanvasHeight / 2) - 120/2
+}
+
+func (g *Game) hitCounter(playerNum int) {
+	if playerNum == 1 {
+		g.State.Player1Boost.BallHit++
+		if g.State.Player1Boost.BallHit >= collisionToBoost {
+			g.State.Player1Boost.BoostReady = true
+			g.State.Player1Boost.BallHit = 0
+		}
+	}else {
+		g.State.Player2Boost.BallHit++
+		if g.State.Player2Boost.BallHit >= collisionToBoost {
+			g.State.Player2Boost.BoostReady = true
+			g.State.Player2Boost.BallHit = 0
+		}
+	}
+}
+
+func handleGameMessage(h *Hub, data []byte) {
+	var evt GameEvent
+	if err := json.Unmarshal(data, &evt); err != nil {
+		fmt.Printf("Error GameEvent type unmarshall\n")
+		return
+	}
+	lobby := h.Lobbies[evt.LobbyId]
+	if lobby == nil {
+		return
+	}
+
+	cmd := GameCommand{
+		PlayerID: evt.UserId,
+		Command:  evt.KeyPressed,
+	}
+	fmt.Printf("CMD: %+v\n", cmd)
+	
+	lobby.Game.HandleCommand(cmd)
+}
+
+
 func (g *Game) HandleCommand(cmd GameCommand) {
 	g.State.mutex.Lock()
 	defer g.State.mutex.Unlock()
@@ -408,43 +482,12 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 			g.State.Paddles.Player2Direction = 0
 		}
 	case "SPACE":
-		if g.State.BoostReady && !g.State.IsBoostActive {
-			g.activateBoost()
+		if cmd.PlayerID == g.Player1.ID && g.State.Player1Boost.BoostReady {
+			g.State.Player1Boost.BoostReady = false
+			g.State.Player1Boost.IsBoostActive = true
+		} else if cmd.PlayerID == g.Player2.ID && g.State.Player2Boost.BoostReady {
+			g.State.Player2Boost.BoostReady = false
+			g.State.Player2Boost.IsBoostActive = true
 		}
 	}
-}
-
-func (g *Game) activateBoost() {
-	g.State.IsBoostActive = true
-	g.State.BoostReady = false
-	g.State.Ball.DX *= boostMultiplier
-	g.State.Ball.DY *= boostMultiplier
-}
-
-func (g *Game) incrementCollision() {
-	g.State.Collisions++
-	if g.State.Collisions >= collisionToBoost && !g.State.BoostReady && !g.State.IsBoostActive {
-		g.State.BoostReady = true
-		g.State.Collisions = 0
-	}
-}
-
-func handleGameMessage(h *Hub, data []byte) {
-	var evt GameEvent
-	if err := json.Unmarshal(data, &evt); err != nil {
-		fmt.Printf("Error GameEvent type unmarshall\n")
-		return
-	}
-	lobby := h.Lobbies[evt.LobbyId]
-	if lobby == nil {
-		return
-	}
-
-	cmd := GameCommand{
-		PlayerID: evt.UserId,
-		Command:  evt.KeyPressed,
-	}
-	fmt.Printf("CMD: %+v\n", cmd)
-
-	lobby.Game.HandleCommand(cmd)
 }

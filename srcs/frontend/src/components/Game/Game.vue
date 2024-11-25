@@ -47,9 +47,16 @@ const currentGameState: GameState = reactive({
     isPaused: false,
     pauseTime: '',  // or null, depending on how you handle empty time
     remainingTime: 300,
-    collisions: 0,          
-    boostReady: true,       
-    isBoostActive: false    
+    player1boost: {
+      ballhit: 0,
+      boostready:false,
+      isboostactive:false,
+    },
+    player2boost: {
+      ballhit: 0,
+      boostready:false,
+      isboostactive:false,
+    }
 })
 
 const handlePressUp = (event: KeyboardEvent): void => {

@@ -1,6 +1,7 @@
 import { GameState } from '../types/game'
 import { fetchUserById } from '../utils/fetch'
 import { UserData } from '../types/models'
+let animationTime = 0;
 
 export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): void {
     ctx.fillStyle = 'white';
@@ -18,113 +19,112 @@ export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): voi
     );
 }
 
-const trailLength = 15; // Nombre de positions précédentes à conserver
-let previousPositions: {x: number, y: number}[] = [];
+
+function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
+    ctx.globalCompositeOperation = 'lighter';
+    
+    for(let i = 0; i < 10; i++) {
+        const radius = Math.random() * 15 + 5;
+        const angle = Math.random() * Math.PI * 2;
+        const offsetX = Math.cos(angle) * (Math.random() * 10);
+        const offsetY = Math.sin(angle) * (Math.random() * 10);
+        
+        const gradient = ctx.createRadialGradient(
+            state.ball.x + offsetX, 
+            state.ball.y + offsetY, 
+            0,
+            state.ball.x + offsetX,
+            state.ball.y + offsetY,
+            radius
+        );
+            gradient.addColorStop(0, 'rgba(255, 50, 0, 0.8)');
+            gradient.addColorStop(0.4, 'rgba(255, 0, 0, 0.4)');
+            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+        
+        ctx.beginPath();
+        ctx.fillStyle = gradient;
+        ctx.arc(state.ball.x + offsetX, state.ball.y + offsetY, radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
 
 export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
-    // Ajouter la position actuelle
-    previousPositions.push({x: state.ball.x, y: state.ball.y});
+    // Dessiner l'effet de feu
+    drawFireBall(ctx, state);
     
-    // Garder seulement les N dernières positions
-    if (previousPositions.length > trailLength) {
-        previousPositions.shift();
-    }
-
-    // Dessiner la traînée
-    previousPositions.forEach((pos, index) => {
-        const alpha = (index + 1) / trailLength;
-        const radius = 10 * ((index + 1) / trailLength); // Le rayon diminue pour les anciennes positions
-        ctx.beginPath();
-        ctx.fillStyle = state.isBoostActive 
-            ? `rgba(255, 0, 0, ${alpha * 0.3})`  // Rouge pour le boost
-            : `rgba(255, 255, 255, ${alpha * 0.3})`; // Blanc normal
-        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-        ctx.fill();
-    });
-
-    // Dessiner la balle principale
+    // Restaurer le mode de composition normal
+    ctx.globalCompositeOperation = 'source-over';
+    
+    // Dessiner la balle principale (toujours en rouge maintenant)
     ctx.beginPath();
-    ctx.fillStyle = state.isBoostActive ? 'red' : 'rgba(94, 84, 142)';
+    ctx.fillStyle = 'red';
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
     ctx.fill();
-    drawBoostIndicator(ctx, state.boostReady);
+    
+    // Dessiner les indicateurs de boost
+    ctx.globalCompositeOperation = 'source-over';
+    drawBoostStatus(ctx, state);
 }
 
-let time = 0;
-
-function drawBoostIndicator(ctx: CanvasRenderingContext2D, isReady: boolean) {
-    const indicatorWidth = 100;
-    const indicatorHeight = 20;
-    const padding = 10;
+function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
+    const statusHeight = 30;
+    const margin = 20;
+    const width = 100;
+    const borderRadius = 15;
     
-    // Position en bas au centre
-    const x = (ctx.canvas.width - indicatorWidth) / 2;
-    const y = ctx.canvas.height - indicatorHeight - padding;
-
-    if (isReady) {
-        time += 0.05;
-        drawFlame(ctx, x, y, indicatorWidth, indicatorHeight);
+    const y = ctx.canvas.height - statusHeight - margin;
+    
+    function roundRect(x: number, y: number, w: number, h: number) {
+        ctx.beginPath();
+        ctx.moveTo(x + borderRadius, y);
+        ctx.lineTo(x + w - borderRadius, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + borderRadius);
+        ctx.lineTo(x + w, y + h - borderRadius);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - borderRadius, y + h);
+        ctx.lineTo(x + borderRadius, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - borderRadius);
+        ctx.lineTo(x, y + borderRadius);
+        ctx.quadraticCurveTo(x, y, x + borderRadius, y);
+        ctx.closePath();
     }
-
-    // Fond de l'indicateur
-    ctx.fillStyle = isReady ? '#800000' : '#333333'; // Rouge foncé quand prêt
-    ctx.fillRect(x, y, indicatorWidth, indicatorHeight);
-
-    // Texte "BOOST"
-    ctx.fillStyle = isReady ? '#ff0000' : '#666666'; // Rouge vif quand prêt
-    ctx.font = '16px Arial';
+    
+    // Fonction pour déterminer la couleur et le texte selon l'état
+    function getBoostInfo(boost: any) {
+        if (boost.isboostactive) {
+            return { color: '#ff0000', text: 'ACTIVE' };  // Rouge quand actif
+        } else if ( boost.boostReady) {
+            return { color: '#00ff00', text: 'READY' };   // Vert quand débloqué et prêt
+        } else {
+            return { color: '#333333', text: 'LOCKED' };  // Gris quand non débloqué
+        }
+    }
+    
+    // Player 1 boost
+    console.log(state);
+    const player1Info = getBoostInfo(state.player1boost);
+    ctx.fillStyle = player1Info.color;
+    roundRect(margin, y, width, statusHeight);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+    
+    // Player 2 boost
+    const player2Info = getBoostInfo(state.player2boost);
+    ctx.fillStyle = player2Info.color;
+    roundRect(ctx.canvas.width - width - margin, y, width, statusHeight);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Texte
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '14px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('BOOST', x + indicatorWidth/2, y + indicatorHeight/2);
-
-    // Bordure
-    ctx.strokeStyle = isReady ? '#ff0000' : '#666666';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(x, y, indicatorWidth, indicatorHeight);
+    
+    ctx.fillText(player1Info.text, margin + width/2, y + statusHeight/2);
+    ctx.fillText(player2Info.text, ctx.canvas.width - width/2 - margin, y + statusHeight/2);
 }
-
-function drawFlame(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
-    const flameHeight = 40;
-    
-    ctx.save();
-    ctx.beginPath();
-    
-    // Point de départ à gauche
-    ctx.moveTo(x, y + height);
-
-    // Courbe gauche de la flamme
-    ctx.bezierCurveTo(
-        x - 10 + Math.sin(time * 2) * 5,
-        y + height/2,
-        x - 20 + Math.sin(time * 3) * 10,
-        y - flameHeight/2,
-        x + width/2,
-        y - flameHeight + Math.sin(time) * 10
-    );
-
-    // Courbe droite de la flamme
-    ctx.bezierCurveTo(
-        x + width + 20 + Math.sin(time * 3) * 10,
-        y - flameHeight/2,
-        x + width + 10 + Math.sin(time * 2) * 5,
-        y + height/2,
-        x + width,
-        y + height
-    );
-
-    // Gradient pour l'effet de flamme réaliste
-    const gradient = ctx.createLinearGradient(x + width/2, y + height, x + width/2, y - flameHeight);
-    gradient.addColorStop(0, 'rgba(255, 60, 0, 0.8)');  // Orange-rouge à la base
-    gradient.addColorStop(0.3, 'rgba(255, 150, 0, 0.7)'); // Orange
-    gradient.addColorStop(0.6, 'rgba(255, 220, 0, 0.5)'); // Jaune
-    gradient.addColorStop(1, 'rgba(255, 255, 100, 0)');   // Jaune clair qui s'estompe
-    
-    ctx.fillStyle = gradient;
-    ctx.fill();
-    ctx.restore();
-}
-
-let animationTime = 0;
+ 
 
 export async function drawEndGame(
     ctx: CanvasRenderingContext2D, 

@@ -12,15 +12,17 @@ import (
 )
 
 type Tournament struct {
-	Id      string        `json:"id"`
-	Player1 *Client       `json:"player1"`
-	Player2 *Client       `json:"player2"`
-	Player3 *Client       `json:"player3"`
-	Player4 *Client       `json:"player4"`
-	Game1   [2]uint64     `json:"game1"`
-	Game2   [2]uint64     `json:"game2"`
-	Mutex   sync.Mutex    `json:"-"`
-	Destroy chan struct{} `json:"-"`
+	Id          string        `json:"id"`
+	Player1     *Client       `json:"player1"`
+	Player2     *Client       `json:"player2"`
+	Player3     *Client       `json:"player3"`
+	Player4     *Client       `json:"player4"`
+	Game1       [2]uint64     `json:"game1"`
+	Game2       [2]uint64     `json:"game2"`
+	LobbiesSemi [2]*Lobby     `json:"-"`
+	LobbyFinal  *Lobby        `json:"-"`
+	Mutex       sync.Mutex    `json:"-"`
+	Destroy     chan struct{} `json:"-"`
 }
 
 type TournamentEvent struct {
@@ -67,13 +69,15 @@ func HandleTournament(h *Hub, event string, data []byte) {
 
 func NewTournament(h *Hub, request TournamentEvent) *Tournament {
 	return &Tournament{
-		Id:      uuid.New().String(),
-		Player1: h.Clients[request.UserId],
-		Player2: nil,
-		Player3: nil,
-		Player4: nil,
-		Game1:   [2]uint64{0, 0},
-		Game2:   [2]uint64{0, 0},
+		Id:          uuid.New().String(),
+		Player1:     h.Clients[request.UserId],
+		Player2:     nil,
+		Player3:     nil,
+		Player4:     nil,
+		Game1:       [2]uint64{0, 0},
+		Game2:       [2]uint64{0, 0},
+		LobbiesSemi: [2]*Lobby{nil, nil},
+		LobbyFinal:  nil,
 	}
 }
 
@@ -258,6 +262,14 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	state := "TIMER"
 	sec := int16(15)
+	tournament.LobbiesSemi[0] = &Lobby{
+		Id:           uuid.New(),
+		Sender:       tournament.Player1,
+		Receiver:     tournament.Player2,
+		Timestamps:   LobbyTimestamps{},
+		PlayersReady: [2]bool{true, true},
+	}
+
 	go func() {
 		for {
 			select {
@@ -289,6 +301,11 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					evJson, _ := json.Marshal(&event)
 					SendDataToPlayers(tournament, evJson)
 					state = "TOURNAMENT_ON_GAME"
+
+					go func() {
+						time.Sleep(10 * time.Millisecond)
+						StartRoutine(h, tournament.LobbiesSemi[0])
+					}()
 				}
 			}
 		}

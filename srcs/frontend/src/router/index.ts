@@ -6,6 +6,7 @@ import PongGame from '../components/Game/PongGame.vue'
 import Game from '../components/Game/Game.vue'
 import Account from '../components/User/Account/Account.vue'
 import Lobby from '../components/Lobby/Lobby.vue'
+import MatchHistory from '../components/User/Account/MatchHistory.vue'
 import NotFound from '../components/General/NotFound.vue'
 import api from '../services/api'
 import { useUserStore } from '../stores/user'
@@ -33,6 +34,11 @@ const routes = [
   {
     path: '/game', 
     component: Game, 
+    meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
+  },
+  {
+    path: '/match_history', 
+    component: MatchHistory, 
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
   },
   { 

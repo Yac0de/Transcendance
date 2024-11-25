@@ -1,4 +1,3 @@
-<!-- TournamentLobby.vue -->
 <template>
   <div class="tournament-lobby">
     <div class="code-display">

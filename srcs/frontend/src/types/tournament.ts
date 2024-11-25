@@ -16,6 +16,11 @@ export interface TournamentLeave {
   code: number;
 }
 
+export interface TournamentTimer {
+  type: 'TOURNAMENT_TIMER';
+  remainingTime: number;
+}
+
 export interface TournamentStart {
   type: 'TOURNAMENT_START';
   userId: number;

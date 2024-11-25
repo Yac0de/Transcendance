@@ -16,7 +16,8 @@ import type {
    TournamentJoinWithCode,
    TournamentCreate,
    TournamentEvent,
-   TournamentStart
+   TournamentStart,
+   TournamentTimer
 } from '../types/tournament';
 
 type Events = {
@@ -35,6 +36,7 @@ type Events = {
   'TOURNAMENT_EVENT': TournamentEvent
   'TOURNAMENT_START': TournamentStart
   'TOURNAMENT_TERMINATE': void
+  'TOURNAMENT_TIMER': TournamentTimer
 }
 
 export const eventBus = mitt<Events>();

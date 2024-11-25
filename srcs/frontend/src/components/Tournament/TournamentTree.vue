@@ -1,6 +1,7 @@
 <!-- TournamentTree.vue -->
 <template>
   <div class="tournament-container">
+    <div class="timer">{{ remainingSeconds }}</div>
     <div class="bracket">
       <!-- Final -->
       <div class="match-winner">
@@ -45,12 +46,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { UserData } from '../../types/models'
 import { fetchMultipleUsers } from '../../utils/fetch'
+import { eventBus } from '../../events/eventBus'
 
 const usersgame1 = ref<(UserData | null)[]>([null, null]); 
 const usersgame2 = ref<(UserData | null)[]>([null, null]); 
+const remainingSeconds = ref<number>(16);
 
 const props = defineProps<{
   game1array: number[]; 
@@ -60,16 +63,35 @@ const props = defineProps<{
 onMounted(async () => {
   usersgame1.value = await fetchMultipleUsers(props.game1array); 
   usersgame2.value = await fetchMultipleUsers(props.game2array); 
-  console.log(usersgame1.value[0].displayname)
+
+  eventBus.on('TOURNAMENT_TIMER', (message: TournamentTimer) => {
+    console.log("MSG TREE  = ", message);
+    remainingSeconds.value = message.remainingTime;
+  })
+
+  eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {
+    console.log("TOURNAMENT GAME READY TO START: ", message);
+  })
 })
 
+onUnmounted(() => {
+  eventBus.off('TOURNAMENT_TIMER')
+  eventBus.off('TOURNAMENT_GAME')
+})
 </script>
 
 <style scoped>
 .tournament-container {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   height: 600px;
-  justify-content: center;
+}
+
+.timer {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .bracket {

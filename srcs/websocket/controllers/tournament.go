@@ -112,11 +112,11 @@ func JoinTournament(h *Hub, request TournamentEvent) {
 		return
 	}
 	clientJoined := h.Clients[request.UserId]
-	if tournament.Player2 == nil {
+	if tournament.Player2 == nil || tournament.Player2 == clientJoined {
 		tournament.Player2 = clientJoined
-	} else if tournament.Player3 == nil {
+	} else if tournament.Player3 == nil || tournament.Player3 == clientJoined {
 		tournament.Player3 = clientJoined
-	} else if tournament.Player4 == nil {
+	} else if tournament.Player4 == nil || tournament.Player4 == clientJoined {
 		tournament.Player4 = clientJoined
 	} else {
 		SendTournamentError(h, request, fmt.Sprintf("Tournament with code <%s> already full", request.Code))
@@ -236,9 +236,43 @@ func StartTournament(h *Hub, request TournamentEvent) {
 	SendDataToPlayers(tournament, jsonData)
 }
 
-func RefreshTournamentEvent(request *TournamentEvent, tournament *Tournament) {
-	request.Player1 = getPlayerId(tournament.Player1)
-	request.Player2 = getPlayerId(tournament.Player2)
-	request.Player3 = getPlayerId(tournament.Player3)
-	request.Player4 = getPlayerId(tournament.Player4)
+func RefreshTournamentEvent(event *TournamentEvent, tournament *Tournament) {
+	event.Player1 = getPlayerId(tournament.Player1)
+	event.Player2 = getPlayerId(tournament.Player2)
+	event.Player3 = getPlayerId(tournament.Player3)
+	event.Player4 = getPlayerId(tournament.Player4)
+}
+
+func ClientIsPresentOnTournament(tn *Tournament, c *Client) bool {
+	if c == tn.Player1 || c == tn.Player2 || c == tn.Player3 || c == tn.Player4 {
+		return true
+	}
+	return false
+}
+func TournamentClientHasLeft(h *Hub, tn *Tournament, c *Client) {
+	eventName := "TOURNAMENT_EVENT"
+	if c == tn.Player1 {
+		eventName = "TOURNAMENT_TERMINATE"
+	}
+
+	event := TournamentEvent{
+		Event: models.Event{
+			Type: eventName,
+		},
+		Code: tn.Id,
+	}
+
+	RefreshTournamentEvent(&event, tn)
+
+	jsonData, err := json.Marshal(&event)
+	if err != nil {
+		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
+		return
+	}
+
+	SendDataToPlayers(tn, jsonData)
+
+	if c == tn.Player1 {
+		delete(h.Tournaments, tn.Id)
+	}
 }

@@ -48,6 +48,11 @@ func (h *Hub) RemoveClient(client *Client) {
 			LobbyClientHasLeft(h, h.Lobbies[id].Id)
 		}
 	}
+	for id := range h.Tournaments {
+		if ClientIsPresentOnTournament(h.Tournaments[id], target) {
+			TournamentClientHasLeft(h, h.Tournaments[id], target)
+		}
+	}
 	go func() {
 		time.Sleep(10 * time.Millisecond)
 		NotifyClients(h, client.Id, "USER_DISCONNECTED")

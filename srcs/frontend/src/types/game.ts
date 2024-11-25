@@ -40,8 +40,16 @@ export interface GameState {
     isActive: boolean;
     winner: number;
     isPaused: boolean;
-    pauseTime: string;
+    pauseTime: string; 
+    player1boost: BoostState;  
+	player2boost: BoostState;
     remainingTime: number;
+}
+
+export interface BoostState {
+    ballhit: number;
+    boostready:boolean;
+    isboostactive:boolean;
 }
 
 export interface Player {

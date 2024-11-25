@@ -21,12 +21,14 @@
 import { GameEvent, GameState } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
-import { drawPaddle, drawBall } from '../../services/gamerender';
+import { drawPaddle, drawBall, drawEndGame } from '../../services/gamerender';
 import { useUserStore } from '../../stores/user';
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import GameHeader from './GameHeader.vue';
 
 const route = useRoute()
+const router = useRouter()
+let endGameTimeout: number | null = null;
 
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -44,11 +46,22 @@ const currentGameState: GameState = reactive({
     winner: 0,  // or 0, depending on how you represent no winner
     isPaused: false,
     pauseTime: '',  // or null, depending on how you handle empty time
-    remainingTime: 300
+    remainingTime: 300,
+    player1boost: {
+      ballhit: 0,
+      boostready:false,
+      isboostactive:false,
+    },
+    player2boost: {
+      ballhit: 0,
+      boostready:false,
+      isboostactive:false,
+    }
 })
 
 const handlePressUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+    event.preventDefault();
     if (userStore.getWebSocketService?.isConnected()) {
       console.log("PRESS UP")
       const gameEvent: GameEvent = {
@@ -67,6 +80,7 @@ const handlePressUp = (event: KeyboardEvent): void => {
 
 const handleReleaseUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
+    event.preventDefault();
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
@@ -115,6 +129,23 @@ const handleReleaseDown = (event: KeyboardEvent): void => {
   }
 }
 
+const handleSpace = (event: KeyboardEvent): void => {
+ if (event.code === 'Space') {
+   event.preventDefault();
+   if (userStore.getWebSocketService?.isConnected()) {
+     const gameEvent: GameEvent = {
+       type: 'GAME_EVENT', 
+       lobbyId: route.query.lobbyId as string,
+       userId: userStore.getId!,
+       keyPressed: 'SPACE'
+     };
+     userStore.getWebSocketService?.sendGameEvent(gameEvent);
+   } else {
+     console.error('WebSocket is not connected');
+   }
+ }
+}
+
 onMounted(() => {
   // Add key listener
   console.log("YEAAHHHHH");
@@ -122,6 +153,7 @@ onMounted(() => {
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
+  window.addEventListener('keydown', handleSpace)
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
 
@@ -144,6 +176,15 @@ onMounted(() => {
 
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
+        if (!message.state!.isActive && message.state!.winner !== 0) {
+          drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
+          
+          if (!endGameTimeout){
+            endGameTimeout = window.setTimeout(() => {
+              router.push('/');
+            }, 5000)
+          }
+        }
       }
     }
   })
@@ -155,7 +196,10 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handlePressDown)
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
-
+  window.removeEventListener('keydown', handleSpace)
+  if (endGameTimeout) {
+        clearTimeout(endGameTimeout);
+    }
   eventBus.off('GAME_EVENT')
 })
 </script>

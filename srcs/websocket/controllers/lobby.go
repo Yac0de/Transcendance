@@ -248,7 +248,6 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 	lobby.Destroy = make(chan struct{})
 	lobby.Game = NewGame(lobby.Sender.Id, lobby.Receiver.Id)
 	gameTicker := time.NewTicker(GameTickRate)
-	//gameTicker := time.NewTicker(time.Second * 2)
 	lobby.Game.resetBall()
 	go func() {
 		for {

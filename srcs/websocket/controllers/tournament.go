@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 	"websocket/models"
 
@@ -11,13 +12,15 @@ import (
 )
 
 type Tournament struct {
-	Id      string    `json:"id"`
-	Player1 *Client   `json:"player1"`
-	Player2 *Client   `json:"player2"`
-	Player3 *Client   `json:"player3"`
-	Player4 *Client   `json:"player4"`
-	Game1   [2]uint64 `json:"game1"`
-	Game2   [2]uint64 `json:"game2"`
+	Id      string        `json:"id"`
+	Player1 *Client       `json:"player1"`
+	Player2 *Client       `json:"player2"`
+	Player3 *Client       `json:"player3"`
+	Player4 *Client       `json:"player4"`
+	Game1   [2]uint64     `json:"game1"`
+	Game2   [2]uint64     `json:"game2"`
+	Mutex   sync.Mutex    `json:"-"`
+	Destroy chan struct{} `json:"-"`
 }
 
 type TournamentEvent struct {
@@ -30,6 +33,12 @@ type TournamentEvent struct {
 	Player4 uint64    `json:"player4id"`
 	Game1   [2]uint64 `json:"game1"`
 	Game2   [2]uint64 `json:"game2"`
+}
+
+type TournamentTimerEvent struct {
+	models.Event
+	Code          string `json:"code"`
+	RemainingTime int16  `json:"remainingTime"`
 }
 
 type TournamentErrorEvent struct {
@@ -215,10 +224,12 @@ func StartTournament(h *Hub, request TournamentEvent) {
 		SendTournamentError(h, request, "Only the creator can start the tournament")
 		return
 	}
+
 	// if tournament.Player1 == nil || tournament.Player2 == nil || tournament.Player3 == nil || tournament.Player4 == nil {
 	// 	SendTournamentError(h, request, "Tournament is not full")
 	// 	return
 	// }
+
 	RefreshTournamentEvent(&request, tournament)
 
 	tournament.Game1[0] = request.Player1
@@ -233,7 +244,56 @@ func StartTournament(h *Hub, request TournamentEvent) {
 		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
 		return
 	}
+
 	SendDataToPlayers(tournament, jsonData)
+
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		TournamentMonitoring(h, tournament)
+	}()
+	return
+}
+
+func TournamentMonitoring(h *Hub, tournament *Tournament) {
+	gameTicker := time.NewTicker(time.Second)
+	state := "TIMER"
+	sec := int16(15)
+	go func() {
+		for {
+			select {
+			case <-tournament.Destroy:
+				gameTicker.Stop()
+				return
+			case <-gameTicker.C:
+				if state == "TIMER" && sec >= 0 {
+					event := TournamentTimerEvent{
+						Event: models.Event{
+							Type: "TOURNAMENT_TIMER",
+						},
+						Code:          tournament.Id,
+						RemainingTime: sec,
+					}
+					evJson, _ := json.Marshal(&event)
+					SendDataToPlayers(tournament, evJson)
+					sec -= 1
+					if sec < 0 {
+						state = "GAME_START"
+					}
+				} else if state == "GAME_START" {
+					event := TournamentTimerEvent{
+						Event: models.Event{
+							Type: "TOURNAMENT_GAME",
+						},
+						Code: tournament.Id,
+					}
+					evJson, _ := json.Marshal(&event)
+					SendDataToPlayers(tournament, evJson)
+					state = "TOURNAMENT_ON_GAME"
+				}
+			}
+		}
+	}()
+
 }
 
 func RefreshTournamentEvent(event *TournamentEvent, tournament *Tournament) {

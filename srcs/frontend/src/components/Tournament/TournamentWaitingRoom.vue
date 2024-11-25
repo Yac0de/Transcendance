@@ -91,7 +91,7 @@ onMounted(() => {
     }
   })
 
-  eventBus.on('TOURNAMENT_KILL', async () => {
+  eventBus.on('TOURNAMENT_TERMINATE', async () => {
     console.log("TOURNEY OWNER HAS QUIT, REDIRECT TO HOMEPAGE");
     router.push('/');
   })
@@ -107,7 +107,7 @@ onUnmounted(() => {
 
   eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_CREATE');
-  eventBus.off('TOURNAMENT_KILL');
+  eventBus.off('TOURNAMENT_TERMINATE');
 })
 </script>
 

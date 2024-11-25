@@ -34,6 +34,7 @@ type Events = {
   'TOURNAMENT_CREATE': TournamentCreate
   'TOURNAMENT_EVENT': TournamentEvent
   'TOURNAMENT_START': TournamentStart
+  'TOURNAMENT_TERMINATE': void
 }
 
 export const eventBus = mitt<Events>();

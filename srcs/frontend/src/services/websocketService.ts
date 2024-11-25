@@ -118,8 +118,10 @@ export class WebSocketService {
             eventBus.emit('TOURNAMENT_EVENT', message);
         })
         this.setMessageHandler<TournamentStart>('TOURNAMENT_START', (message: TournamentStart) => {
-            console.log("YEAAAH");
             eventBus.emit('TOURNAMENT_START', message);
+        })
+        this.setMessageHandler<TournamentTerminate>('TOURNAMENT_TERMINATE', (message: TournamentTerminate) => {
+            eventBus.emit('TOURNAMENT_TERMINATE', message);
         })
     }
 

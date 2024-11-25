@@ -204,6 +204,8 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
 		return
 	}
+
+	time.Sleep(10 * time.Millisecond)
 	SendDataToPlayers(tournament, jsonData)
 }
 

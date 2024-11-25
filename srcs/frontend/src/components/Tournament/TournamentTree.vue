@@ -50,10 +50,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { UserData } from '../../types/models'
 import { fetchMultipleUsers } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
+import { useRouter } from 'vue-router';
 
 const usersgame1 = ref<(UserData | null)[]>([null, null]); 
 const usersgame2 = ref<(UserData | null)[]>([null, null]); 
 const remainingSeconds = ref<number>(16);
+const router = useRouter();
 
 const props = defineProps<{
   game1array: number[]; 
@@ -71,6 +73,10 @@ onMounted(async () => {
 
   eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {
     console.log("TOURNAMENT GAME READY TO START: ", message);
+    router.push({
+      path: '/game', 
+      query: {lobbyId: message.lobbyId }
+    });
   })
 })
 

@@ -10,6 +10,11 @@ export interface TournamentCreate {
   code: number;
 }
 
+export interface TournamentGame {
+  type: 'TOURNAMENT_GAME';
+  lobbyId: number;
+}
+
 export interface TournamentLeave {
   type: 'TOURNAMENT_LEAVE_WAITING_ROOM';
   userId: number;

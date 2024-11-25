@@ -266,13 +266,16 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	state := "TIMER"
 	sec := int16(3)
-	tournament.LobbiesSemi[0] = &Lobby{
+	lobby := &Lobby{
 		Id:           uuid.New(),
 		Sender:       tournament.Player1,
 		Receiver:     tournament.Player2,
 		Timestamps:   LobbyTimestamps{},
 		PlayersReady: [2]bool{true, true},
 	}
+
+	h.Lobbies[lobby.Id] = lobby
+	tournament.LobbiesSemi[0] = lobby
 
 	go func() {
 		for {

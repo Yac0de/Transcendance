@@ -28,12 +28,14 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 const handlePressUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
     if (userStore.getWebSocketService?.isConnected()) {
+      console.log("PRESS UP")
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
         lobbyId: route.query.lobbyId as string,
         userId: userStore.getId!,
         keyPressed: 'UP'
       };
+      console.log(gameEvent);
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
     } else {
       console.error('WebSocket is not connected');
@@ -93,6 +95,7 @@ const handleReleaseDown = (event: KeyboardEvent): void => {
 
 onMounted(() => {
   // Add key listener
+  console.log("YEAAHHHHH");
   window.addEventListener('keydown', handlePressUp)
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)

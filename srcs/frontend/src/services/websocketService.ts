@@ -2,7 +2,7 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
-import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentTimer } from '../types/tournament';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentTimer, TournamentGame } from '../types/tournament';
 import { GameEvent } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
@@ -126,6 +126,9 @@ export class WebSocketService {
         this.setMessageHandler<TournamentTimer>('TOURNAMENT_TIMER', (message: TournamentTimer) => {
             eventBus.emit('TOURNAMENT_TIMER', message);
         })
+        this.setMessageHandler<TournamentGame>('TOURNAMENT_GAME', (message: TournamentGame) => {
+            eventBus.emit('TOURNAMENT_GAME', message);
+        })
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -149,9 +152,7 @@ export class WebSocketService {
             };
             this.ws.onmessage = (event) => {
                 try {
-                    console.log(event.data)
                     const message = JSON.parse(event.data);
-                    console.log(message)
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);

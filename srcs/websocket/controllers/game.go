@@ -17,6 +17,8 @@ type GameEvent struct {
 	UserId     uint64    `json:"userId"`
 	State      GameState `json:"state"`
 	KeyPressed string    `json:"keyPressed"`
+	Player1Id  uint64    `json:"player1id"`
+	Player2Id  uint64    `json:"player2id"`
 }
 
 type Ball struct {
@@ -44,14 +46,15 @@ type Score struct {
 }
 
 type GameState struct {
-	Ball      Ball       `json:"ball"`
-	Paddles   Paddle     `json:"paddle"`
-	Score     Score      `json:"score"`
-	IsActive  bool       `json:"isActive"`
-	Winner    uint64     `json:"winner"`
-	mutex     sync.Mutex `json:"-"`
-	IsPaused  bool       `json:"isPaused"`
-	PauseTime time.Time  `json:"pauseTime"`
+	Ball          Ball       `json:"ball"`
+	Paddles       Paddle     `json:"paddle"`
+	Score         Score      `json:"score"`
+	IsActive      bool       `json:"isActive"`
+	Winner        uint64     `json:"winner"`
+	mutex         sync.Mutex `json:"-"`
+	IsPaused      bool       `json:"isPaused"`
+	PauseTime     time.Time  `json:"pauseTime"`
+	RemainingTime int        `json:"remainingTime"`
 }
 
 type Player struct {
@@ -108,8 +111,8 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Width:    20,
 				Height:   120,
 				Speed:    PaddleSpeed,
-				Player1Y: (CanvasHeight / 2) - 120 / 2,
-				Player2Y: (CanvasHeight / 2) - 120 / 2,
+				Player1Y: (CanvasHeight / 2) - 120/2,
+				Player2Y: (CanvasHeight / 2) - 120/2,
 				Player1X: Paddle1DistanceWall,
 				Player2X: Paddle2DistanceWall,
 			},
@@ -119,7 +122,8 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Player2: 0,
 			},
 
-			IsActive: true,
+			IsActive:      true,
+			RemainingTime: 300,
 		},
 		Status: "PREGAME",
 	}
@@ -140,6 +144,23 @@ func (g *Game) Update() {
 			return
 		}
 	}
+
+	now := time.Now()
+	if now.Sub(g.State.PauseTime) >= time.Second {
+		g.State.PauseTime = now
+		if g.State.RemainingTime > 0 {
+			g.State.RemainingTime--
+		} else {
+			g.State.IsActive = false
+			if g.State.Score.Player1 > g.State.Score.Player2 {
+				g.State.Winner = g.Player1.ID
+			} else if g.State.Score.Player2 > g.State.Score.Player1 {
+				g.State.Winner = g.Player2.ID
+			}
+			return
+		}
+	}
+
 	// Update paddles
 	if g.State.Paddles.Player1Direction != 0 {
 		newY := g.State.Paddles.Player1Y + float64(g.State.Paddles.Player1Direction)*paddleSpeed
@@ -161,7 +182,7 @@ func (g *Game) Update() {
 	}
 
 	// Ball collision with paddles
-	if g.State.Ball.X <= Paddle1DistanceWall + g.State.Paddles.Width + g.State.Ball.Radius {
+	if g.State.Ball.X <= Paddle1DistanceWall+g.State.Paddles.Width+g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height {
 			g.State.Ball.DX = BallSpeed
@@ -173,7 +194,7 @@ func (g *Game) Update() {
 		}
 	}
 
-	if g.State.Ball.X >= Paddle2DistanceWall - g.State.Ball.Radius {
+	if g.State.Ball.X >= Paddle2DistanceWall-g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height {
 			g.State.Ball.DX = -BallSpeed

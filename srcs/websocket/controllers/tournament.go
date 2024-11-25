@@ -43,6 +43,11 @@ type TournamentTimerEvent struct {
 	RemainingTime int16  `json:"remainingTime"`
 }
 
+type GameStart struct {
+	TournamentEvent
+	LobbyId uuid.UUID `json:"lobbyId"`
+}
+
 type TournamentErrorEvent struct {
 	models.Event
 	Code  string `json:"code"`
@@ -100,7 +105,6 @@ func SendTournamentError(h *Hub, request TournamentEvent, errorMessage string) {
 
 func CreateTournament(h *Hub, request TournamentEvent) {
 	tournament := NewTournament(h, request)
-	fmt.Println(tournament)
 	h.Tournaments[tournament.Id] = tournament
 	request.Player1 = tournament.Player1.Id
 	request.Code = tournament.Id
@@ -261,7 +265,7 @@ func StartTournament(h *Hub, request TournamentEvent) {
 func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	state := "TIMER"
-	sec := int16(15)
+	sec := int16(3)
 	tournament.LobbiesSemi[0] = &Lobby{
 		Id:           uuid.New(),
 		Sender:       tournament.Player1,
@@ -292,18 +296,26 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 						state = "GAME_START"
 					}
 				} else if state == "GAME_START" {
-					event := TournamentTimerEvent{
-						Event: models.Event{
-							Type: "TOURNAMENT_GAME",
+					event := GameStart{
+						TournamentEvent: TournamentEvent{
+							Event: models.Event{
+								Type: "TOURNAMENT_GAME",
+							},
+							Code: tournament.Id,
 						},
-						Code: tournament.Id,
+						LobbyId: tournament.LobbiesSemi[0].Id,
 					}
-					evJson, _ := json.Marshal(&event)
-					SendDataToPlayers(tournament, evJson)
+					evGame1, _ := json.Marshal(&event)
+					safeSend(tournament.LobbiesSemi[0].Sender.Send, evGame1)
+					safeSend(tournament.LobbiesSemi[0].Receiver.Send, evGame1)
+					// event.LobbyId = tournament.LobbiesSemi[1].Id
+					// evGame2, _ := json.Marshal(&event)
+					// safeSend(tournament.LobbiesSemi[1].Sender.Send, evGame2)
+					// safeSend(tournament.LobbiesSemi[1].Receiver.Send, evGame2)
 					state = "TOURNAMENT_ON_GAME"
 
 					go func() {
-						time.Sleep(10 * time.Millisecond)
+						time.Sleep(100 * time.Millisecond)
 						StartRoutine(h, tournament.LobbiesSemi[0])
 					}()
 				}

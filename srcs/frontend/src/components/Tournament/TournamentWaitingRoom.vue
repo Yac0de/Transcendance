@@ -98,13 +98,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (tournamentCode.value && userStore.getWebSocketService?.isConnected()) {
-    console.log("WILL SEND LEAVE");
-    userStore.getWebSocketService?.leaveTournamentWaitingRoom(tournamentCode.value)
-  } else {
-    console.error('WebSocket is not connected');
-  }
-
   eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_TERMINATE');

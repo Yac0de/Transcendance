@@ -174,7 +174,7 @@ func SendDataToPlayers(tournament *Tournament, datas []byte) {
 func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 	clientLeft := h.Clients[request.UserId]
 	tournament := h.Tournaments[request.Code]
-	if clientLeft == nil {
+	if clientLeft == nil || tournament == nil {
 		return
 	}
 	if tournament.Player1 == clientLeft {

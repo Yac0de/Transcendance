@@ -82,8 +82,11 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
-    console.log("GO TO W ROON")
     currentView.value = 'waiting-room'
+  })
+
+  eventBus.on('TOURNAMENT_EVENT', (message: TournamentEvent) => {
+    tournamentCode.value = message.code
   })
 
   eventBus.on('TOURNAMENT_START', (message: TournamentStart) => {
@@ -96,6 +99,14 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  console.log(tournamentCode.value);
+  if (tournamentCode.value && userStore.getWebSocketService?.isConnected()) {
+    console.log("WILL SEND LEAVE");
+    userStore.getWebSocketService?.leaveTournamentWaitingRoom(tournamentCode.value)
+  } else {
+    console.error('WebSocket is not connected');
+  }
+
   eventBus.off('TOURNAMENT_CREATE');
   //eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
 })

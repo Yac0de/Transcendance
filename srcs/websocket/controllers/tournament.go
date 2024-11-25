@@ -149,12 +149,11 @@ func JoinTournament(h *Hub, request TournamentEvent) {
 	}()
 }
 
-// Helper function
 func getPlayerId(player *Client) uint64 {
 	if player != nil {
 		return player.Id
 	}
-	return 0 // or whatever default value you want
+	return 0
 }
 
 func SendDataToPlayers(tournament *Tournament, datas []byte) {
@@ -175,6 +174,9 @@ func SendDataToPlayers(tournament *Tournament, datas []byte) {
 func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 	clientLeft := h.Clients[request.UserId]
 	tournament := h.Tournaments[request.Code]
+	if clientLeft == nil {
+		return
+	}
 	if tournament.Player1 == clientLeft {
 		request.Type = "TOURNAMENT_TERMINATE"
 		jsonData, err := json.Marshal(&request)
@@ -184,7 +186,7 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 		}
 		SendDataToPlayers(tournament, jsonData)
 		delete(h.Tournaments, tournament.Id)
-
+		return
 	} else if tournament.Player2 == clientLeft {
 		tournament.Player2 = nil
 	} else if tournament.Player3 == clientLeft {
@@ -204,8 +206,6 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
 		return
 	}
-
-	time.Sleep(10 * time.Millisecond)
 	SendDataToPlayers(tournament, jsonData)
 }
 
@@ -253,6 +253,13 @@ func TournamentClientHasLeft(h *Hub, tn *Tournament, c *Client) {
 	eventName := "TOURNAMENT_EVENT"
 	if c == tn.Player1 {
 		eventName = "TOURNAMENT_TERMINATE"
+		tn.Player1 = nil
+	} else if c == tn.Player2 {
+		tn.Player2 = nil
+	} else if c == tn.Player3 {
+		tn.Player3 = nil
+	} else if c == tn.Player4 {
+		tn.Player4 = nil
 	}
 
 	event := TournamentEvent{

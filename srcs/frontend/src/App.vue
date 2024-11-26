@@ -3,12 +3,12 @@
     <nav class="sticky-nav">
       <div class="nav-content">
         <div class="nav-left">
-          <router-link to="/" class="nav-button home-button">Home</router-link>
+          <router-link to="/" class="nav-button home-button">HOME</router-link>
         </div>
         <div class="nav-right">
           <template v-if="!userStore.isSignedIn">
-            <router-link to="/signin" class="nav-button">Sign In</router-link>
-            <router-link to="/signup" class="nav-button">Sign Up</router-link>
+            <router-link to="/signin" class="nav-button">SIGN IN</router-link>
+            <router-link to="/signup" class="nav-button">SIGN UP</router-link>
           </template>
           <template v-else>
             <router-link to="/pong" class="nav-button">Play Pong</router-link>
@@ -18,11 +18,13 @@
         </div>
       </div>
     </nav>
-    <div class="content">
-      <router-view></router-view>
-      <InvitePopUp />
-      <FriendList v-if="userStore.isSignedIn" />
-      <Chat v-if="userStore.isSignedIn" />
+    <div class="gradient_backgroud">
+      <div class="content">
+        <router-view></router-view>
+        <InvitePopUp />
+        <FriendList v-if="userStore.isSignedIn" />
+        <Chat v-if="userStore.isSignedIn" />
+      </div>
     </div>
   </div>
 </template>
@@ -57,11 +59,15 @@ onMounted(checkAuth);
 </script>
 
 <style scoped>
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #2f4454;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #376e6f;
 }
 
 .sticky-nav {
@@ -69,7 +75,10 @@ onMounted(checkAuth);
   top: 0;
   left: 0;
   right: 0;
-  background-color: #2f4454;
+  height: 7vh; 
+  display: flex;
+  align-items: center;
+  overflow: hidden;
 }
 
 .nav-content {
@@ -80,10 +89,13 @@ onMounted(checkAuth);
 }
 
 .nav-left {
-  flex: 0 0 auto;
+  position: absolute;
+  left: 2vw;
 }
 
 .nav-right {
+  position: absolute;
+  right: 2.5vw;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -93,6 +105,8 @@ onMounted(checkAuth);
   margin-left: 10px;
   padding: 0.5vh 1vw;
   font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 0.5px 0.5px 1px black;
   background: #376e6f;
   color: white;
   border: none;
@@ -109,6 +123,61 @@ onMounted(checkAuth);
   background-color: #2b5758;
 }
 
+.gradient_backgroud {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, #2e151b, #da7b93);
+  width: 100%;
+  overflow: hidden;
+  margin-top: 7vh;
+}
+
 .content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #376e6f;
+  width: 95vw;
+  height: 85vh;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 1);
+  
+}
+
+@media (max-width: 1320px), (max-height: 655px) {
+  .nav-button {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 800px), (max-height: 430px) {
+  .nav-button {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px), (max-height: 430px) {
+  .nav-button {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 520px), (max-height: 300px)  {
+  .nav-button {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 370px), (max-height: 250px) {
+  .nav-button {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-height: 200px) {
+  .nav-button {
+    font-size: 0.6rem;
+  }
 }
 </style>

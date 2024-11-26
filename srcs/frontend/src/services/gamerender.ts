@@ -168,3 +168,46 @@ export async function drawEndGame(
 
     ctx.restore();
 }
+
+export async function drawSemiEndGame(
+    ctx: CanvasRenderingContext2D, 
+    state: GameState, 
+    player1id: number | null, 
+    player2id: number | null,
+) {
+    animationTime += 0.02;
+
+    // Fond semi-transparent
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    // Animation de texte
+    const scale = 1 + Math.sin(animationTime * 2) * 0.1;
+
+    ctx.save();
+    ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
+    ctx.scale(scale, scale);
+
+    // Texte principal
+    ctx.font = 'bold 48px Arial';
+    ctx.fillStyle = '#FFD700';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const winnerId = state.winner === player1id ? player1id : player2id ?? 0;
+    const winner: UserData | null = await fetchUserById(winnerId);
+    ctx.fillText(`${winner?.displayname} GAGNE!`, 0, -40);
+
+    // Score final
+    ctx.font = '32px Arial';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(`Score Final: ${state.score.player1} - ${state.score.player2}`, 0, 20);
+
+    // Message de redirection
+    const alpha = (Math.sin(animationTime * 4) + 1) / 2;
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.font = '24px Arial';
+    ctx.fillText("Retour au menu dans quelques secondes...", 0, 80);
+
+    ctx.restore();
+}

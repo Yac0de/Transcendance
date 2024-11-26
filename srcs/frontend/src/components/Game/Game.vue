@@ -182,7 +182,7 @@ onMounted(() => {
           if (!endGameTimeout){
             endGameTimeout = window.setTimeout(() => {
               router.push('/');
-            }, 5000)
+            }, 3000)
           }
         }
       }

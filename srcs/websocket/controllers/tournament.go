@@ -328,6 +328,7 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					go func() {
 						time.Sleep(100 * time.Millisecond)
 						StartRoutine(h, tournament.LobbiesSemi[0])
+						StartRoutine(h, tournament.LobbiesSemi[1])
 					}()
 				} else if state == "TOURNAMENT_ON_SEMI" {
 					if tournament.Final[0] != 0 && tournament.LobbiesSemi[0].Game.State.Winner != 0 {

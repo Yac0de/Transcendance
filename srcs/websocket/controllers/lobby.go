@@ -250,7 +250,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 	gameTicker := time.NewTicker(GameTickRate)
 
 	gameStart := models.Event{
-			Type: "GAME_START",
+		Type: "GAME_START",
 	}
 
 	dataJson, err := json.Marshal(gameStart)
@@ -285,6 +285,8 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 					stateJson, _ := json.Marshal(evt)
 					safeSend(lobby.Sender.Send, stateJson)
 					safeSend(lobby.Receiver.Send, stateJson)
+				} else if lobby.Game.State.Winner != 0 {
+					return
 				}
 			}
 		}

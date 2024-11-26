@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 	"websocket/models"
 
@@ -12,17 +11,16 @@ import (
 )
 
 type Tournament struct {
-	Id          string        `json:"id"`
-	Player1     *Client       `json:"player1"`
-	Player2     *Client       `json:"player2"`
-	Player3     *Client       `json:"player3"`
-	Player4     *Client       `json:"player4"`
-	Game1       [2]uint64     `json:"game1"`
-	Game2       [2]uint64     `json:"game2"`
-	LobbiesSemi [2]*Lobby     `json:"-"`
-	LobbyFinal  *Lobby        `json:"-"`
-	Mutex       sync.Mutex    `json:"-"`
-	Destroy     chan struct{} `json:"-"`
+	Id          string    `json:"id"`
+	Player1     *Client   `json:"player1"`
+	Player2     *Client   `json:"player2"`
+	Player3     *Client   `json:"player3"`
+	Player4     *Client   `json:"player4"`
+	Semi1       [2]uint64 `json:"semi1"`
+	Semi2       [2]uint64 `json:"semi2"`
+	Final       [2]uint64 `json:"final"`
+	LobbiesSemi [2]*Lobby `json:"-"`
+	LobbyFinal  *Lobby    `json:"-"`
 }
 
 type TournamentEvent struct {
@@ -33,8 +31,8 @@ type TournamentEvent struct {
 	Player2 uint64    `json:"player2id"`
 	Player3 uint64    `json:"player3id"`
 	Player4 uint64    `json:"player4id"`
-	Game1   [2]uint64 `json:"game1"`
-	Game2   [2]uint64 `json:"game2"`
+	Semi1   [2]uint64 `json:"game1"`
+	Semi2   [2]uint64 `json:"game2"`
 }
 
 type TournamentTimerEvent struct {
@@ -79,8 +77,8 @@ func NewTournament(h *Hub, request TournamentEvent) *Tournament {
 		Player2:     nil,
 		Player3:     nil,
 		Player4:     nil,
-		Game1:       [2]uint64{0, 0},
-		Game2:       [2]uint64{0, 0},
+		Semi1:       [2]uint64{0, 0},
+		Semi2:       [2]uint64{0, 0},
 		LobbiesSemi: [2]*Lobby{nil, nil},
 		LobbyFinal:  nil,
 	}
@@ -240,13 +238,13 @@ func StartTournament(h *Hub, request TournamentEvent) {
 
 	RefreshTournamentEvent(&request, tournament)
 
-	tournament.Game1[0] = request.Player1
-	tournament.Game1[1] = request.Player2
-	tournament.Game2[0] = request.Player3
-	tournament.Game2[1] = request.Player4
+	tournament.Semi1[0] = request.Player1
+	tournament.Semi1[1] = request.Player2
+	tournament.Semi2[0] = request.Player3
+	tournament.Semi2[1] = request.Player4
 
-	request.Game1 = tournament.Game1
-	request.Game2 = tournament.Game2
+	request.Semi1 = tournament.Semi1
+	request.Semi2 = tournament.Semi2
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
 		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
@@ -273,18 +271,25 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 		Timestamps:   LobbyTimestamps{},
 		PlayersReady: [2]bool{true, true},
 	}
+	lobby2 := &Lobby{
+		Id:           uuid.New(),
+		Sender:       tournament.Player3,
+		Receiver:     tournament.Player4,
+		Timestamps:   LobbyTimestamps{},
+		PlayersReady: [2]bool{true, true},
+	}
 
 	h.Lobbies[lobby.Id] = lobby
 	tournament.LobbiesSemi[0] = lobby
 
+	h.Lobbies[lobby2.Id] = lobby2
+	tournament.LobbiesSemi[1] = lobby2
+
 	go func() {
 		for {
 			select {
-			case <-tournament.Destroy:
-				gameTicker.Stop()
-				return
 			case <-gameTicker.C:
-				if state == "TIMER" && sec >= 0 {
+				if (state == "TIMER" || state == "TIMER_FINAL") && sec >= 0 {
 					event := TournamentTimerEvent{
 						Event: models.Event{
 							Type: "TOURNAMENT_TIMER",
@@ -296,9 +301,12 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					SendDataToPlayers(tournament, evJson)
 					sec -= 1
 					if sec < 0 {
-						state = "GAME_START"
+						state = "TOURNAMENT_START_SEMI"
+						if state == "TIMER_FINAL" {
+							state = "TOURNAMENT_START_FINAL"
+						}
 					}
-				} else if state == "GAME_START" {
+				} else if state == "TOURNAMENT_START_SEMI" {
 					event := GameStart{
 						TournamentEvent: TournamentEvent{
 							Event: models.Event{
@@ -308,19 +316,31 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 						},
 						LobbyId: tournament.LobbiesSemi[0].Id,
 					}
-					evGame1, _ := json.Marshal(&event)
-					safeSend(tournament.LobbiesSemi[0].Sender.Send, evGame1)
-					safeSend(tournament.LobbiesSemi[0].Receiver.Send, evGame1)
-					// event.LobbyId = tournament.LobbiesSemi[1].Id
-					// evGame2, _ := json.Marshal(&event)
-					// safeSend(tournament.LobbiesSemi[1].Sender.Send, evGame2)
-					// safeSend(tournament.LobbiesSemi[1].Receiver.Send, evGame2)
-					state = "TOURNAMENT_ON_GAME"
+					evSemi1, _ := json.Marshal(&event)
+					safeSend(tournament.LobbiesSemi[0].Sender.Send, evSemi1)
+					safeSend(tournament.LobbiesSemi[0].Receiver.Send, evSemi1)
+					event.LobbyId = tournament.LobbiesSemi[1].Id
+					evSemi2, _ := json.Marshal(&event)
+					safeSend(tournament.LobbiesSemi[1].Sender.Send, evSemi2)
+					safeSend(tournament.LobbiesSemi[1].Receiver.Send, evSemi2)
+					state = "TOURNAMENT_ON_SEMI"
 
 					go func() {
 						time.Sleep(100 * time.Millisecond)
 						StartRoutine(h, tournament.LobbiesSemi[0])
 					}()
+				} else if state == "TOURNAMENT_ON_SEMI" {
+					if tournament.Final[0] != 0 && tournament.LobbiesSemi[0].Game.State.Winner != 0 {
+						tournament.Final[0] = tournament.LobbiesSemi[0].Game.State.Winner
+					}
+					if tournament.Final[1] != 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
+						tournament.Final[1] = tournament.LobbiesSemi[1].Game.State.Winner
+					}
+					if tournament.Final[0] != 0 && tournament.Final[1] != 0 {
+						state = "TIMER_FINAL"
+					}
+				} else if state == "TOURNAMENT_START_FINAL" {
+
 				}
 			}
 		}

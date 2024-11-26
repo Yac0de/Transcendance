@@ -48,14 +48,15 @@ const onSecondaryAction = () => emit('secondaryAction');
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  height: 50vh;
-  min-height: 210px;
+  height: 60vh;
+  min-height: 320px;
   width: 50vw;
-  max-width: 365px;
+  min-width: 210px;
   padding: 1vh 1.5vw;
   border-radius: 20px;
   background-color: #376e6f;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
 }
 
 .auth-form h1 {
@@ -135,7 +136,7 @@ button {
   border: 1px solid #f5c6cb;
 }
 
-@media (max-height: 700px) {
+@media (max-height: 900px) {
   .auth-form div {
   margin-bottom: 25px;
   }
@@ -154,9 +155,15 @@ button {
   button {
   padding: 5px;
   }
+  .alert {
+  font-size: 0.9rem;
+  padding: 8px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+  }
 }
 
-@media (max-height: 615px) {
+@media (max-height: 725px) {
   .auth-form div {
   margin-bottom: 20px;
   }
@@ -175,9 +182,15 @@ button {
   button {
   padding: 2.5px;
   }
+  .alert {
+  font-size: 0.8rem;
+  padding: 6px;
+  margin-bottom: 6px;
+  margin-top: 3px;
+  }
 }
 
-@media (max-height: 530px) {
+@media (max-height: 630px) {
   .auth-form div {
   margin-bottom: 15px;
   }
@@ -193,6 +206,12 @@ button {
   }
   button {
   padding: 1.25px;
+  }
+  .alert {
+  font-size: 0.7rem;
+  padding: 4px;
+  margin-bottom: 4px;
+  margin-top: 2px;
   }
 }
 </style>

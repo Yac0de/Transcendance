@@ -61,7 +61,7 @@ onMounted(checkAuth);
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+  background: #2f4454;
 }
 
 .sticky-nav {
@@ -69,18 +69,14 @@ onMounted(checkAuth);
   top: 0;
   left: 0;
   right: 0;
-  background-color: #f8f9fa;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  background-color: #2f4454;
 }
 
 .nav-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  max-width: 100%;
-  margin: 0 auto;
+  padding: 1vh 2vw;
 }
 
 .nav-left {
@@ -88,7 +84,6 @@ onMounted(checkAuth);
 }
 
 .nav-right {
-  flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -96,9 +91,9 @@ onMounted(checkAuth);
 
 .nav-button {
   margin-left: 10px;
-  padding: 5px 10px;
-  font-size: 16px;
-  background-color: #007bff;
+  padding: 0.5vh 1vw;
+  font-size: 1.2rem;
+  background: #376e6f;
   color: white;
   border: none;
   border-radius: 4px;
@@ -108,37 +103,12 @@ onMounted(checkAuth);
 }
 
 .home-button {
-  margin-left: 0;
 }
 
 .nav-button:hover {
-  background-color: #0056b3;
+  background-color: #2b5758;
 }
 
 .content {
-  margin-top: 60px;
-  padding: 20px;
-}
-
-@media (max-width: 600px) {
-  .nav-content {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .nav-right {
-    margin-top: 10px;
-    justify-content: flex-start;
-  }
-
-  .nav-button {
-    margin-left: 0;
-    margin-right: 10px;
-    margin-bottom: 5px;
-  }
-
-  .home-button {
-    margin-bottom: 10px;
-  }
 }
 </style>

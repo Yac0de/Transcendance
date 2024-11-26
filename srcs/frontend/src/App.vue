@@ -58,6 +58,16 @@ const handleSignout = async () => {
 onMounted(checkAuth);
 </script>
 
+<style>
+:root {
+  --main-color: #376e6f;
+  --secondary-dark-color: #2e151b;
+  --secondary-bright-color: #da7b93;
+  --main-extra-color: #2f4454;
+  --secondary-extra-color: #1c3334;
+}
+</style>
+
 <style scoped>
 
 #app {
@@ -67,7 +77,6 @@ onMounted(checkAuth);
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #376e6f;
 }
 
 .sticky-nav {
@@ -79,6 +88,7 @@ onMounted(checkAuth);
   display: flex;
   align-items: center;
   overflow: hidden;
+  background: var(--main-color);
 }
 
 .nav-content {
@@ -107,9 +117,10 @@ onMounted(checkAuth);
   font-size: 1.2rem;
   font-weight: 600;
   text-shadow: 0.5px 0.5px 1px black;
-  background: #376e6f;
+  background: var(--main-color);
+  border: 1px solid white;
   color: white;
-  border: none;
+  /* border: none; */
   border-radius: 4px;
   cursor: pointer;
   text-decoration: none;
@@ -128,7 +139,7 @@ onMounted(checkAuth);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(90deg, #2e151b, #da7b93);
+  background: linear-gradient(90deg, var(--secondary-dark-color), var(--secondary-bright-color));
   width: 100%;
   overflow: hidden;
   margin-top: 7vh;
@@ -138,7 +149,7 @@ onMounted(checkAuth);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #376e6f;
+  background-color: var(--main-color);
   width: 95vw;
   height: 85vh;
   box-shadow: 0 0 40px rgba(0, 0, 0, 1);

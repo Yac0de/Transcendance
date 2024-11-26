@@ -63,7 +63,7 @@
   padding: 1vh 1vw;
   width: auto;
   color: white;
-  background: linear-gradient(90deg, #2e151b, #da7b93);
+  background: linear-gradient(90deg, var(--secondary-dark-color), var(--secondary-bright-color));
   border-radius: 50px;
   cursor: pointer;
   font-size: 3rem;

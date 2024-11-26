@@ -52,9 +52,10 @@ const onSecondaryAction = () => emit('secondaryAction');
   min-height: 320px;
   width: 50vw;
   min-width: 210px;
+  max-width: 500px;
   padding: 1vh 1.5vw;
   border-radius: 20px;
-  background-color: #376e6f;
+  background-color: var(--main-color);
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
@@ -101,16 +102,16 @@ button {
 }
 
 .primary-button {
-  background: linear-gradient(to right, #2e151b, #502d36);
+  background: linear-gradient(to right, var(--secondary-dark-color), #502d36);
 }
 
 .primary-button:hover {
-  background: linear-gradient(to right, #502d36, #2e151b);
+  background: linear-gradient(to right, #502d36, var(--secondary-dark-color));
 }
 
 .secondary-button {
   margin-top: 10px;
-  background: linear-gradient(to right, #da7b93, #f5a3b4);
+  background: linear-gradient(to right, var(--secondary-bright-color), #f5a3b4);
 }
 
 .secondary-button:hover {

@@ -54,7 +54,15 @@ type GameState struct {
 	mutex         sync.Mutex `json:"-"`
 	IsPaused      bool       `json:"isPaused"`
 	PauseTime     time.Time  `json:"pauseTime"`
+	Player1Boost BoostState  `json:"player1boost"`
+	Player2Boost BoostState  `json:"player2boost"`
 	RemainingTime int        `json:"remainingTime"`
+}
+
+type BoostState struct {
+	BallHit    int        `json:"ballhit"`
+	BoostReady    bool       `json:"boostReady"`
+	IsBoostActive bool       `json:"isboostactive"`
 }
 
 type Player struct {
@@ -77,12 +85,14 @@ type GameCommand struct {
 const (
 	CanvasWidth         = 800
 	CanvasHeight        = 600
-	BallSpeed           = 5
-	PaddleSpeed         = 7
-	Paddle1DistanceWall = 30
-	Paddle2DistanceWall = 740
+	BallSpeed           = 8
+	PaddleSpeed         = 3
+	Paddle1DistanceWall = 20
+	Paddle2DistanceWall = 760
 	WinningScore        = 5
 	paddleSpeed         = 8.0
+	collisionToBoost    = 3
+	boostMultiplier     = 2.5
 )
 
 // create instance of game and init all data
@@ -111,8 +121,8 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Width:    20,
 				Height:   120,
 				Speed:    PaddleSpeed,
-				Player1Y: (CanvasHeight / 2) - 120/2,
-				Player2Y: (CanvasHeight / 2) - 120/2,
+				Player1Y: (CanvasHeight / 2) - 120 / 2,
+				Player2Y: (CanvasHeight / 2) - 120 / 2,
 				Player1X: Paddle1DistanceWall,
 				Player2X: Paddle2DistanceWall,
 			},
@@ -121,8 +131,18 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Player1: 0,
 				Player2: 0,
 			},
-
+			Player1Boost: BoostState{
+				BallHit:    0,
+				BoostReady:    false,
+				IsBoostActive: false,
+			},
+			Player2Boost: BoostState{
+				BallHit:    0,
+				BoostReady:    false,
+				IsBoostActive: false,
+			},
 			IsActive:      true,
+	
 			RemainingTime: 300,
 		},
 		Status: "PREGAME",
@@ -177,32 +197,134 @@ func (g *Game) Update() {
 	g.State.Ball.Y += g.State.Ball.DY
 
 	// Ball collision with top and bottom walls
-	if g.State.Ball.Y <= 0 || g.State.Ball.Y >= CanvasHeight {
+	if g.State.Ball.Y-g.State.Ball.Radius <= 0 || g.State.Ball.Y+g.State.Ball.Radius >= CanvasHeight {
 		g.State.Ball.DY = -g.State.Ball.DY
 	}
 
-	// Ball collision with paddles
+	// Classic ball collision with paddle 1
 	if g.State.Ball.X <= Paddle1DistanceWall+g.State.Paddles.Width+g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
-			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height {
-			g.State.Ball.DX = BallSpeed
-			g.State.Ball.DY = calculedeviation(
+			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height &&
+			g.State.Ball.X-g.State.Ball.Radius > g.State.Paddles.Player1X {
+			
+			multiplier := 1.0
+			if g.State.Player1Boost.IsBoostActive {
+				multiplier = boostMultiplier
+				g.State.Player1Boost.IsBoostActive = false
+				g.State.Player1Boost.BoostReady = false
+			}
+
+			g.State.Ball.DX = BallSpeed * multiplier
+			g.State.Ball.DY = computeDeviation(
 				g.State.Ball.Y,
 				g.State.Paddles.Player1Y,
 				g.State.Paddles.Height,
-			)
+			) * multiplier
+			g.hitCounter(1)
 		}
 	}
 
+	// Classic ball collision with paddle 2
 	if g.State.Ball.X >= Paddle2DistanceWall-g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
-			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height {
-			g.State.Ball.DX = -BallSpeed
-			g.State.Ball.DY = calculedeviation(
+			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height &&
+			g.State.Ball.X+g.State.Ball.Radius < g.State.Paddles.Player2X+g.State.Paddles.Width {
+			
+			multiplier := 1.0
+			if g.State.Player2Boost.IsBoostActive {
+				multiplier = boostMultiplier
+				g.State.Player2Boost.IsBoostActive = false
+				g.State.Player2Boost.BoostReady = false
+			}
+			g.State.Ball.DX = -BallSpeed * multiplier // Negative because ball should go left
+			g.State.Ball.DY = computeDeviation(
 				g.State.Ball.Y,
 				g.State.Paddles.Player2Y,
 				g.State.Paddles.Height,
-			)
+			) * multiplier
+			g.hitCounter(2)
+		}
+	}
+	//Top part of the paddle collision
+	if g.isBallAbovePaddle() {
+		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player1X &&
+			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player1X+g.State.Paddles.Width {
+
+			// Calculate vertical distance between ball and paddle top edge
+			distanceY := math.Abs(g.State.Ball.Y - g.State.Paddles.Player1Y)
+
+			// If distance is less than ball radius, we have a collision
+			if distanceY-5 <= g.State.Ball.Radius {
+				overlap := g.State.Ball.Radius - distanceY
+				g.State.Ball.DY = g.State.Ball.Y - overlap - 1
+				g.State.Ball.DX = computeSideDeviation(
+					g.State.Ball.X,
+					g.State.Paddles.Player1X,
+					g.State.Paddles.Width,
+				)
+				g.State.Ball.DY = -BallSpeed
+
+			}
+		}
+	}
+
+	if g.isBallBelowPaddle() {
+		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player1X &&
+			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player1X+g.State.Paddles.Width {
+			// Calculate vertical distance between ball and paddle bottom edge
+			distanceY := math.Abs(g.State.Ball.Y - (g.State.Paddles.Player1Y + g.State.Paddles.Height))
+			// If distance is less than ball radius, we have a collision
+			if distanceY-5 <= g.State.Ball.Radius {
+				overlap := g.State.Ball.Radius - distanceY
+				g.State.Ball.DY = g.State.Ball.Y + overlap + 1
+				g.State.Ball.DX = computeSideDeviation(
+					g.State.Ball.X,
+					g.State.Paddles.Player1X,
+					g.State.Paddles.Width,
+				)
+				g.State.Ball.DY = BallSpeed
+
+			}
+		}
+	}
+
+	//Top part of the paddle collision for Player 2
+	if g.isBallAbovePaddle() {
+		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player2X &&
+			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player2X+g.State.Paddles.Width {
+			// Calculate vertical distance between ball and paddle top edge
+			distanceY := math.Abs(g.State.Ball.Y - g.State.Paddles.Player2Y)
+			// If distance is less than ball radius, we have a collision
+			if distanceY-5 <= g.State.Ball.Radius {
+				overlap := g.State.Ball.Radius - distanceY
+				g.State.Ball.DY = g.State.Ball.Y - overlap - 1
+				g.State.Ball.DX = computeSideDeviation(
+					g.State.Ball.X,
+					g.State.Paddles.Player2X,
+					g.State.Paddles.Width,
+				)
+				g.State.Ball.DY = -BallSpeed
+
+			}
+		}
+	}
+	if g.isBallBelowPaddle() {
+		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player2X &&
+			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player2X+g.State.Paddles.Width {
+			// Calculate vertical distance between ball and paddle bottom edge
+			distanceY := math.Abs(g.State.Ball.Y - (g.State.Paddles.Player2Y + g.State.Paddles.Height))
+			// If distance is less than ball radius, we have a collision
+			if distanceY-5 <= g.State.Ball.Radius {
+				overlap := g.State.Ball.Radius - distanceY
+				g.State.Ball.DY = g.State.Ball.Y + overlap + 1
+				g.State.Ball.DX = computeSideDeviation(
+					g.State.Ball.X,
+					g.State.Paddles.Player2X,
+					g.State.Paddles.Width,
+				)
+				g.State.Ball.DY = BallSpeed
+
+			}
 		}
 	}
 
@@ -210,11 +332,14 @@ func (g *Game) Update() {
 	if g.State.Ball.X <= 0 {
 		g.State.Score.Player2++
 		g.resetBall()
+		g.resetPaddle()
 	}
 
 	if g.State.Ball.X >= CanvasWidth {
 		g.State.Score.Player1++
 		g.resetBall()
+		g.resetPaddle()
+
 	}
 
 	// Check for winner
@@ -229,22 +354,24 @@ func (g *Game) Update() {
 	}
 }
 
-func (g *Game) resetBall() {
-	g.State.Ball.X = CanvasWidth / 2
-	g.State.Ball.Y = CanvasHeight / 2
-	g.State.Ball.DY = 0
-	g.State.IsPaused = true
-	g.State.PauseTime = time.Now()
-
-	// pour mettre la direction de balle a droite ou a gauche selon l ancien but marqué
-	if g.State.Ball.DX > 0 {
-		g.State.Ball.DX = -g.State.Ball.DX
+func (g *Game) isBallAbovePaddle() bool {
+	if g.State.Ball.Y+g.State.Ball.Radius <= g.State.Paddles.Player1Y {
+		return true
 	} else {
-		g.State.Ball.DX = BallSpeed
+		return false
 	}
 }
 
-func calculedeviation(ballY, paddleY, paddleHeight float64) float64 {
+func (g *Game) isBallBelowPaddle() bool {
+	if g.State.Ball.Y-g.State.Ball.Radius >= g.State.Paddles.Player1Y+g.State.Paddles.Height {
+		return true
+	} else {
+		return false
+	}
+}
+
+
+func computeDeviation(ballY, paddleY, paddleHeight float64) float64 {
 	// trouve la position du milieu du paddel
 	midPaddle := paddleY + (paddleHeight / 2)
 	// calcule la distance du milieu du paddel a la balle
@@ -255,6 +382,81 @@ func calculedeviation(ballY, paddleY, paddleHeight float64) float64 {
 	verticalSpeed := -bounceAngle * (BallSpeed / 2)
 	return verticalSpeed
 }
+
+func computeSideDeviation(ballX, paddleX, paddleWidth float64) float64 {
+	// trouve la position du milieu du paddle horizontalement
+	midPaddle := paddleX + (paddleWidth / 2)
+	// calcule la distance du milieu du paddle à la balle horizontalement
+	middleDistance := midPaddle - ballX
+	// calcule l'angle qui est entre 1 et -1
+	bounceAngle := middleDistance / (paddleWidth / 2)
+	// calcule la vitesse horizontale finale
+	horizontalSpeed := -bounceAngle * (BallSpeed / 2)
+	return horizontalSpeed
+}
+
+func (g *Game) resetBall() {
+	g.State.Ball.X = CanvasWidth / 2
+	g.State.Ball.Y = CanvasHeight / 2
+	g.State.Ball.DY = 0
+	g.State.IsPaused = true
+	g.State.PauseTime = time.Now()
+	g.State.Player1Boost.BallHit = 0
+	g.State.Player1Boost.BoostReady = false
+	g.State.Player1Boost.IsBoostActive = false
+	g.State.Player2Boost.BallHit = 0
+	g.State.Player2Boost.BoostReady = false
+	g.State.Player2Boost.IsBoostActive = false
+
+
+	if g.State.Ball.DX > 0 {
+		g.State.Ball.DX = -BallSpeed
+	} else {
+		g.State.Ball.DX = BallSpeed
+	}
+}
+
+func (g *Game) resetPaddle() {
+	g.State.Paddles.Player1Y = (CanvasHeight / 2) - 120/2
+	g.State.Paddles.Player2Y = (CanvasHeight / 2) - 120/2
+}
+
+func (g *Game) hitCounter(playerNum int) {
+	if playerNum == 1 {
+		g.State.Player1Boost.BallHit++
+		if g.State.Player1Boost.BallHit >= collisionToBoost {
+			g.State.Player1Boost.BoostReady = true
+			g.State.Player1Boost.BallHit = 0
+		}
+	}else {
+		g.State.Player2Boost.BallHit++
+		if g.State.Player2Boost.BallHit >= collisionToBoost {
+			g.State.Player2Boost.BoostReady = true
+			g.State.Player2Boost.BallHit = 0
+		}
+	}
+}
+
+func handleGameMessage(h *Hub, data []byte) {
+	var evt GameEvent
+	if err := json.Unmarshal(data, &evt); err != nil {
+		fmt.Printf("Error GameEvent type unmarshall\n")
+		return
+	}
+	lobby := h.Lobbies[evt.LobbyId]
+	if lobby == nil {
+		return
+	}
+
+	cmd := GameCommand{
+		PlayerID: evt.UserId,
+		Command:  evt.KeyPressed,
+	}
+	fmt.Printf("CMD: %+v\n", cmd)
+	
+	lobby.Game.HandleCommand(cmd)
+}
+
 
 func (g *Game) HandleCommand(cmd GameCommand) {
 	g.State.mutex.Lock()
@@ -279,26 +481,13 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 		} else if cmd.PlayerID == g.Player2.ID {
 			g.State.Paddles.Player2Direction = 0
 		}
+	case "SPACE":
+		if cmd.PlayerID == g.Player1.ID && g.State.Player1Boost.BoostReady {
+			g.State.Player1Boost.BoostReady = false
+			g.State.Player1Boost.IsBoostActive = true
+		} else if cmd.PlayerID == g.Player2.ID && g.State.Player2Boost.BoostReady {
+			g.State.Player2Boost.BoostReady = false
+			g.State.Player2Boost.IsBoostActive = true
+		}
 	}
-}
-
-func handleGameMessage(h *Hub, data []byte) {
-	var evt GameEvent
-	fmt.Printf("DATA: %s\n", string(data))
-	if err := json.Unmarshal(data, &evt); err != nil {
-		fmt.Printf("Error GameEvent type unmarshall\n")
-		return
-	}
-	lobby := h.Lobbies[evt.LobbyId]
-	if lobby == nil {
-		return
-	}
-
-	cmd := GameCommand{
-		PlayerID: evt.UserId,
-		Command:  evt.KeyPressed,
-	}
-	fmt.Printf("CMD: %+v\n", cmd)
-
-	lobby.Game.HandleCommand(cmd)
 }

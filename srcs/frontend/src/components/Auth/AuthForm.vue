@@ -1,7 +1,7 @@
 <template>
   <div class="auth-container">
     <div class="auth-form">
-      <h2>{{ formTitle }}</h2>
+      <h1>{{ formTitle }}</h1>
       <form @submit.prevent="onSubmit">
         <div v-for="(field, index) in fields" :key="index">
           <label :for="field.label">{{ field.label }}</label>
@@ -10,9 +10,9 @@
         </div>
         <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
         <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
-        <button type="submit">{{ submitButtonLabel }}</button>
+        <button class="primary-button" type="submit">{{ submitButtonLabel }}</button>
+        <button class="secondary-button" @click="onSecondaryAction">{{ secondaryButtonLabel }}</button>
       </form>
-      <button class="secondary-button" @click="onSecondaryAction">{{ secondaryButtonLabel }}</button>
     </div>
   </div>
 </template>
@@ -41,63 +41,79 @@ const onSecondaryAction = () => emit('secondaryAction');
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  font-family: "Audiowide", sans-serif;
 }
 
 .auth-form {
-  width: 300px;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  background-color: #f9f9f9;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 50vh;
+  min-height: 210px;
+  width: 50vw;
+  max-width: 365px;
+  padding: 1vh 1.5vw;
+  border-radius: 20px;
+  background-color: #376e6f;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-.auth-form h2 {
+.auth-form h1 {
   text-align: center;
-  color: #333;
+  color: white;
+  font-size: 2rem;
+  font-weight: 650;
+  text-shadow: 1px 1px 2px black;
 }
 
 .auth-form div {
-  margin-bottom: 15px;
+  margin-bottom: 35px;
 }
 
 label {
   display: block;
   margin-bottom: 5px;
-  color: #666;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 input {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   border-radius: 4px;
   box-sizing: border-box;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 button {
   width: 100%;
   padding: 10px;
-  background-color: #4CAF50;
+  transition: background 0.3s ease;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1.2rem;
 }
 
-button:hover {
-  background-color: #45a049;
+.primary-button {
+  background: linear-gradient(to right, #2e151b, #502d36);
+}
+
+.primary-button:hover {
+  background: linear-gradient(to right, #502d36, #2e151b);
 }
 
 .secondary-button {
   margin-top: 10px;
-  background-color: #3498db;
+  background: linear-gradient(to right, #da7b93, #f5a3b4);
 }
 
 .secondary-button:hover {
-  background-color: #2980b9;
+  background: linear-gradient(to right, #e86c89, #ffbccd);
 }
 
 .alert {
@@ -117,5 +133,66 @@ button:hover {
   background-color: #f8d7da;
   color: #721c24;
   border: 1px solid #f5c6cb;
+}
+
+@media (max-height: 700px) {
+  .auth-form div {
+  margin-bottom: 25px;
+  }
+  input{
+    padding: 6px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  }
+  .auth-form h1 {
+  font-size: 1.8rem;
+  }
+  label{
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-shadow: 0.4px 0.4px 0.9px black;
+  }
+  button {
+  padding: 5px;
+  }
+}
+
+@media (max-height: 615px) {
+  .auth-form div {
+  margin-bottom: 20px;
+  }
+  .auth-form h1 {
+  font-size: 1.6rem;
+  }
+  label{
+    font-size: 0.8rem;
+    font-weight: 400;
+    text-shadow: 0.3px 0.3px 0.7px black;
+  }
+  input{
+    padding: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  }
+  button {
+  padding: 2.5px;
+  }
+}
+
+@media (max-height: 530px) {
+  .auth-form div {
+  margin-bottom: 15px;
+  }
+  .auth-form h1 {
+  font-size: 1.4rem;
+  }
+  label{
+    font-size: 0.7rem;
+  }
+  input{
+    padding: 2px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+  button {
+  padding: 1.25px;
+  }
 }
 </style>

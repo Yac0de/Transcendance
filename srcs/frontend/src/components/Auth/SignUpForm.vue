@@ -1,5 +1,5 @@
 <template>
-  <AuthForm formTitle="Sign Up" submitButtonLabel="Sign Up" :fields="fields" :successMessage="successMessage"
+  <AuthForm formTitle="SIGN UP" submitButtonLabel="Sign Up" :fields="fields" :successMessage="successMessage"
     :errorMessage="errorMessage" @submit="handleSubmit" @secondaryAction="handleSignin"
     secondaryButtonLabel="Back to sign in" />
 </template>

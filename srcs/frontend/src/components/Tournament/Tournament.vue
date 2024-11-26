@@ -90,11 +90,8 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_START', (message: TournamentStart) => {
+    console.log("<- TOURNEY START, CHANGING VIEW TO THE TREE, WAITING FOR TREE STATE EVENT")
     currentView.value = 'tournament-tree'
-    game1array.value.push(message.game1[0])
-    game1array.value.push(message.game1[1])
-    game2array.value.push(message.game2[0])
-    game2array.value.push(message.game2[1])
   })
 })
 

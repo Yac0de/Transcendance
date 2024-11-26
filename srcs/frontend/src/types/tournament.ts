@@ -4,6 +4,12 @@ export interface TournamentJoinWithCode {
   code: string;
 }
 
+export interface TournamentTreeState {
+  type: 'TOURNAMENT_TREE_STATE';
+  userId: number;
+  code: string;
+}
+
 export interface TournamentCreate {
   type: 'TOURNAMENT_CREATE';
   userId: number;

@@ -52,30 +52,40 @@ import { fetchMultipleUsers } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
 import { useRouter } from 'vue-router';
 
+const game1array = ref<number[]>([])
+const game2array = ref<number[]>([])
 const usersgame1 = ref<(UserData | null)[]>([null, null]); 
 const usersgame2 = ref<(UserData | null)[]>([null, null]); 
 const remainingSeconds = ref<number>(16);
 const router = useRouter();
 
-const props = defineProps<{
-  game1array: number[]; 
-  game2array: number[]; 
-}>();
+//const props = defineProps<{
+//  game1array: number[]; 
+//  game2array: number[]; 
+//}>();
 
 onMounted(async () => {
-  usersgame1.value = await fetchMultipleUsers(props.game1array); 
-  usersgame2.value = await fetchMultipleUsers(props.game2array); 
 
   eventBus.on('TOURNAMENT_TIMER', (message: TournamentTimer) => {
     console.log("MSG TREE  = ", message);
     remainingSeconds.value = message.remainingTime;
   })
 
+  eventBus.on('TOURNAMENT_TREE_STATE', async (message: TournamentStart) => {
+    console.log("<- TOUR TREE STATE RECEIVED", message)
+    game1array.value.push(message.game1[0])
+    game1array.value.push(message.game1[1])
+    game2array.value.push(message.game2[0])
+    game2array.value.push(message.game2[1])
+    usersgame1.value = await fetchMultipleUsers(props.game1array); 
+    usersgame2.value = await fetchMultipleUsers(props.game2array); 
+  })
+
   eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {
     console.log("TOURNAMENT GAME READY TO START: ", message);
     router.push({
       path: '/game', 
-      query: {lobbyId: message.lobbyId }
+      query: { lobbyId: message.lobbyId }
     });
   })
 })
@@ -83,6 +93,7 @@ onMounted(async () => {
 onUnmounted(() => {
   eventBus.off('TOURNAMENT_TIMER')
   eventBus.off('TOURNAMENT_GAME')
+  eventBus.off('TOURNAMENT_TREE_STATE')
 })
 </script>
 

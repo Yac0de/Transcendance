@@ -18,7 +18,8 @@ import type {
    TournamentEvent,
    TournamentStart,
    TournamentTimer,
-   TournamentGame
+   TournamentGame,
+   TournamentTreeState,
 } from '../types/tournament';
 
 type Events = {
@@ -40,6 +41,7 @@ type Events = {
   'TOURNAMENT_TERMINATE': void
   'TOURNAMENT_TIMER': TournamentTimer
   'TOURNAMENT_GAME': TournamentGame
+  'TOURNAMENT_TREE_STATE': TournamentTreeState
 }
 
 export const eventBus = mitt<Events>();

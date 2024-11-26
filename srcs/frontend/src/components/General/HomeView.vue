@@ -1,7 +1,7 @@
 <template>
   <div class="homepage-container">
     <div class="homepage-content">
-      <h1 class="logo">45</h1>
+      <h1 class="logo">2001</h1>
       <div class="button-container">
         <router-link to="/pong" class="pong-button">Play Pong</router-link>
       </div>

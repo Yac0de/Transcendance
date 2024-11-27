@@ -28,7 +28,6 @@ import GameHeader from './GameHeader.vue';
 
 const route = useRoute()
 const router = useRouter()
-let endGameTimeout: number | null = null;
 
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -148,12 +147,12 @@ const handleSpace = (event: KeyboardEvent): void => {
 
 onMounted(() => {
   // Add key listener
-  console.log("YEAAHHHHH");
   window.addEventListener('keydown', handlePressUp)
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
   window.addEventListener('keydown', handleSpace)
+  const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
 
@@ -165,7 +164,6 @@ onMounted(() => {
     }
 
     if (canvasRef.value) {
-      const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {
         Object.assign(currentGameState, message.state);
 
@@ -176,18 +174,28 @@ onMounted(() => {
 
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
-        if (!message.state!.isActive && message.state!.winner !== 0) {
-          drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
-          
-          if (!endGameTimeout){
-            endGameTimeout = window.setTimeout(() => {
-              router.push('/');
-            }, 3000)
-          }
-        }
       }
     }
   })
+
+  eventBus.on('GAME_FINISHED', async (message: GameEvent) => {
+    console.log("GAME FINISHED: ", message);
+    drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
+
+    if (message.isTournamentGame === false) {
+      window.setTimeout(() => {
+        router.push('/');
+      }, 3000)
+    } else {
+      window.setTimeout(() => {
+        router.push({
+        path:'/tournament',
+        query: { view: 'tournament-tree' }
+        });
+      }, 3000)
+    }
+  })
+
 })
 
 onUnmounted(() => {
@@ -197,9 +205,6 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
   window.removeEventListener('keydown', handleSpace)
-  if (endGameTimeout) {
-        clearTimeout(endGameTimeout);
-    }
   eventBus.off('GAME_EVENT')
 })
 </script>

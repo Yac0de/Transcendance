@@ -12,6 +12,11 @@ export interface GameStart {
     type: 'GAME_START';
 }
 
+export interface GameFinished {
+    type: 'GAME_START';
+    isTournamentGame: boolean;
+}
+
 export interface Ball {
     x: number;
     y: number;

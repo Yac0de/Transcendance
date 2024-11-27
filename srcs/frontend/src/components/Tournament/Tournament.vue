@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import JoinTournamentMenu from './JoinTournamentMenu.vue'
 import TournamentWaitingRoom from './TournamentWaitingRoom.vue'
@@ -55,6 +55,7 @@ const userStore = useUserStore();
 const router = useRouter()
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
+const route = useRoute();
 
 const game1array = ref<number[]>([])
 const game2array = ref<number[]>([])
@@ -79,6 +80,11 @@ const handleBack = (): void => {
 }
 
 onMounted(() => {
+  if (route.query.view === 'tournament-tree') {
+    console.log("ygejwhg");
+    currentView.value = 'tournament-tree'
+  }
+
   eventBus.on('TOURNAMENT_CREATE', (message: TournamentCreate) => {
     tournamentCode.value = message.code
     currentView.value = 'waiting-room'

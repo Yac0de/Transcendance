@@ -1,5 +1,5 @@
 import mitt from 'mitt'
-import type { GameEvent, GameStart } from '../types/game.ts';
+import type { GameEvent, GameStart, GameFinished } from '../types/game.ts';
 
 import type { 
   LobbyInvitationToFriend,
@@ -35,6 +35,7 @@ type Events = {
   'LOBBY_DESTROYED': void;
   'GAME_EVENT' : GameEvent;
   'GAME_START': GameStart;
+  'GAME_FINISHED': GameFinished;
   'TOURNAMENT_JOIN_WITH_CODE': TournamentJoinWithCode
   'TOURNAMENT_CREATE': TournamentCreate
   'TOURNAMENT_EVENT': TournamentEvent

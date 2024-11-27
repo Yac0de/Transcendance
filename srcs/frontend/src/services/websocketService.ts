@@ -107,6 +107,12 @@ export class WebSocketService {
         this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
             eventBus.emit('GAME_EVENT', message);
         });
+        this.setMessageHandler<GameStart>('GAME_START',(message: GameStart)  => {
+            eventBus.emit('GAME_START', message);
+        });
+        this.setMessageHandler<GameFinished>('GAME_FINISHED',(message: GameFinished)  => {
+            eventBus.emit('GAME_FINISHED', message);
+        });
         this.setMessageHandler<TournamentJoin>('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoin) => {
             console.log("JOIN CALLBACK");
             eventBus.emit('TOURNAMENT_JOIN_WITH_CODE', message);
@@ -135,9 +141,6 @@ export class WebSocketService {
         this.setMessageHandler<TournamentError>('TOURNAMENT_TREE_STATE', (message: TournamentTreeState) => {
             eventBus.emit('TOURNAMENT_TREE_STATE', message);
         })
-        this.setMessageHandler<GameStart>('GAME_START',(message: GameStart)  => {
-            eventBus.emit('GAME_START', message);
-        });
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {

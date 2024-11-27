@@ -119,7 +119,7 @@ const openChat = () => {
 }
 
 .friend-action-btn:hover {
-  color: #007bff;
+  color: var(--main-extra-color);
 }
 
 .friend-action-btn.delete-btn:hover {

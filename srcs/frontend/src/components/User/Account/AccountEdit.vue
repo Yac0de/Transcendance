@@ -194,6 +194,7 @@ const saveChanges = async () => {
 }
 
 .edit-fields {
+  color: white;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -203,6 +204,7 @@ const saveChanges = async () => {
 
 .edit-fields label {
   font-weight: bold;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 .edit-fields input {
@@ -230,11 +232,12 @@ button {
 }
 
 .save-button {
-  background-color: #3498db;
+  background: linear-gradient(90deg, var(--secondary-dark-color), var(--secondary-bright-color));
 }
 
 .save-button:hover {
-  background-color: #2980b9;
+  opacity: 0.8;
+  transform: scale(1.03);
 }
 
 .cancel-button {
@@ -243,6 +246,7 @@ button {
 
 .cancel-button:hover {
   background-color: #7f8c8d;
+  transform: scale(1.03);
 }
 
 .delete-button {
@@ -252,6 +256,7 @@ button {
 
 .delete-button:hover {
   background-color: #c0392b;
+  transform: scale(1.02);
 }
 
 .password-toggle {

@@ -77,6 +77,7 @@
 
 .pong-button:hover {
   opacity: 0.8;
+  transform: scale(1.1);
 }
 
 @media (max-width: 1320px), (max-height: 655px) {

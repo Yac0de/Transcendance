@@ -183,16 +183,18 @@ const cancelDelete = () => {
 
 .account-content {
   padding: 20px;
-  border: 1px solid #ccc;
   border-radius: 10px;
-  background-color: #f9f9f9;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--main-color);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   width: 300px;
+  overflow: hidden;
 }
 
 h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: white;
+  text-shadow: 1px 1px 2px black;
 }
 
 .alert {
@@ -217,7 +219,7 @@ h2 {
 .toggle-button {
   width: 100%;
   padding: 10px;
-  background-color: #007bff;
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 75%, white));
   color: white;
   border: none;
   border-radius: 4px;
@@ -227,6 +229,7 @@ h2 {
 }
 
 .toggle-button:hover {
-  background-color: #0056b3;
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 85%, white));
+  transform: scale(1.02);
 }
 </style>

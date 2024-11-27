@@ -27,6 +27,10 @@ export interface TournamentLeave {
   code: number;
 }
 
+export interface TournamentLeave {
+  type: 'TOURNAMENT_ERROR';
+}
+
 export interface TournamentTimer {
   type: 'TOURNAMENT_TIMER';
   remainingTime: number;

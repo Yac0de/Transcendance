@@ -2,7 +2,7 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
-import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentTimer, TournamentGame } from '../types/tournament';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentTimer, TournamentGame, TournamentError } from '../types/tournament';
 import { GameEvent, GameStart } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
@@ -128,6 +128,9 @@ export class WebSocketService {
         })
         this.setMessageHandler<TournamentGame>('TOURNAMENT_GAME', (message: TournamentGame) => {
             eventBus.emit('TOURNAMENT_GAME', message);
+        })
+        this.setMessageHandler<TournamentError>('TOURNAMENT_ERROR', (message: TournamentError) => {
+            eventBus.emit('TOURNAMENT_ERROR', message);
         })
         this.setMessageHandler<GameStart>('GAME_START',(message: GameStart)  => {
             eventBus.emit('GAME_START', message);

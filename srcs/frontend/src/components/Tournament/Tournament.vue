@@ -24,7 +24,7 @@
     <!-- Join Tournament View -->
     <div v-else-if="currentView === 'join'" class="join-view">
       <h2 class="view-title">Join Tournament</h2>
-      <JoinTournamentMenu />
+      <JoinTournamentMenu :error="error"/>
     </div>
 
     <!-- Waiting room tournament view (placeholder) -->
@@ -55,8 +55,11 @@ const userStore = useUserStore();
 const router = useRouter()
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
+
 const game1array = ref<number[]>([])
 const game2array = ref<number[]>([])
+
+const error = ref<string>('')
 
 const handleCreateTournament = (): void => {
   if (userStore.getWebSocketService?.isConnected()) {
@@ -93,6 +96,12 @@ onMounted(() => {
     console.log("<- TOURNEY START, CHANGING VIEW TO THE TREE, WAITING FOR TREE STATE EVENT")
     currentView.value = 'tournament-tree'
   })
+
+  eventBus.on('TOURNAMENT_ERROR', (message: TournamentError) => {
+    console.log(message.error);
+    error.value = message.error
+    console.log("<- TOURNAMENT ERROR")
+  })
 })
 
 onUnmounted(() => {
@@ -105,7 +114,9 @@ onUnmounted(() => {
   }
 
   eventBus.off('TOURNAMENT_CREATE');
-  //eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
+  eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
+  eventBus.off('TOURNAMENT_START');
+  eventBus.off('TOURNAMENT_ERROR');
 })
 </script>
 

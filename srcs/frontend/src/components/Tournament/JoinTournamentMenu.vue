@@ -13,6 +13,9 @@
       >
         Join Tournament
       </button>
+      <div v-if="error" class="error-message">
+        {{ error }}
+      </div>
     </div>
   </div>
 </template>
@@ -26,6 +29,10 @@ import { eventBus } from '../../events/eventBus'
 const tournamentCode = ref<string>('')
 const userStore = useUserStore()
 
+defineProps<{
+  error: string;
+}>();
+
 const handleJoin = () => {
   console.log('Joining tournament with code:', tournamentCode.value)
   if (userStore.getWebSocketService?.isConnected()) {
@@ -34,13 +41,6 @@ const handleJoin = () => {
     console.error('WebSocket is not connected');
   }
 }
-
-onMounted(() => {
-})
-
-onUnmounted(() => {
-  eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
-})
 
 </script>
 
@@ -85,5 +85,16 @@ onUnmounted(() => {
 
 .join-button:hover {
   background-color: #1e88e5;
+}
+
+.error-message {
+  margin-top: 1px;
+  padding: 0.75rem;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  text-align: center;
+  border: 1px solid #ffcdd2;
 }
 </style>

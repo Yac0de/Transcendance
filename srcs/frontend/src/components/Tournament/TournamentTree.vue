@@ -12,14 +12,15 @@
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">
-              <p>Semi 1 Winner</p>
+              <p v-if="!UsersInFinal"> Semi 1 Winner</p>
+              <p v-else> {{ UsersInFinal[0]?.displayname }} </p>
             </div>
             <div class="match-connections">
               <div class="match-branch">
-                <p>Player 1:  {{ usersgame1[0]?.displayname }} </p>
+                <p>Player 1:  {{ UsersInSemis1[0]?.displayname }} </p>
               </div>
               <div class="match-branch">
-                <p>Player 2:  {{ usersgame1[1]?.displayname }} </p>
+                <p>Player 2:  {{ UsersInSemis1[1]?.displayname }} </p>
               </div>
             </div>
           </div>
@@ -28,14 +29,15 @@
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">
-              <p>Semi 2 Winner</p>
+              <p v-if="!UsersInFinal"> Semi 1 Winner</p>
+              <p v-else> {{ UsersInFinal[0]?.displayname }} </p>
             </div>
             <div class="match-connections">
               <div class="match-branch">
-                <p>Player 3:  {{ usersgame2[0]?.displayname }} </p>
+                <p>Player 3:  {{ UsersInSemis2[0]?.displayname }} </p>
               </div>
               <div class="match-branch">
-                <p>Player 4:  {{ usersgame2[1]?.displayname }} </p>
+                <p>Player 4:  {{ UsersInSemis2[1]?.displayname }} </p>
               </div>
             </div>
           </div>
@@ -52,16 +54,20 @@ import { fetchMultipleUsers } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
 import { useRouter } from 'vue-router';
 
-const game1array = ref<number[]>([])
-const game2array = ref<number[]>([])
-const usersgame1 = ref<(UserData | null)[]>([null, null]); 
-const usersgame2 = ref<(UserData | null)[]>([null, null]); 
+const UsersInSemis1 = ref<(UserData | null)[]>([null, null]); 
+const UsersInSemis2 = ref<(UserData | null)[]>([null, null]); 
+const UsersInFinal = ref<(UserData | null)[]>([null, null]); 
+
+const semis1Score = ref<number[]>([])
+const semis2Score = ref<number[]>([])
+const finalScore = ref<number[]>([])
+
 const remainingSeconds = ref<number>(16);
 const router = useRouter();
 
 //const props = defineProps<{
-//  game1array: number[]; 
-//  game2array: number[]; 
+//  semi1array: number[]; 
+//  semi2array: number[]; 
 //}>();
 
 onMounted(async () => {
@@ -73,12 +79,15 @@ onMounted(async () => {
 
   eventBus.on('TOURNAMENT_TREE_STATE', async (message: TournamentStart) => {
     console.log("<- TOUR TREE STATE RECEIVED", message)
-    game1array.value.push(message.game1[0])
-    game1array.value.push(message.game1[1])
-    game2array.value.push(message.game2[0])
-    game2array.value.push(message.game2[1])
-    usersgame1.value = await fetchMultipleUsers(props.game1array); 
-    usersgame2.value = await fetchMultipleUsers(props.game2array); 
+    if (message.semi1Array) {
+      UsersInSemis1.value = await fetchMultipleUsers([message.semi1.player1id, message.semi1.player2id]); 
+    }
+    if (message.semi2Array) {
+      UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
+    }
+    if (message.finalArray) {
+      UsersInFinal.value = await fetchMultipleUsers([message.final.player1id, message.final.player2id]); 
+    }
   })
 
   eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {
@@ -92,8 +101,8 @@ onMounted(async () => {
 
 onUnmounted(() => {
   eventBus.off('TOURNAMENT_TIMER')
-  eventBus.off('TOURNAMENT_GAME')
   eventBus.off('TOURNAMENT_TREE_STATE')
+  eventBus.off('TOURNAMENT_GAME')
 })
 </script>
 

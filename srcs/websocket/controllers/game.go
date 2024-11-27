@@ -19,6 +19,7 @@ type GameEvent struct {
 	KeyPressed string    `json:"keyPressed"`
 	Player1Id  uint64    `json:"player1id"`
 	Player2Id  uint64    `json:"player2id"`
+	IsTournamentGame bool `json:"isTournamentGame"`
 }
 
 type Ball struct {

@@ -79,13 +79,13 @@ onMounted(async () => {
 
   eventBus.on('TOURNAMENT_TREE_STATE', async (message: TournamentStart) => {
     console.log("<- TOUR TREE STATE RECEIVED", message)
-    if (message.semi1Array) {
+    if (message.semi1) {
       UsersInSemis1.value = await fetchMultipleUsers([message.semi1.player1id, message.semi1.player2id]); 
     }
-    if (message.semi2Array) {
+    if (message.semi2) {
       UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
     }
-    if (message.finalArray) {
+    if (message.final) {
       UsersInFinal.value = await fetchMultipleUsers([message.final.player1id, message.final.player2id]); 
     }
   })

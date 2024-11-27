@@ -35,7 +35,7 @@ type TournamentEvent struct {
 type TournamentGame struct {
 	Player1    uint64  `json:"player1id"`
 	Player2    uint64  `json:"player2id"`
-	Score      []uint8 `json:"score"`
+	Score      [2]uint8 `json:"score"`
 	IsFinished bool    `json:"isFinished"`
 }
 
@@ -229,6 +229,7 @@ func CreateLobbies(h *Hub, tournament *Tournament) {
 		Receiver:     h.Clients[tournament.Semi1[1]],
 		Timestamps:   LobbyTimestamps{},
 		PlayersReady: [2]bool{true, true},
+		IsTournamentGame: true,
 	}
 
 	semi2 := &Lobby{
@@ -237,6 +238,7 @@ func CreateLobbies(h *Hub, tournament *Tournament) {
 		Receiver:     h.Clients[tournament.Semi2[1]],
 		Timestamps:   LobbyTimestamps{},
 		PlayersReady: [2]bool{true, true},
+		IsTournamentGame: true,
 	}
 
 	h.Lobbies[semi1.Id] = semi1
@@ -249,7 +251,7 @@ func CreateLobbies(h *Hub, tournament *Tournament) {
 func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	state := "TIMER"
-	sec := int16(3)
+	sec := int16(20)
 
 	CreateLobbies(h, tournament)
 
@@ -261,13 +263,13 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 		Semi1: TournamentGame{
 			Player1:    tournament.Semi1[0],
 			Player2:    tournament.Semi1[1],
-			Score:      []uint8{0, 0},
+			Score:      [2]uint8{0, 0},
 			IsFinished: false,
 		},
 		Semi2: TournamentGame{
 			Player1:    tournament.Semi2[0],
 			Player2:    tournament.Semi2[1],
-			Score:      []uint8{0, 0},
+			Score:      [2]uint8{0, 0},
 			IsFinished: false,
 		},
 	}

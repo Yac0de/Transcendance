@@ -31,6 +31,7 @@ type Lobby struct {
 	Mutex        sync.Mutex      `json:"-"`
 	Destroy      chan struct{}   `json:"-"`
 	Game         *Game           `json:"game"`
+	IsTournamentGame bool `json:"isTournamentGame"`
 }
 
 type LobbyUserState struct {
@@ -44,6 +45,7 @@ type LobbyEvent struct {
 	UserId   uint64         `json:"userId"`
 	Sender   LobbyUserState `json:"sender"`
 	Receiver LobbyUserState `json:"receiver"`
+	IsTournamentGame bool `json:"isTournamentGame"`
 }
 
 type LobbyErrorEvent struct {
@@ -148,6 +150,7 @@ func LobbyCreation(h *Hub, request LobbyEvent) {
 			IsReady: false,
 		},
 		LobbyId: lobby.Id,
+		IsTournamentGame: false,
 	}
 	jsonData, err := json.Marshal(&response)
 	if err != nil {
@@ -281,11 +284,26 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 						State:     lobby.Game.State,
 						Player1Id: lobby.Sender.Id,
 						Player2Id: lobby.Receiver.Id,
+						IsTournamentGame: lobby.IsTournamentGame,
 					}
 					stateJson, _ := json.Marshal(evt)
 					safeSend(lobby.Sender.Send, stateJson)
 					safeSend(lobby.Receiver.Send, stateJson)
-				} else if lobby.Game.State.Winner != 0 {
+				} else if lobby.Game.State.IsActive == false && lobby.Game.State.Winner != 0 {
+					evt := GameEvent{
+						Event: models.Event{
+							Type: "GAME_FINISHED",
+						},
+
+						LobbyId:   lobby.Id,
+						State:     lobby.Game.State,
+						Player1Id: lobby.Sender.Id,
+						Player2Id: lobby.Receiver.Id,
+						IsTournamentGame: lobby.IsTournamentGame,
+					}
+					stateJson, _ := json.Marshal(evt)
+					safeSend(lobby.Sender.Send, stateJson)
+					safeSend(lobby.Receiver.Send, stateJson)
 					return
 				}
 			}

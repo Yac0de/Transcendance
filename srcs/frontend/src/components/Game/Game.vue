@@ -227,10 +227,22 @@ body {
 }
 
 .game-container {
-  background: #e5c4dc;
-  border: solid 8px #e5c4dc;
-  border-radius: 1% 1% 1% 1%;
+  background: linear-gradient(
+    to right,
+    var(--secondary-bright-color),
+    color-mix(in srgb, var(--secondary-bright-color) 75%, white)
+  );
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+
+  /* Empilement des box-shadow */
+  box-shadow: 
+    0 0 0 6px var(--secondary-bright-color), /* Bordure simulée */
+    0 0 30px rgba(0, 0, 0, 0.85);          /* Ombre réelle */
 }
+
+
 
 .canvas-wrapper {
   position: relative;
@@ -239,6 +251,5 @@ body {
 .game-canvas {
   position: relative;
   display: block;
-  border-radius: 0% 0% 1% 1%;
 }
 </style>

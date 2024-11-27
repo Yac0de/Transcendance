@@ -131,7 +131,7 @@ onMounted(checkAuth);
 }
 
 .nav-button:hover {
-  background-color: #2b5758;
+  background-color: var(--main-extra-color);
 }
 
 .gradient_backgroud {

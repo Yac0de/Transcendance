@@ -76,7 +76,7 @@
 }
 
 .pong-button:hover {
-  opacity: 0.8;
+  opacity: 0.90;
   transform: scale(1.1);
 }
 

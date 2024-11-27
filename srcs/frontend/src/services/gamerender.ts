@@ -37,9 +37,9 @@ function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
             state.ball.y + offsetY,
             radius
         );
-            gradient.addColorStop(0, 'rgba(255, 50, 0, 0.8)');
-            gradient.addColorStop(0.4, 'rgba(255, 0, 0, 0.4)');
-            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+            gradient.addColorStop(0, 'rgba(218, 123, 147, 0.8)');
+            gradient.addColorStop(0.4, 'rgba(218, 123, 147, 0.4)');
+            gradient.addColorStop(1, 'rgba(218, 123, 147, 0)');
         
         ctx.beginPath();
         ctx.fillStyle = gradient;
@@ -57,7 +57,7 @@ export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
     
     // Dessiner la balle principale (toujours en rouge maintenant)
     ctx.beginPath();
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = 'rgba(218, 123, 147, 0)';
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
     ctx.fill();
     
@@ -90,15 +90,27 @@ function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
     
     // Fonction pour déterminer la couleur et le texte selon l'état
     function getBoostInfo(boost: any) {
+        const getCSSVariable = (variableName: string) =>
+            getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+    
         if (boost.isboostactive) {
-            return { color: '#ff0000', text: 'ACTIVE' };  // Rouge quand actif
-        } else if ( boost.boostReady) {
-            return { color: '#00ff00', text: 'READY' };   // Vert quand débloqué et prêt
+            return { 
+                color: '#ff0000', 
+                text: 'ACTIVE'
+            };  
+        } else if (boost.boostReady) {
+            return { 
+                color: getCSSVariable('--secondary-bright-color'), 
+                text: 'READY'
+            };
         } else {
-            return { color: '#333333', text: 'LOCKED' };  // Gris quand non débloqué
+            return { 
+                color: '#333333', 
+                text: 'LOCKED'
+            };
         }
     }
-    
+
     // Player 1 boost
     console.log(state);
     const player1Info = getBoostInfo(state.player1boost);

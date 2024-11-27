@@ -108,27 +108,30 @@ onUnmounted(() => {
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.02);
 }
 
 .accept-button {
-  background-color: #10B981;
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 75%, white));
   color: white;
   border: none;
 }
 
 .accept-button:hover {
-  background-color: #059669;
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 85%, white));
 }
 
 .decline-button {
-  background-color: #EF4444;
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 75%, white));
   color: white;
   border: none;
 }
 
 .decline-button:hover {
-  background-color: #DC2626;
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 85%, white));
 }
 
 /* Optional: Add animation */

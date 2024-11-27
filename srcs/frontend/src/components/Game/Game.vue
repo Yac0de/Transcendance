@@ -11,7 +11,6 @@
         class="game-canvas"
         >
         </canvas>
-        <div class="vertical-line"></div>
       </div>
     </div>
   </div>
@@ -144,6 +143,16 @@ const handleSpace = (event: KeyboardEvent): void => {
  }
 }
 
+function drawVerticalLine(ctx: CanvasRenderingContext2D): void {
+    ctx.strokeStyle = '#5b3c54';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ctx.canvas.width / 2, 0);
+    ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
+    ctx.stroke();
+}
+
+
 onMounted(() => {
   // Add key listener
   window.addEventListener('keydown', handlePressUp)
@@ -170,6 +179,8 @@ onMounted(() => {
 
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+
+        drawVerticalLine(ctx);
 
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
@@ -216,28 +227,29 @@ body {
 }
 
 .game-container {
-  background: #e5c4dc;
-  border: solid 8px #e5c4dc;
-  border-radius: 1% 1% 1% 1%;
+  background: linear-gradient(
+    to right,
+    var(--secondary-bright-color),
+    color-mix(in srgb, var(--secondary-bright-color) 75%, white)
+  );
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+
+  /* Empilement des box-shadow */
+  box-shadow: 
+    0 0 0 6px var(--secondary-bright-color), /* Bordure simulée */
+    0 0 30px rgba(0, 0, 0, 0.85);          /* Ombre réelle */
 }
+
+
 
 .canvas-wrapper {
   position: relative;
 }
 
-.vertical-line {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 100%;
-  background-color: #5b3c54;
-  transform: translateX(-50%);
-}
-
 .game-canvas {
   position: relative;
   display: block;
-  border-radius: 0% 0% 1% 1%;
 }
 </style>

@@ -14,3 +14,14 @@ export const fetchUserById = async (userId: number): Promise<UserData | null> =>
   }
   return null;
 };
+
+export function getBaseHost(): string {
+  if (import.meta.env.PROD) {
+    // In production, we can use window.location to get the current host
+    // This will automatically handle IP addresses or domain names
+    const currentHost = window.location.host; // This includes host:port
+    return `https://${currentHost}`;
+  }
+  // In development, use localhost with direct ports
+  return 'http://localhost';
+}

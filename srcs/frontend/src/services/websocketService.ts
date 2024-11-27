@@ -5,11 +5,14 @@ import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFrie
 import { GameEvent, GameStart } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
-import { useChatStore } from '../stores/chatStore.ts';
+import { useChatStore } from '../stores/chatStore';
+import { getBaseHost } from  '../utils/fetch'
 
-const WS_URL = import.meta.env.PROD
-  ? 'wss://localhost:8443/ws'  // Production through Nginx
-  : 'ws://localhost:4001/ws'      // Development direct access
+//const WS_URL = import.meta.env.PROD
+//  ? 'wss://localhost:8443/ws'  // Production through Nginx
+//  : 'ws://localhost:4001/ws'      // Development direct access
+
+const WS_URL = `${getBaseHost().replace('http', 'ws')}${import.meta.env.PROD ? '/ws' : ':4001/ws'}`;
 
 //This is needed because we can't get the return type of userStore inside the constructor of a class that is an attribute of
 //this very store, because it creates circular dependencies, so we create an interface that helps up set the return type of

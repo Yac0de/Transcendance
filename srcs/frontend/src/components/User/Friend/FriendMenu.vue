@@ -157,7 +157,7 @@ const fetchFriendRequests = async () => {
 .friend-icon {
   width: 50px;
   height: 50px;
-  background-color: #007bff;
+  background-color: var(--main-extra-color);
   border-radius: 50%;
   display: flex;
   justify-content: center;
@@ -165,6 +165,10 @@ const fetchFriendRequests = async () => {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s;
+}
+
+.friend-icon:hover {
+	background-color: color-mix(in srgb, var(--main-extra-color) 85%, white);
 }
 
 .friend-icon i {

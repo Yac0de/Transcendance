@@ -20,7 +20,6 @@
 } */
 
 .homepage-container {
-  font-family: "Audiowide", sans-serif;
   font-weight: 400;
   font-style: normal;
   display: flex;
@@ -43,6 +42,7 @@
   border-radius: 20px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
+  background: var(--main-color);
 }
 
 .welcome {

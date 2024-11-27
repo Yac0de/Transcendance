@@ -60,18 +60,18 @@ onMounted(checkAuth);
 
 <style>
 :root {
-  --main-color: #376e6f;
+  --main-color: #2f4454;
   --secondary-dark-color: #2e151b;
   --secondary-bright-color: #da7b93;
-  --main-extra-color: #2f4454;
+  --main-extra-color: #376e6f;
   --secondary-extra-color: #1c3334;
+  font-family: "Audiowide", sans-serif;
 }
 </style>
 
 <style scoped>
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   display: flex;
@@ -149,6 +149,7 @@ onMounted(checkAuth);
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: var(--main-extra-color);
   background-color: var(--main-color);
   width: 95vw;
   height: 85vh;

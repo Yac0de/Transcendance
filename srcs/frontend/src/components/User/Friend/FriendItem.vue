@@ -66,7 +66,7 @@ const openChat = () => {
   display: flex;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--main-extra-color);
 }
 
 .friend-avatar {

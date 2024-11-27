@@ -101,21 +101,25 @@ button {
   font-size: 1.2rem;
 }
 
+button:hover {
+  transform: scale(1.02);
+}
+
 .primary-button {
-  background: linear-gradient(to right, var(--secondary-dark-color), #502d36);
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 75%, white));
 }
 
 .primary-button:hover {
-  background: linear-gradient(to right, #502d36, var(--secondary-dark-color));
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 85%, white));
 }
 
 .secondary-button {
   margin-top: 10px;
-  background: linear-gradient(to right, var(--secondary-bright-color), #f5a3b4);
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 75%, white));
 }
 
 .secondary-button:hover {
-  background: linear-gradient(to right, #e86c89, #ffbccd);
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 85%, white));
 }
 
 .alert {

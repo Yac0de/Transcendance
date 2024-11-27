@@ -3,10 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"strings"
 	"time"
 	"websocket/models"
+
+	"github.com/google/uuid"
 )
 
 type Hub struct {
@@ -74,6 +75,7 @@ func (h *Hub) Run() {
 			event, err := h.GetEventType(message)
 			if err != nil {
 				fmt.Printf("Hub.broadcast error on event cast: %s | error: %v\n", string(message), err)
+				return
 			}
 			switch {
 			case event.Type == "CHAT":

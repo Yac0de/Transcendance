@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 	"websocket/models"
 
@@ -25,14 +24,28 @@ type Tournament struct {
 
 type TournamentEvent struct {
 	models.Event
-	Code    string    `json:"code"`
-	UserId  uint64    `json:"userId"`
-	Player1 uint64    `json:"player1id"`
-	Player2 uint64    `json:"player2id"`
-	Player3 uint64    `json:"player3id"`
-	Player4 uint64    `json:"player4id"`
-	Semi1   [2]uint64 `json:"game1"`
-	Semi2   [2]uint64 `json:"game2"`
+	Code    string `json:"code"`
+	UserId  uint64 `json:"userId"`
+	Player1 uint64 `json:"player1id"`
+	Player2 uint64 `json:"player2id"`
+	Player3 uint64 `json:"player3id"`
+	Player4 uint64 `json:"player4id"`
+}
+
+type TournamentGame struct {
+	Player1    uint64  `json:"player1id"`
+	Player2    uint64  `json:"player2id"`
+	Score      []uint8 `json:"score"`
+	IsFinished bool    `json:"isFinished"`
+}
+
+type TournamentTreeEvent struct {
+	models.Event
+	Code   string         `json:"code"`
+	UserId uint64         `json:"userId"`
+	Semi1  TournamentGame `json:"semi1"`
+	Semi2  TournamentGame `json:"semi2"`
+	Final  TournamentGame `json:"final"`
 }
 
 type TournamentTimerEvent struct {
@@ -84,21 +97,16 @@ func NewTournament(h *Hub, request TournamentEvent) *Tournament {
 	}
 }
 
-func SendTournamentError(h *Hub, request TournamentEvent, errorMessage string) {
+func SendTournamentError(h *Hub, client *Client, code string, errorMessage string) {
 	error := TournamentErrorEvent{
 		Event: models.Event{
 			Type: "TOURNAMENT_ERROR",
 		},
-		Code:  request.Code,
+		Code:  code,
 		Error: errorMessage,
 	}
 	errorToBytes, _ := json.Marshal(&error)
-	tournament, exist := h.Tournaments[request.Code]
-	if !exist {
-		safeSend(h.Clients[request.UserId].Send, errorToBytes)
-		return
-	}
-	SendDataToPlayers(tournament, errorToBytes)
+	safeSend(client.Send, errorToBytes)
 }
 
 func CreateTournament(h *Hub, request TournamentEvent) {
@@ -115,42 +123,19 @@ func CreateTournament(h *Hub, request TournamentEvent) {
 }
 
 func JoinTournament(h *Hub, request TournamentEvent) {
-	var tournament *Tournament = nil
-	for id, tn := range h.Tournaments {
-		uid := strings.Split(id, "-")[0]
-		if request.Code == uid {
-			tournament = tn
-		}
-	}
+	tournament := GetTournament(h, request.Code)
 	if tournament == nil {
-		SendTournamentError(h, request, fmt.Sprintf("Tournament with code <%s> does not exist", request.UserId))
+		SendTournamentError(h, h.Clients[request.UserId], request.Code, fmt.Sprintf("Tournament with code <%s> does not exist", request.Code))
 		return
 	}
-	clientJoined := h.Clients[request.UserId]
-	if tournament.Player2 == nil || tournament.Player2 == clientJoined {
-		tournament.Player2 = clientJoined
-	} else if tournament.Player3 == nil || tournament.Player3 == clientJoined {
-		tournament.Player3 = clientJoined
-	} else if tournament.Player4 == nil || tournament.Player4 == clientJoined {
-		tournament.Player4 = clientJoined
-	} else {
-		SendTournamentError(h, request, fmt.Sprintf("Tournament with code <%s> already full", request.Code))
+
+	if AppendClientToTournament(h, tournament, request) == false {
 		return
 	}
-	success, err := json.Marshal(&request)
-	if err != nil {
-		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
-		return
-	}
-	safeSend(clientJoined.Send, success)
+
+	RefreshTournamentEvent(&request, tournament)
 
 	request.Code = tournament.Id
-
-	request.Player1 = getPlayerId(tournament.Player1)
-	request.Player2 = getPlayerId(tournament.Player2)
-	request.Player3 = getPlayerId(tournament.Player3)
-	request.Player4 = getPlayerId(tournament.Player4)
-
 	request.Type = "TOURNAMENT_EVENT"
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
@@ -162,13 +147,6 @@ func JoinTournament(h *Hub, request TournamentEvent) {
 		time.Sleep(10 * time.Millisecond)
 		SendDataToPlayers(tournament, jsonData)
 	}()
-}
-
-func getPlayerId(player *Client) uint64 {
-	if player != nil {
-		return player.Id
-	}
-	return 0
 }
 
 func SendDataToPlayers(tournament *Tournament, datas []byte) {
@@ -211,10 +189,7 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 	}
 
 	request.Type = "TOURNAMENT_EVENT"
-	request.Player1 = getPlayerId(tournament.Player1)
-	request.Player2 = getPlayerId(tournament.Player2)
-	request.Player3 = getPlayerId(tournament.Player3)
-	request.Player4 = getPlayerId(tournament.Player4)
+	RefreshTournamentEvent(&request, tournament)
 
 	jsonData, err := json.Marshal(&request)
 	if err != nil {
@@ -227,64 +202,77 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 func StartTournament(h *Hub, request TournamentEvent) {
 	tournament := h.Tournaments[request.Code]
 	if request.UserId != tournament.Player1.Id {
-		SendTournamentError(h, request, "Only the creator can start the tournament")
 		return
 	}
 
-	// if tournament.Player1 == nil || tournament.Player2 == nil || tournament.Player3 == nil || tournament.Player4 == nil {
-	// 	SendTournamentError(h, request, "Tournament is not full")
-	// 	return
-	// }
+	if tournament.Player1 == nil || tournament.Player2 == nil || tournament.Player3 == nil || tournament.Player4 == nil {
+		SendTournamentError(h, tournament.Player1, tournament.Id, "Tournament isn't full")
+		return
+	}
 
 	RefreshTournamentEvent(&request, tournament)
 
-	tournament.Semi1[0] = request.Player1
-	tournament.Semi1[1] = request.Player2
-	tournament.Semi2[0] = request.Player3
-	tournament.Semi2[1] = request.Player4
-
-	request.Semi1 = tournament.Semi1
-	request.Semi2 = tournament.Semi2
-	jsonData, err := json.Marshal(&request)
-	if err != nil {
-		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
-		return
-	}
-
+	jsonData, _ := json.Marshal(&request)
 	SendDataToPlayers(tournament, jsonData)
 
 	go func() {
 		time.Sleep(10 * time.Millisecond)
 		TournamentMonitoring(h, tournament)
 	}()
-	return
+}
+
+func CreateLobbies(h *Hub, tournament *Tournament) {
+	ShuffleTournamentOpposition(h, tournament)
+	semi1 := &Lobby{
+		Id:           uuid.New(),
+		Sender:       h.Clients[tournament.Semi1[0]],
+		Receiver:     h.Clients[tournament.Semi1[1]],
+		Timestamps:   LobbyTimestamps{},
+		PlayersReady: [2]bool{true, true},
+	}
+
+	semi2 := &Lobby{
+		Id:           uuid.New(),
+		Sender:       h.Clients[tournament.Semi2[0]],
+		Receiver:     h.Clients[tournament.Semi2[1]],
+		Timestamps:   LobbyTimestamps{},
+		PlayersReady: [2]bool{true, true},
+	}
+
+	h.Lobbies[semi1.Id] = semi1
+	tournament.LobbiesSemi[0] = semi1
+
+	h.Lobbies[semi2.Id] = semi2
+	tournament.LobbiesSemi[1] = semi2
 }
 
 func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	state := "TIMER"
 	sec := int16(3)
-	lobby := &Lobby{
-		Id:           uuid.New(),
-		Sender:       tournament.Player1,
-		Receiver:     tournament.Player2,
-		Timestamps:   LobbyTimestamps{},
-		PlayersReady: [2]bool{true, true},
+
+	CreateLobbies(h, tournament)
+
+	event := TournamentTreeEvent{
+		Event: models.Event{
+			Type: "TOURNAMENT_TREE_STATE",
+		},
+		Code: tournament.Id,
+		Semi1: TournamentGame{
+			Player1:    tournament.Semi1[0],
+			Player2:    tournament.Semi1[1],
+			Score:      []uint8{0, 0},
+			IsFinished: false,
+		},
+		Semi2: TournamentGame{
+			Player1:    tournament.Semi2[0],
+			Player2:    tournament.Semi2[1],
+			Score:      []uint8{0, 0},
+			IsFinished: false,
+		},
 	}
-	lobby2 := &Lobby{
-		Id:           uuid.New(),
-		Sender:       tournament.Player3,
-		Receiver:     tournament.Player4,
-		Timestamps:   LobbyTimestamps{},
-		PlayersReady: [2]bool{true, true},
-	}
-
-	h.Lobbies[lobby.Id] = lobby
-	tournament.LobbiesSemi[0] = lobby
-
-	h.Lobbies[lobby2.Id] = lobby2
-	tournament.LobbiesSemi[1] = lobby2
-
+	jsonData, _ := json.Marshal(&event)
+	SendDataToPlayers(tournament, jsonData)
 	go func() {
 		for {
 			select {
@@ -349,19 +337,6 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 
 }
 
-func RefreshTournamentEvent(event *TournamentEvent, tournament *Tournament) {
-	event.Player1 = getPlayerId(tournament.Player1)
-	event.Player2 = getPlayerId(tournament.Player2)
-	event.Player3 = getPlayerId(tournament.Player3)
-	event.Player4 = getPlayerId(tournament.Player4)
-}
-
-func ClientIsPresentOnTournament(tn *Tournament, c *Client) bool {
-	if c == tn.Player1 || c == tn.Player2 || c == tn.Player3 || c == tn.Player4 {
-		return true
-	}
-	return false
-}
 func TournamentClientHasLeft(h *Hub, tn *Tournament, c *Client) {
 	eventName := "TOURNAMENT_EVENT"
 	if c == tn.Player1 {

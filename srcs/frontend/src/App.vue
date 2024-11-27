@@ -154,7 +154,6 @@ onMounted(checkAuth);
   width: 95vw;
   height: 85vh;
   box-shadow: 0 0 40px rgba(0, 0, 0, 1);
-  
 }
 
 @media (max-width: 1320px), (max-height: 655px) {

@@ -31,14 +31,10 @@ const leaveLobby = () => {
 
 <style scoped>
 .leave-button-container {
-  position: absolute;
-  top: 10px;
-  left: 20px;
-  z-index: 100;
 }
 
 .leave-lobby-button {
-  background-color: #007bff;
+  background-color: var(--secondary-dark-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -50,7 +46,7 @@ const leaveLobby = () => {
 }
 
 .leave-lobby-button:hover {
-  background-color: #0056b3;
+  background-color: color-mix(in srgb, var(--secondary-dark-color) 95%, white);
 }
 
 @media (max-width: 600px) {

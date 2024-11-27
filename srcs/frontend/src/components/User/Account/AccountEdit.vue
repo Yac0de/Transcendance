@@ -346,4 +346,24 @@ input:checked+.slider:before {
   font-size: 12px;
   vertical-align: middle;
 }
+
+@media (max-height:850px) {
+  .avatar-container {
+  margin-bottom: 10px;
+  }
+  .avatar-wrapper {
+  height: 6rem;
+  width: 6rem;
+  }
+}
+
+@media (max-height:780px) {
+  .avatar-container {
+  margin-bottom: 5px;
+  }
+  .avatar-wrapper {
+  height: 4rem;
+  width: 4rem;
+  }
+}
 </style>

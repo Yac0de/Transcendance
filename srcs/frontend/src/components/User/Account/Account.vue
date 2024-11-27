@@ -1,5 +1,6 @@
 <template>
   <div v-if="userExists" class="account-container">
+    <!-- <div class="header-account-details"> -->
     <div class="account-content">
       <h2>Account Details</h2>
       <AccountView v-if="!isViewingStats && !isEditing && !isDeleting" :user="userToDisplay"
@@ -232,4 +233,5 @@ h2 {
   background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 85%, white));
   transform: scale(1.02);
 }
+
 </style>

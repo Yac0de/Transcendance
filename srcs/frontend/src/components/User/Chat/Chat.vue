@@ -27,6 +27,12 @@ import ChatDiscussion from './ChatDiscussion.vue';
 import { Friend, Message } from '../../../types/models';
 import { ChatMessage } from '../../../types/chat';
 
+const TOURNAMENT_MASTER: Friend = {
+    id: -999,
+    nickname: "Tournament Master",
+    avatar: ''
+};
+
 const showChatInterface = ref(false);
 const currentFriendId = ref<number | null>(null);
 const userStore = useUserStore();
@@ -70,7 +76,7 @@ const selectFriend = async (friendId: number) => {
 };
 
 const loadFriendDiscussion = async (friendId: number) => {
-    if (friendId === -1 || fetchedConversationsTracker.value.has(friendId)) return;
+    if (friendId === -1 || friendId === -999 || fetchedConversationsTracker.value.has(friendId)) return;
 
     try {
         const messages = await api.chat.getChatHistory(friendId);
@@ -86,8 +92,6 @@ const loadFriendDiscussion = async (friendId: number) => {
     }
 };
 
-
-
 const sendMessage = (message: string) => {
     console.log("Sending message to friend ID:", currentFriendId.value);
     if (message.trim() && currentFriendId.value) {
@@ -101,7 +105,6 @@ const sendMessage = (message: string) => {
         if (!conversations.value[currentFriendId.value]) {
             conversations.value[currentFriendId.value] = [];
         }
-        conversations.value[currentFriendId.value].push(newMessage);
 
         if (userStore.getWebSocketService?.isConnected()) {
             userStore.getWebSocketService?.sendChatMessage(
@@ -132,11 +135,6 @@ const setupChatMessageHandler = () => {
             return;
         }
 
-        // Ignorer les messages envoyés par soi-même
-        if (message.senderID === userStore.getId) {
-            return;
-        }
-
         const newMessage: Message = {
             content: message.data,
             senderId: message.senderID,
@@ -153,7 +151,6 @@ const setupChatMessageHandler = () => {
             chatStore.addUnreadMessage(conversationId);
         }
     });
-
     console.log("WebSocket handlers set up.");
 };
 
@@ -161,7 +158,10 @@ const fetchFriendList = async () => {
 	try {
 		const fetchedFriends = await api.friendlist.getFriendList();
 		if (fetchedFriends) {
-			friends.value = fetchedFriends;
+			friends.value = [
+                            TOURNAMENT_MASTER, 
+                            ...fetchedFriends
+                        ];
 		}
 	} catch (error) {
 		console.error('Failed to fetch friend list', error);
@@ -182,7 +182,9 @@ watch(() => chatStore.selectedFriendId, async (newFriendId) => {
 });
 
 onMounted(() => {
-	fetchFriendList();
+    //eventBus.on('', async (message:) => {
+    //})
+    fetchFriendList();
 });
 </script>
 

@@ -222,25 +222,22 @@ func StartTournament(h *Hub, request TournamentEvent) {
 	}()
 }
 
+func CreateLobbyGameTournament(player1 *Client, player2 *Client) *Lobby {
+	return &Lobby{
+		Id:               uuid.New(),
+		Sender:           player1,
+		Receiver:         player2,
+		Timestamps:       LobbyTimestamps{},
+		PlayersReady:     [2]bool{true, true},
+		IsTournamentGame: true,
+	}
+}
+
 func CreateLobbies(h *Hub, tournament *Tournament) {
 	ShuffleTournamentOpposition(h, tournament)
-	semi1 := &Lobby{
-		Id:               uuid.New(),
-		Sender:           h.Clients[tournament.Semi1[0]],
-		Receiver:         h.Clients[tournament.Semi1[1]],
-		Timestamps:       LobbyTimestamps{},
-		PlayersReady:     [2]bool{true, true},
-		IsTournamentGame: true,
-	}
 
-	semi2 := &Lobby{
-		Id:               uuid.New(),
-		Sender:           h.Clients[tournament.Semi2[0]],
-		Receiver:         h.Clients[tournament.Semi2[1]],
-		Timestamps:       LobbyTimestamps{},
-		PlayersReady:     [2]bool{true, true},
-		IsTournamentGame: true,
-	}
+	semi1 := CreateLobbyGameTournament(h.Clients[tournament.Semi1[0]], h.Clients[tournament.Semi1[1]])
+	semi2 := CreateLobbyGameTournament(h.Clients[tournament.Semi2[0]], h.Clients[tournament.Semi2[1]])
 
 	h.Lobbies[semi1.Id] = semi1
 	tournament.LobbiesSemi[0] = semi1
@@ -252,7 +249,7 @@ func CreateLobbies(h *Hub, tournament *Tournament) {
 func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	state := "TIMER"
-	sec := int16(20)
+	sec := int16(3)
 
 	CreateLobbies(h, tournament)
 
@@ -298,9 +295,15 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					SendDataToPlayers(tournament, evJson)
 					sec -= 1
 					if sec < 0 {
-						state = "TOURNAMENT_START_SEMI"
+						fmt.Printf("TIMER SEC FINISH\n")
 						if state == "TIMER_FINAL" {
+							tournament.LobbyFinal = CreateLobbyGameTournament(h.Clients[tournament.Final[0]], h.Clients[tournament.Final[1]])
+							h.Lobbies[tournament.LobbyFinal.Id] = tournament.LobbyFinal
+							fmt.Printf("TIMER_FINAL -> TOURNAMENT_START_FINAL: %+v\n", tournament.LobbyFinal)
+							fmt.Printf("Lobbies: %+v\n", h.Lobbies)
 							state = "TOURNAMENT_START_FINAL"
+						} else {
+							state = "TOURNAMENT_START_SEMI"
 						}
 					}
 				} else if state == "TOURNAMENT_START_SEMI" {
@@ -328,32 +331,58 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 						StartRoutine(h, tournament.LobbiesSemi[1])
 					}()
 				} else if state == "TOURNAMENT_ON_SEMI" {
-					fmt.Printf("TOURNAMENT_ON_SEMI %+v\n", tournament.LobbiesSemi[0].Game.State)
-					if tournament.Final[0] != 0 && tournament.LobbiesSemi[0].Game.State.Winner != 0 {
+					if tournament.Final[0] == 0 && tournament.LobbiesSemi[0].Game.State.Winner != 0 {
+						fmt.Printf("semi1\n")
 						tournament.Final[0] = tournament.LobbiesSemi[0].Game.State.Winner
 						event.Semi1.Score[0] = uint8(tournament.LobbiesSemi[0].Game.State.Score.Player1)
 						event.Semi1.Score[1] = uint8(tournament.LobbiesSemi[0].Game.State.Score.Player2)
 						event.Semi1.IsFinished = true
 						event.Final.Player1 = tournament.LobbiesSemi[0].Game.State.Winner
 						jsonData, _ := json.Marshal(&event)
-						fmt.Printf("TOURNAMENT_ON_SEMI: %s\n", string(jsonData))
 						SendDataToPlayers(tournament, jsonData)
 					}
-					if tournament.Final[1] != 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
+					if tournament.Final[1] == 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
+						fmt.Printf("semi2\n")
 						tournament.Final[1] = tournament.LobbiesSemi[1].Game.State.Winner
 						event.Semi2.Score[0] = uint8(tournament.LobbiesSemi[1].Game.State.Score.Player1)
 						event.Semi2.Score[1] = uint8(tournament.LobbiesSemi[1].Game.State.Score.Player2)
 						event.Semi2.IsFinished = true
 						event.Final.Player2 = tournament.LobbiesSemi[1].Game.State.Winner
 						jsonData, _ := json.Marshal(&event)
-						fmt.Printf("TOURNAMENT_ON_SEMI: %s\n", string(jsonData))
 						SendDataToPlayers(tournament, jsonData)
 					}
 					if tournament.Final[0] != 0 && tournament.Final[1] != 0 {
+						fmt.Printf("TIMER_FINAL ON SEMI: %+v\n", tournament.Final)
+						sec = 3
+						close(tournament.LobbiesSemi[0].Destroy)
+						close(tournament.LobbiesSemi[1].Destroy)
 						state = "TIMER_FINAL"
 					}
 				} else if state == "TOURNAMENT_START_FINAL" {
+					game := GameStart{
+						TournamentEvent: TournamentEvent{
+							Event: models.Event{
+								Type: "TOURNAMENT_GAME",
+							},
+							Code: tournament.Id,
+						},
+						LobbyId: tournament.LobbyFinal.Id,
+					}
+					evFinal, _ := json.Marshal(&game)
+					fmt.Printf("%+v\n", string(evFinal))
+					safeSend(tournament.LobbyFinal.Sender.Send, evFinal)
+					safeSend(tournament.LobbyFinal.Receiver.Send, evFinal)
 
+					state = "TOURNAMENT_ON_FINAL"
+					go func() {
+						time.Sleep(100 * time.Millisecond)
+						StartRoutine(h, tournament.LobbyFinal)
+					}()
+				} else if state == "TOURNAMENT_ON_FINAL" {
+					if tournament.LobbyFinal.Game.State.Winner != 0 {
+						fmt.Printf("ITS FINISH -> Userid %d won\n", tournament.LobbyFinal.Game.State.Winner)
+						return
+					}
 				}
 			}
 		}

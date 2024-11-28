@@ -30,7 +30,7 @@
           <div class="bracket">
             <div class="match-winner">
               <p v-if="!UsersInFinal"> Semi 1 Winner</p>
-              <p v-else> {{ UsersInFinal[0]?.displayname }} </p>
+              <p v-else> {{ UsersInFinal[1]?.displayname }} </p>
             </div>
             <div class="match-connections">
               <div class="match-branch">

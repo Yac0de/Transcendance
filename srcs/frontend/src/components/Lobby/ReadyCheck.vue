@@ -21,6 +21,7 @@ interface Props {
   lobbyId?: string;
   isPlayerReady: boolean;
   bothPlayersReady?: boolean;
+  isGameMode : boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,7 +42,7 @@ const handleToggle = (isActive: boolean) => {
 
 const toggleReady = () => {
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.sendPlayerReadyMessage(props.lobbyId);
+    userStore.getWebSocketService?.sendPlayerReadyMessage(props.lobbyId, props.isGameMode);
   } else {
     console.error('WebSocket is not connected');
   }

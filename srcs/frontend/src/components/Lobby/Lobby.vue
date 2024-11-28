@@ -22,7 +22,8 @@
         <div class="player-column">
           <PlayerItem :is-left="true"
             :challenged-friend="challengedFriend" />
-          <ReadyCheck :both-players-ready="player1Ready && player2Ready" 
+          <ReadyCheck :both-players-ready="player1Ready && player2Ready"
+          :isGameMode="gameSettingsStore.gameMode"
           :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
         </div>
         <div class="versus">VS</div>
@@ -32,6 +33,7 @@
             :isWaiting="isWaitingForResponse"
             @friend-selected="handleFriendSelected" />
           <ReadyCheck :both-players-ready="player1Ready && player2Ready"
+           :isGameMode="gameSettingsStore.gameMode"
            :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
         </div>
       </div>

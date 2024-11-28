@@ -38,6 +38,7 @@ export interface LobbyPlayerStatus {
   type: 'LOBBY_PLAYER_READY_STATUS' | 'LOBBY_PLAYER_UNREADY_STATUS';
   userId: number;
   lobbyId: string;
+  isGameMode: boolean;
 }
 
 export interface LobbyCreated {

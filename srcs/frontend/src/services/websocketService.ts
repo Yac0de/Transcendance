@@ -223,12 +223,13 @@ export class WebSocketService {
         }
     }
 
-    public sendPlayerReadyMessage(lobbyId: string): void {
+    public sendPlayerReadyMessage(lobbyId: string, isGameMode: boolean): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_READY_STATUS',
                 userId: this.userStore.getId!,
-                lobbyId: lobbyId
+                lobbyId: lobbyId,
+                isGameMode: isGameMode
             };
             console.log(message);
             this.ws.send(JSON.stringify(message));

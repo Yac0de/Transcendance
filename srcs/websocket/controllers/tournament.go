@@ -21,6 +21,7 @@ type Tournament struct {
 	Final       [2]uint64 `json:"final"`
 	LobbiesSemi [2]*Lobby `json:"-"`
 	LobbyFinal  *Lobby    `json:"-"`
+	State       string    `json:"-"`
 }
 
 type TournamentEvent struct {
@@ -96,6 +97,7 @@ func NewTournament(h *Hub, request TournamentEvent) *Tournament {
 		Final:       [2]uint64{0, 0},
 		LobbiesSemi: [2]*Lobby{nil, nil},
 		LobbyFinal:  nil,
+		State:       "TOURNAMENT_LOBBY",
 	}
 }
 
@@ -174,12 +176,12 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 	}
 	if tournament.Player1 == clientLeft {
 		request.Type = "TOURNAMENT_TERMINATE"
-		jsonData, err := json.Marshal(&request)
+		tnTerminate, err := json.Marshal(&request)
 		if err != nil {
 			fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
 			return
 		}
-		SendDataToPlayers(tournament, jsonData)
+		SendDataToPlayers(tournament, tnTerminate)
 		delete(h.Tournaments, tournament.Id)
 		return
 	} else if tournament.Player2 == clientLeft {
@@ -189,15 +191,9 @@ func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
 	} else if tournament.Player4 == clientLeft {
 		tournament.Player4 = nil
 	}
-
 	request.Type = "TOURNAMENT_EVENT"
 	RefreshTournamentEvent(&request, tournament)
-
-	jsonData, err := json.Marshal(&request)
-	if err != nil {
-		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
-		return
-	}
+	jsonData, _ := json.Marshal(&request)
 	SendDataToPlayers(tournament, jsonData)
 }
 
@@ -247,7 +243,7 @@ func CreateLobbies(h *Hub, tournament *Tournament) {
 	tournament.LobbiesSemi[1] = semi2
 }
 
-func HandleTimerEvent(h *Hub, tournament *Tournament, state *string, sec *int16) {
+func HandleTimerEvent(h *Hub, tournament *Tournament, sec *int16) {
 	event := TournamentTimerEvent{
 		Event: models.Event{
 			Type: "TOURNAMENT_TIMER",
@@ -256,17 +252,17 @@ func HandleTimerEvent(h *Hub, tournament *Tournament, state *string, sec *int16)
 		RemainingTime: *sec,
 	}
 	evJson, _ := json.Marshal(&event)
-	SendDataToPlayers(tournament, evJson)
-
+	SendDatasToGame(h, tournament.Semi1, evJson)
+	SendDatasToGame(h, tournament.Semi2, evJson)
 	*sec -= 1
 	if *sec < 0 {
-		if *state == "TIMER_FINAL" {
+		if tournament.State == "TIMER_FINAL" {
 			tournament.LobbyFinal = CreateLobbyGameTournament(h.Clients[tournament.Final[0]], h.Clients[tournament.Final[1]])
 			h.Lobbies[tournament.LobbyFinal.Id] = tournament.LobbyFinal
-			*state = "TOURNAMENT_START_FINAL"
+			tournament.State = "TOURNAMENT_START_FINAL"
 			return
 		}
-		*state = "TOURNAMENT_START_SEMI"
+		tournament.State = "TOURNAMENT_START_SEMI"
 	}
 }
 
@@ -277,10 +273,10 @@ func PreventPlayersGameStart(tournament *Tournament, lobby *Lobby) {
 	safeSend(lobby.Receiver.Send, ev)
 }
 
-func StartSemiFinals(h *Hub, tournament *Tournament, state *string) {
+func StartSemiFinals(h *Hub, tournament *Tournament) {
 	PreventPlayersGameStart(tournament, tournament.LobbiesSemi[0])
 	PreventPlayersGameStart(tournament, tournament.LobbiesSemi[1])
-	*state = "TOURNAMENT_ON_SEMI"
+	tournament.State = "TOURNAMENT_ON_SEMI"
 	go func() {
 		time.Sleep(100 * time.Millisecond)
 		StartRoutine(h, tournament.LobbiesSemi[0])
@@ -288,9 +284,9 @@ func StartSemiFinals(h *Hub, tournament *Tournament, state *string) {
 	}()
 }
 
-func StartFinal(h *Hub, tournament *Tournament, state *string) {
+func StartFinal(h *Hub, tournament *Tournament) {
 	PreventPlayersGameStart(tournament, tournament.LobbyFinal)
-	*state = "TOURNAMENT_ON_FINAL"
+	tournament.State = "TOURNAMENT_ON_FINAL"
 	go func() {
 		time.Sleep(100 * time.Millisecond)
 		StartRoutine(h, tournament.LobbyFinal)
@@ -299,7 +295,7 @@ func StartFinal(h *Hub, tournament *Tournament, state *string) {
 
 func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
-	state := "TIMER"
+	tournament.State = "TIMER_SEMI_FINAL"
 	sec := int16(5)
 
 	CreateLobbies(h, tournament)
@@ -310,38 +306,29 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 		for {
 			select {
 			case <-gameTicker.C:
-				if strings.HasPrefix(state, "TIMER") && sec >= 0 {
-					HandleTimerEvent(h, tournament, &state, &sec)
-				} else if state == "TOURNAMENT_START_SEMI" {
-					StartSemiFinals(h, tournament, &state)
-				} else if state == "TOURNAMENT_ON_SEMI" {
+				if strings.HasPrefix(tournament.State, "TIMER_") && sec >= 0 {
+					HandleTimerEvent(h, tournament, &sec)
+				} else if tournament.State == "TOURNAMENT_START_SEMI" {
+					StartSemiFinals(h, tournament)
+				} else if tournament.State == "TOURNAMENT_ON_SEMI" {
 					UpdateSemiFinals(h, tournament, event)
 					if tournament.Final[0] != 0 && tournament.Final[1] != 0 {
 						sec = 5
-						state = "TIMER_FINAL"
+						tournament.State = "TIMER_FINAL"
 					}
-				} else if state == "TOURNAMENT_START_FINAL" {
-					StartFinal(h, tournament, &state)
-				} else if IsFinalTournamentFinished(tournament, state) {
+				} else if tournament.State == "TOURNAMENT_START_FINAL" {
+					StartFinal(h, tournament)
+				} else if IsFinalTournamentFinished(tournament) {
 					SendTournamentTreeState(h, tournament, event)
-
-					// event.Final.Score[0] = uint8(tournament.LobbyFinal.Game.State.Score.Player1)
-					// event.Final.Score[1] = uint8(tournament.LobbyFinal.Game.State.Score.Player2)
-					// event.Final.IsFinished = true
-					// jsonData, _ := json.Marshal(&event)
-					// SendDatasToGame(h, tournament.Semi1, jsonData)
-					// SendDatasToGame(h, tournament.Semi2, jsonData)
-
 					return
 				}
 			}
 		}
 	}()
-
 }
 
-func IsFinalTournamentFinished(tournament *Tournament, state string) bool {
-	return state == "TOURNAMENT_ON_FINAL" && tournament.LobbyFinal.Game.State.Winner != 0
+func IsFinalTournamentFinished(tournament *Tournament) bool {
+	return tournament.State == "TOURNAMENT_ON_FINAL" && tournament.LobbyFinal.Game.State.Winner != 0
 }
 
 func SendTournamentTreeState(h *Hub, tournament *Tournament, event *TournamentTreeEvent) {
@@ -384,36 +371,15 @@ func UpdateSemiFinals(h *Hub, tournament *Tournament, event *TournamentTreeEvent
 }
 
 func TournamentClientHasLeft(h *Hub, tn *Tournament, c *Client) {
-	eventName := "TOURNAMENT_EVENT"
-	if c == tn.Player1 {
-		eventName = "TOURNAMENT_TERMINATE"
-		tn.Player1 = nil
-	} else if c == tn.Player2 {
-		tn.Player2 = nil
-	} else if c == tn.Player3 {
-		tn.Player3 = nil
-	} else if c == tn.Player4 {
-		tn.Player4 = nil
-	}
-
-	event := TournamentEvent{
-		Event: models.Event{
-			Type: eventName,
-		},
-		Code: tn.Id,
-	}
-
-	RefreshTournamentEvent(&event, tn)
-
-	jsonData, err := json.Marshal(&event)
-	if err != nil {
-		fmt.Printf("Impossible to parse TournamentEvent type: ", err.Error())
+	if tn.State == "TOURNAMENT_LOBBY" {
+		evt := TournamentEvent{
+			Event: models.Event{
+				Type: "TOURNAMENT_EVENT",
+			},
+			Code:   tn.Id,
+			UserId: c.Id,
+		}
+		LeaveWaitingRoomTournament(h, evt)
 		return
-	}
-
-	SendDataToPlayers(tn, jsonData)
-
-	if c == tn.Player1 {
-		delete(h.Tournaments, tn.Id)
 	}
 }

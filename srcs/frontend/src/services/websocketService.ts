@@ -228,8 +228,9 @@ export class WebSocketService {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_READY_STATUS',
                 userId: this.userStore.getId!,
-                lobbyId: lobbyId,
+                lobbyId: lobbyId
             };
+            console.log(message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

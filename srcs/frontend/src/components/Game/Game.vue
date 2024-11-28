@@ -20,7 +20,7 @@
 import { GameEvent, GameState } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
-import { drawPaddle, drawBall, drawEndGame } from '../../services/gamerender';
+import { drawPaddle, drawBall, drawEndGame, drawBoostStatus } from '../../services/gamerender';
 import { useUserStore } from '../../stores/user';
 import { useRoute, useRouter } from 'vue-router'
 import GameHeader from './GameHeader.vue';
@@ -184,6 +184,7 @@ onMounted(() => {
 
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
+        drawBoostStatus(ctx, message.state!);
         if (!message.state!.isActive && message.state!.winner !== 0) {
           drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
           

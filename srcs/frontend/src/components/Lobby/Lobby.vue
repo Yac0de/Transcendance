@@ -1,26 +1,38 @@
 <template>
-  <div class="lobby-container" :class="{ 'no-clicks': showNotification }">
-    <div v-if="showNotification" class="modal-overlay">
-      <div class="notification">
-        Lobby has been destroyed, you will be redirected to homepage. 
-        Maybe your opponent was scared ?
+  <div class="container">
+    <div class="lobby-container" :class="{ 'no-clicks': showNotification }">
+      <div v-if="showNotification" class="modal-overlay">
+        <div class="notification">
+          Lobby has been destroyed, you will be redirected to homepage. 
+          Maybe your opponent was scared ?
+        </div>
       </div>
-    </div>
-    <LeaveLobbyButton :lobby-id="lobbyId"/>
-    <Timer :remaining-seconds="remainingSeconds" v-if="showTimer"/>
-    <div class="players-container">
-      <div class="player-column">
-        <PlayerItem :is-left="true"
-          :challenged-friend="challengedFriend" />
-        <ReadyCheck :both-players-ready="player1Ready && player2Ready" :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
+      <div v-if="!isAcceptingPlayer" class="modes">
+        <h1>SPECIAL MODE</h1>
+        <ToggleButton
+          :activeLabel="'ON'"
+          :inactiveLabel="'OFF'"
+          @toggle="handleToggleMode"
+        />
       </div>
-      <div class="versus">VS</div>
-      <div class="player-column">
-        <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
-          :challenged-friend="challengedFriend"
-          :isWaiting="isWaitingForResponse"
-          @friend-selected="handleFriendSelected" />
-        <ReadyCheck :both-players-ready="player1Ready && player2Ready" :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
+      <LeaveLobbyButton :lobby-id="lobbyId"/>
+      <Timer :remaining-seconds="remainingSeconds" v-if="showTimer"/>
+      <div class="players-container">
+        <div class="player-column">
+          <PlayerItem :is-left="true"
+            :challenged-friend="challengedFriend" />
+          <ReadyCheck :both-players-ready="player1Ready && player2Ready" 
+          :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
+        </div>
+        <div class="versus">VS</div>
+        <div class="player-column">
+          <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
+            :challenged-friend="challengedFriend"
+            :isWaiting="isWaitingForResponse"
+            @friend-selected="handleFriendSelected" />
+          <ReadyCheck :both-players-ready="player1Ready && player2Ready"
+           :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
+        </div>
       </div>
     </div>
   </div>
@@ -28,12 +40,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import ToggleButton from './ToggleButton.vue';
 import LeaveLobbyButton from './LeaveLobbyButton.vue'
 import PlayerItem from './PlayerItem.vue'
 import PlayerScrolldown from './PlayerScrolldown.vue'
 import ReadyCheck from './ReadyCheck.vue'
 import Timer from './Timer.vue'
 import { useUserStore } from '../../stores/user'
+import { useGameSettingsStore } from '../../stores/gameSettings.js';
 import { UserData } from '../../types/models';
 import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
@@ -43,6 +57,7 @@ import { useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore();
+const gameSettingsStore = useGameSettingsStore();
 const isWaitingForResponse = ref<boolean>(false)
 
 const player1Ready = ref<boolean>(false)
@@ -59,9 +74,15 @@ const bothPlayerPresent = computed(() => {
   return challengedFriendId.value !== 0;
 });
 
+const isSpecialMode = ref<boolean>(false);
 const remainingSeconds = ref<number>(0);
 const showReadyChecks = ref<boolean>(true);
 const showTimer = ref<boolean>(false);
+
+const handleToggleMode = (newValue: boolean) => {
+  isSpecialMode.value = newValue;
+  gameSettingsStore.setGameMode(newValue);
+};
 
 const handleFriendSelected = (friendId: number) => {
   if (userStore.getWebSocketService?.isConnected()) {
@@ -140,15 +161,28 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  text-align: center;
+  height: 40vh;
+  min-height: 300px;
+  min-width: 300px;
+  padding: 2vh 5vw;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  background: var(--main-color);
+  z-index: 5;
+}
+
 .lobby-container {
-  min-height: 100vh;
   display: flex;
   position: relative;
   flex-direction: column;
   justify-content: center;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   gap: 20px;
 }
@@ -169,6 +203,16 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   pointer-events: all;
+}
+
+.modes {
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  text-shadow: 1px 1px 2px black;
 }
 
 .players-container {

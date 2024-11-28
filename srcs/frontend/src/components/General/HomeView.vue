@@ -14,10 +14,6 @@
 </script>
 
 <style scoped>
-/* @font-face {
-  font-family: 'Chailcy Noggin';
-  src: url("../../fonts/ChailceNogginRegular.ttf");
-} */
 
 .homepage-container {
   font-weight: 400;

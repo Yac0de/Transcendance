@@ -93,21 +93,17 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_START', () => {
-    console.log("<- TOURNEY START, CHANGING VIEW TO THE TREE, WAITING FOR TREE STATE EVENT")
     currentView.value = 'tournament-tree'
   })
 
   eventBus.on('TOURNAMENT_ERROR', (message: TournamentError) => {
-    console.log(message.error);
     error.value = message.error
-    console.log("<- TOURNAMENT ERROR")
   })
 })
 
 onUnmounted(() => {
   if (tournamentCode.value) {
     if (userStore.getWebSocketService?.isConnected()) {
-      console.log("WILL SEND LEAVE");
       userStore.getWebSocketService?.leaveTournamentWaitingRoom(tournamentCode.value)
     } else {
       console.error('WebSocket is not connected');

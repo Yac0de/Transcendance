@@ -114,7 +114,6 @@ export class WebSocketService {
             eventBus.emit('GAME_FINISHED', message);
         });
         this.setMessageHandler<TournamentJoinWithCode>('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
-            console.log("JOIN CALLBACK");
             eventBus.emit('TOURNAMENT_JOIN_WITH_CODE', message);
         });
         this.setMessageHandler<TournamentCreate>('TOURNAMENT_CREATE', (message: TournamentCreate) => {
@@ -312,7 +311,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 code: code
             };
-            console.log("JOIN TOURNAMENT WITH CODE -> ", message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -326,7 +324,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 code: '',
             };
-            console.log("CREATE TOURNAMENT LOBBY -> ", message);
             this.ws.send(JSON.stringify(message));
         }
     }
@@ -338,7 +335,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 code: code
             };
-            console.log("LEAVE TOURNEY WAITING ROOM -> ", message);
             this.ws.send(JSON.stringify(message));
         }
     }
@@ -350,7 +346,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 code: code,
             };
-            console.log("TOURNAMENT START -> ", message);
             this.ws.send(JSON.stringify(message));
         }
     }

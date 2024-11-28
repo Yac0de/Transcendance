@@ -76,12 +76,10 @@ const router = useRouter();
 onMounted(async () => {
 
   eventBus.on('TOURNAMENT_TIMER', (message: TournamentTimer) => {
-    console.log("TIMER RECEIVED");
     remainingSeconds.value = message.remainingTime;
   })
 
   eventBus.on('TOURNAMENT_TREE_STATE', async (message: TournamentTreeState) => {
-    console.log("<- TOUR TREE STATE RECEIVED", message)
     if (message.semi1) {
       UsersInSemis1.value = await fetchMultipleUsers([message.semi1.player1id, message.semi1.player2id]); 
     }
@@ -122,7 +120,6 @@ onMounted(async () => {
   })
 
   eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {
-    console.log("TOURNAMENT GAME READY TO START: ", message);
     router.push({
       path: '/game', 
       query: { lobbyId: message.lobbyId }

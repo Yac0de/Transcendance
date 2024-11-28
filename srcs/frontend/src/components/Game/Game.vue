@@ -177,8 +177,6 @@ onMounted(() => {
   })
 
   eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
-    console.log("<- GAME FINISHED: ", message);
-    console.log("PLAYERS = ", player1Id.value, player2Id.value);
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
 
     if (message.isTournamentGame === false) {

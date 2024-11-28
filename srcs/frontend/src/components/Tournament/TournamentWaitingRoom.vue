@@ -73,7 +73,6 @@ onMounted(() => {
 
   eventBus.on('TOURNAMENT_CREATE', async (message: TournamentCreate) => {
     try {
-      console.log("TOURNAMENT CREATE EVENT: ", message);
       creatorId.value = message.player1id ?? 0;
       const playerIds = [
         message.player1id ?? 0,
@@ -91,7 +90,6 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_TERMINATE', async () => {
-    console.log("TOURNEY OWNER HAS QUIT, REDIRECT TO HOMEPAGE");
     router.push('/');
   })
 })

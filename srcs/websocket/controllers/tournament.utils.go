@@ -6,7 +6,49 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"websocket/models"
+
+	"github.com/google/uuid"
 )
+
+func CreateTournamentTreeEvent(tournament *Tournament) *TournamentTreeEvent {
+	return &TournamentTreeEvent{
+		Event: models.Event{
+			Type: "TOURNAMENT_TREE_STATE",
+		},
+		Code: tournament.Id,
+		Semi1: TournamentGame{
+			Player1:    tournament.Semi1[0],
+			Player2:    tournament.Semi1[1],
+			Score:      [2]uint8{0, 0},
+			IsFinished: false,
+		},
+		Semi2: TournamentGame{
+			Player1:    tournament.Semi2[0],
+			Player2:    tournament.Semi2[1],
+			Score:      [2]uint8{0, 0},
+			IsFinished: false,
+		},
+		Final: TournamentGame{
+			Player1:    0,
+			Player2:    0,
+			Score:      [2]uint8{0, 0},
+			IsFinished: false,
+		},
+	}
+}
+
+func CreateGameStartEvent(tournament *Tournament, lobbyId uuid.UUID) *GameStart {
+	return &GameStart{
+		TournamentEvent: TournamentEvent{
+			Event: models.Event{
+				Type: "TOURNAMENT_GAME",
+			},
+			Code: tournament.Id,
+		},
+		LobbyId: lobbyId,
+	}
+}
 
 func ShuffleTournamentOpposition(h *Hub, tournament *Tournament) {
 	players := [4]uint64{tournament.Player1.Id, tournament.Player2.Id, tournament.Player3.Id, tournament.Player4.Id}

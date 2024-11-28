@@ -34,7 +34,6 @@ const nameStyle = computed(() => {
   const minFontSize = 11;  // Taille minimum de la police
   const maxFontSize = 24;  // Taille maximum de la police
   const minLength = 3;     // Longueur minimale du pseudo
-  const maxLength = 16;    // Longueur maximale du pseudo
 
   const length = displayName.length;
   const fontSize = Math.max(minFontSize, Math.min(maxFontSize, maxFontSize - (length - minLength) * 1.5));

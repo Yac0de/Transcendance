@@ -31,7 +31,7 @@
 </template>
   
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { GameState } from '../../types/game';
 import { UserData } from '../../types/models'
 import { fetchUserById } from '../../utils/fetch'
@@ -66,7 +66,6 @@ const nameStyle = (player: UserData | null) => {
   const minFontSize = 15;  // Taille minimum de la police
   const maxFontSize = 24;  // Taille maximum de la police
   const minLength = 3;     // Longueur minimale du pseudo
-  const maxLength = 16;    // Longueur maximale du pseudo
 
   const length = nickname.length;
   const fontSize = Math.max(minFontSize, Math.min(maxFontSize, maxFontSize - (length - minLength) * 1.5));

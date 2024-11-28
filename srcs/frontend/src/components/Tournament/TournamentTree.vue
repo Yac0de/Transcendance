@@ -54,6 +54,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { UserData } from '../../types/models'
+import { TournamentTimer, TournamentTreeState, TournamentGame } from '../../types/tournament'
 import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
 import { useRouter } from 'vue-router';
@@ -65,9 +66,6 @@ const UsersInSemis1 = ref<(UserData | null)[]>([null, null]);
 const UsersInSemis2 = ref<(UserData | null)[]>([null, null]); 
 const UsersInFinal = ref<(UserData | null)[]>([null, null]); 
 
-const semis1Score = ref<number[]>([]);
-const semis2Score = ref<number[]>([]);
-const finalScore = ref<number[]>([]);
 const winner = ref<UserData | null>(null);
 
 const hasLost = ref<boolean>(false);
@@ -82,7 +80,7 @@ onMounted(async () => {
     remainingSeconds.value = message.remainingTime;
   })
 
-  eventBus.on('TOURNAMENT_TREE_STATE', async (message: TournamentStart) => {
+  eventBus.on('TOURNAMENT_TREE_STATE', async (message: TournamentTreeState) => {
     console.log("<- TOUR TREE STATE RECEIVED", message)
     if (message.semi1) {
       UsersInSemis1.value = await fetchMultipleUsers([message.semi1.player1id, message.semi1.player2id]); 

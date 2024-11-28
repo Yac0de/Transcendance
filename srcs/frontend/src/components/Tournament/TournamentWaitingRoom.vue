@@ -27,9 +27,9 @@
 //To allow start with only 4 players
 //:disabled="users.includes(null)"
 
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import PlayerTile from './PlayerTile.vue';
-import UserData from '../../types/models';
+import { UserData } from '../../types/models';
 import { useUserStore } from '../../stores/user'
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById, fetchMultipleUsers } from '../../utils/fetch'

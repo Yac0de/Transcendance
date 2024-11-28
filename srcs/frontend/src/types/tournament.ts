@@ -8,6 +8,24 @@ export interface TournamentTreeState {
   type: 'TOURNAMENT_TREE_STATE';
   userId: number;
   code: string;
+  final: { 
+    player1id: number;
+    player2id: number;
+    score: number[2];
+    isFinished: boolean
+  };
+  semi1: { 
+    player1id: number;
+    player2id: number;
+    score: number[2];
+    isFinished: boolean;
+  };
+  semi2: { 
+    player1id: number;
+    player2id: number;
+    score: number[2];
+    isFinished: boolean;
+  };
 }
 
 export interface TournamentCreate {

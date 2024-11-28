@@ -3,20 +3,21 @@
     <!-- Menu de navigation style LoL -->
     <div class="history-title">
       <h1>HISTORY</h1>
+      <WinrateCircle :percentage="winrate" />
     </div>
 
     <!-- Zone de filtres -->
     <div class="filters">
       <button class="filter-button">
         <span>Time Period</span>
-        <span>Last 5 matches</span>
+        <span>Last 8 matches</span>
       </button>
     </div>
 
     <!-- Liste des matchs -->
     <div class="matches-list" v-if="games.length > 0">
       <div 
-  v-for="game in games" 
+  v-for="game in limitedGames" 
   :key="game.id" 
   :class="['match-card', { 'victory': game.is_winner, 'defeat': !game.is_winner }]"
 >
@@ -56,12 +57,14 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import  gameHistoryService  from '../../../services/gameHistoryService'
 import { useUserStore } from '../../../stores/user'
 import { fetchUserById } from '../../../utils/fetch';
+import WinrateCircle from './WinrateCircle.vue';
 
 
 interface Game {
@@ -75,9 +78,14 @@ interface Game {
   is_winner: boolean
 }
 
+const winrate =ref(0)
 const route = useRoute()
 const userStore = useUserStore()
 const games = ref<Game[]>([])
+
+const limitedGames = computed(() => {
+  return games.value.slice(0, 8);
+})
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
@@ -94,12 +102,13 @@ onMounted(async () => {
     const userId = userStore.id;
     console.log("User ID from store:", userId);
     if (userId) {
-      console.log("Attempting to fetch history for user", userId);
       const history = await gameHistoryService.getUserHistory(userId);
       console.log("History received:", history);
       if (history) {
         // Assigner directement l'historique reçu
         games.value = history;
+        const victories = history.filter(game =>game.is_winner).length;
+        winrate.value = (victories / history.length) * 100;
       }
     }
   } catch (error) {
@@ -170,7 +179,12 @@ onMounted(async () => {
   flex-direction: column;
   gap: 8px;
 }
-
+.history-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
 .match-card {
   display: flex;
   justify-content: space-between;

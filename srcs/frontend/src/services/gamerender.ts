@@ -37,9 +37,9 @@ function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
             state.ball.y + offsetY,
             radius
         );
-            gradient.addColorStop(0, 'rgba(218, 123, 147, 0.8)');
-            gradient.addColorStop(0.4, 'rgba(218, 123, 147, 0.4)');
-            gradient.addColorStop(1, 'rgba(218, 123, 147, 0)');
+            gradient.addColorStop(0, 'rgba(171, 196, 255, 0.8)');
+            gradient.addColorStop(0.4, 'rgba(171, 196, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(171, 196, 255, 0)');
         
         ctx.beginPath();
         ctx.fillStyle = gradient;
@@ -57,7 +57,7 @@ export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
     
     // Dessiner la balle principale (toujours en rouge maintenant)
     ctx.beginPath();
-    ctx.fillStyle = 'rgba(218, 123, 147, 0)';
+    ctx.fillStyle = 'rgba(171, 196, 255 0)';
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
     ctx.fill();
     

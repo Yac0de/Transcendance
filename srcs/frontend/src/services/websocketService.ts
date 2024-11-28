@@ -2,8 +2,8 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
-import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState } from '../types/tournament';
-import { GameEvent, GameStart } from '../types/game';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
+import { GameEvent, GameStart, GameFinished } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 import { useChatStore } from '../stores/chatStore.ts';
@@ -113,7 +113,7 @@ export class WebSocketService {
         this.setMessageHandler<GameFinished>('GAME_FINISHED',(message: GameFinished)  => {
             eventBus.emit('GAME_FINISHED', message);
         });
-        this.setMessageHandler<TournamentJoin>('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoin) => {
+        this.setMessageHandler<TournamentJoinWithCode>('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
             console.log("JOIN CALLBACK");
             eventBus.emit('TOURNAMENT_JOIN_WITH_CODE', message);
         });
@@ -126,8 +126,8 @@ export class WebSocketService {
         this.setMessageHandler<TournamentStart>('TOURNAMENT_START', (message: TournamentStart) => {
             eventBus.emit('TOURNAMENT_START', message);
         })
-        this.setMessageHandler<TournamentTerminate>('TOURNAMENT_TERMINATE', (message: TournamentTerminate) => {
-            eventBus.emit('TOURNAMENT_TERMINATE', message);
+        this.setMessageHandler<TournamentTerminate>('TOURNAMENT_TERMINATE', () => {
+            eventBus.emit('TOURNAMENT_TERMINATE');
         })
         this.setMessageHandler<TournamentTimer>('TOURNAMENT_TIMER', (message: TournamentTimer) => {
             eventBus.emit('TOURNAMENT_TIMER', message);
@@ -138,7 +138,7 @@ export class WebSocketService {
         this.setMessageHandler<TournamentError>('TOURNAMENT_ERROR', (message: TournamentError) => {
             eventBus.emit('TOURNAMENT_ERROR', message);
         })
-        this.setMessageHandler<TournamentError>('TOURNAMENT_TREE_STATE', (message: TournamentTreeState) => {
+        this.setMessageHandler<TournamentTreeState>('TOURNAMENT_TREE_STATE', (message: TournamentTreeState) => {
             eventBus.emit('TOURNAMENT_TREE_STATE', message);
         })
     }
@@ -307,7 +307,7 @@ export class WebSocketService {
 
     public joinTournamentWithCode(code: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: joinTournamentWithCode = {
+            const message: TournamentJoinWithCode = {
                 type: 'TOURNAMENT_JOIN_WITH_CODE',
                 userId: this.userStore.getId!,
                 code: code
@@ -324,7 +324,7 @@ export class WebSocketService {
             const message: TournamentCreate = {
                 type: 'TOURNAMENT_CREATE',
                 userId: this.userStore.getId!,
-                code:'' 
+                code: '',
             };
             console.log("CREATE TOURNAMENT LOBBY -> ", message);
             this.ws.send(JSON.stringify(message));
@@ -333,7 +333,7 @@ export class WebSocketService {
 
     public leaveTournamentWaitingRoom(code: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: LeaveTournamentWaitingRoom = {
+            const message: TournamentLeaveWaitingRoom = {
                 type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
                 userId: this.userStore.getId!,
                 code: code
@@ -348,7 +348,7 @@ export class WebSocketService {
             const message: TournamentStart = {
                 type: 'TOURNAMENT_START',
                 userId: this.userStore.getId!,
-                code: code
+                code: code,
             };
             console.log("TOURNAMENT START -> ", message);
             this.ws.send(JSON.stringify(message));

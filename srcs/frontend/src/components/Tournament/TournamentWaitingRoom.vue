@@ -32,7 +32,7 @@ import PlayerTile from './PlayerTile.vue';
 import { UserData } from '../../types/models';
 import { useUserStore } from '../../stores/user'
 import { eventBus } from '../../events/eventBus'
-import { fetchUserById, fetchMultipleUsers } from '../../utils/fetch'
+import { fetchMultipleUsers } from '../../utils/fetch'
 import { useRouter } from 'vue-router';
 import { TournamentCreate, TournamentEvent } from '../../types/tournament';
 
@@ -40,7 +40,7 @@ const userStore = useUserStore();
 const router = useRouter();
 const tournamentCode = ref<string>('');
 const creatorId = ref<number>(0);
-const clientId = ref<number>(userStore.getId);
+const clientId = ref<number | null>(userStore.getId);
 
 const users = ref<(UserData | null)[]>([null, null, null, null]); 
 
@@ -56,14 +56,14 @@ onMounted(() => {
   eventBus.on('TOURNAMENT_EVENT', async (message: TournamentEvent) => {
     try {
       console.log("TOURNAMENT EVENT: ", message);
-      creatorId.value = message.player1id;
+      creatorId.value = message.player1id ?? 0;
       const playerIds = [
-        message.player1id,
-        message.player2id,
-        message.player3id,
-        message.player4id
+        message.player1id ?? 0,
+        message.player2id ?? 0,
+        message.player3id ?? 0,
+        message.player4id ?? 0
       ];
-      tournamentCode.value = message.code;
+      tournamentCode.value = String(message.code);
       users.value = await fetchMultipleUsers(playerIds);
     } catch (error) {
       console.error("Failed to handle tournament event:", error);
@@ -74,15 +74,15 @@ onMounted(() => {
   eventBus.on('TOURNAMENT_CREATE', async (message: TournamentCreate) => {
     try {
       console.log("TOURNAMENT CREATE EVENT: ", message);
-      creatorId.value = message.player1id;
+      creatorId.value = message.player1id ?? 0;
       const playerIds = [
-        message.player1id,
-        message.player2id,
-        message.player3id,
-        message.player4id
+        message.player1id ?? 0,
+        message.player2id ?? 0,
+        message.player3id ?? 0,
+        message.player4id ?? 0
       ];
 
-      tournamentCode.value = message.code;
+      tournamentCode.value = String(message.code);
       users.value = await fetchMultipleUsers(playerIds);
     } catch (error) {
       console.error("Failed to handle tournament event:", error);

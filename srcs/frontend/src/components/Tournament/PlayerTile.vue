@@ -21,7 +21,7 @@
 import { UserData } from '../../types/models'
 
 defineProps<{
-  player?: UserData;
+  player?: UserData | null;
 }>();
 
 </script>

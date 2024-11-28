@@ -11,19 +11,19 @@ export interface TournamentTreeState {
   final: { 
     player1id: number;
     player2id: number;
-    score: number[2];
+    score: number[];
     isFinished: boolean
   };
   semi1: { 
     player1id: number;
     player2id: number;
-    score: number[2];
+    score: number[];
     isFinished: boolean;
   };
   semi2: { 
     player1id: number;
     player2id: number;
-    score: number[2];
+    score: number[];
     isFinished: boolean;
   };
 }
@@ -31,7 +31,11 @@ export interface TournamentTreeState {
 export interface TournamentCreate {
   type: 'TOURNAMENT_CREATE';
   userId: number;
-  code: number;
+  code: string;
+  player1id?: number;
+  player2id?: number;
+  player3id?: number;
+  player4id?: number;
 }
 
 export interface TournamentGame {
@@ -39,10 +43,14 @@ export interface TournamentGame {
   lobbyId: number;
 }
 
-export interface TournamentLeave {
+export interface TournamentLeaveWaitingRoom {
   type: 'TOURNAMENT_LEAVE_WAITING_ROOM';
   userId: number;
-  code: number;
+  code: string;
+}
+
+export interface TournamentTerminate {
+  type: 'TOURNAMENT_TERMINATE';
 }
 
 export interface TournamentError {
@@ -58,17 +66,17 @@ export interface TournamentTimer {
 export interface TournamentStart {
   type: 'TOURNAMENT_START';
   userId: number;
-  code: number;
-  player1id: number;
-  player2id: number;
-  player3id: number;
-  player4id: number;
+  code: string;
+  player1id?: number;
+  player2id?: number;
+  player3id?: number;
+  player4id?: number;
 }
 
 export interface TournamentEvent {
   type: string;
   creatorId: number;
-  code: number;
+  code: string;
   player1id: number;
   player2id: number;
   player3id: number;

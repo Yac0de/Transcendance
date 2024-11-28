@@ -84,8 +84,8 @@ onMounted(() => {
 	font-size: 16px;
 	font-weight: 600;
 	color: #333;
-	border-bottom: 1px solid #e0e0e0;
-	background-color: #f8f9fa;
+	border-bottom: 1px solid var(--main-extra-color);
+	background-color: var(--main-extra-color);
 }
 
 .messages {
@@ -148,7 +148,7 @@ onMounted(() => {
 }
 
 .user-message .message-content {
-	background-color: #1a73e8;
+	background-color: var(--main-extra-color);
 	color: white;
 	border-bottom-right-radius: 4px;
 }
@@ -161,12 +161,16 @@ onMounted(() => {
 
 .friend-profile-link {
     text-decoration: none;
-    color: inherit;
+}
+
+.friend-profile-link h4 {
+	color: white;
+	font-weight: 300;
 }
 
 .friend-profile-link:hover h4 {
     text-decoration: underline;
-    color: #1a73e8;
+    color: rgb(215, 213, 213);
 }
 
 @media (max-width: 640px) {

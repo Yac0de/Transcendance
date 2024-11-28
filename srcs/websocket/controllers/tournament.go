@@ -282,7 +282,7 @@ func StartSemiFinals(h *Hub, tournament *Tournament, state *string) {
 	PreventPlayersGameStart(tournament, tournament.LobbiesSemi[1])
 	*state = "TOURNAMENT_ON_SEMI"
 	go func() {
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		StartRoutine(h, tournament.LobbiesSemi[0])
 		StartRoutine(h, tournament.LobbiesSemi[1])
 	}()
@@ -292,7 +292,7 @@ func StartFinal(h *Hub, tournament *Tournament, state *string) {
 	PreventPlayersGameStart(tournament, tournament.LobbyFinal)
 	*state = "TOURNAMENT_ON_FINAL"
 	go func() {
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		StartRoutine(h, tournament.LobbyFinal)
 	}()
 }

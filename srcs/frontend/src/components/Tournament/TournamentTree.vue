@@ -1,26 +1,30 @@
 <!-- TournamentTree.vue -->
 <template>
   <div class="tournament-container">
-    <div class="timer">{{ remainingSeconds }}</div>
+    <div v-if="tournamentStatusMessage" class="tournament-status">
+      {{ tournamentStatusMessage }}
+    </div>
+    <div v-if="remainingSeconds != -1 && !hasLost" class="timer">{{ remainingSeconds }}</div>
     <div class="bracket">
       <!-- Final -->
       <div class="match-winner">
-        <p> {{ winner?.displayname }} </p>
+        <p v-if="!winner"> Winner</p>
+        <p v-else> {{ winner?.displayname }} </p>
       </div>
       <div class="match-connections">
         <!-- Semi-Final 1 -->
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">
-              <p v-if="!UsersInFinal"> Semi 1 Winner</p>
+              <p v-if="!UsersInFinal[0]"> Semi 1 Winner</p>
               <p v-else> {{ UsersInFinal[0]?.displayname }} </p>
             </div>
             <div class="match-connections">
               <div class="match-branch">
-                <p>Player 1:  {{ UsersInSemis1[0]?.displayname }} </p>
+                <p> {{ UsersInSemis1[0]?.displayname }} </p>
               </div>
               <div class="match-branch">
-                <p>Player 2:  {{ UsersInSemis1[1]?.displayname }} </p>
+                <p> {{ UsersInSemis1[1]?.displayname }} </p>
               </div>
             </div>
           </div>
@@ -29,15 +33,15 @@
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">
-              <p v-if="!UsersInFinal"> Semi 1 Winner</p>
+              <p v-if="!UsersInFinal[1]"> Semi 2 Winner</p>
               <p v-else> {{ UsersInFinal[1]?.displayname }} </p>
             </div>
             <div class="match-connections">
               <div class="match-branch">
-                <p>Player 3:  {{ UsersInSemis2[0]?.displayname }} </p>
+                <p> {{ UsersInSemis2[0]?.displayname }} </p>
               </div>
               <div class="match-branch">
-                <p>Player 4:  {{ UsersInSemis2[1]?.displayname }} </p>
+                <p> {{ UsersInSemis2[1]?.displayname }} </p>
               </div>
             </div>
           </div>
@@ -53,6 +57,9 @@ import { UserData } from '../../types/models'
 import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../../stores/user';
+
+const userStore = useUserStore()
 
 const UsersInSemis1 = ref<(UserData | null)[]>([null, null]); 
 const UsersInSemis2 = ref<(UserData | null)[]>([null, null]); 
@@ -63,13 +70,15 @@ const semis2Score = ref<number[]>([]);
 const finalScore = ref<number[]>([]);
 const winner = ref<UserData | null>(null);
 
-const remainingSeconds = ref<number>(16);
+const hasLost = ref<boolean>(false);
+const remainingSeconds = ref<number>(-1);
+const tournamentStatusMessage = ref<string>(''); 
 const router = useRouter();
 
 onMounted(async () => {
 
   eventBus.on('TOURNAMENT_TIMER', (message: TournamentTimer) => {
-    console.log("MSG TREE  = ", message);
+    console.log("TIMER RECEIVED");
     remainingSeconds.value = message.remainingTime;
   })
 
@@ -81,21 +90,37 @@ onMounted(async () => {
     if (message.semi2) {
       UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
     }
-    if (message.final) {
+    if (message.final?.player1id !== 0 || message.final?.player2id !== 0) {
       const finalPlayer1Id = message.final?.player1id ?? null
       const finalPlayer2Id = message.final?.player2id ?? null
+      if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
+        tournamentStatusMessage.value =  'Congratulations, you are qualified in the final'
+      } else {
+        tournamentStatusMessage.value =  'You lost, better luck next time !'
+        hasLost.value = true
+      }
       UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id, finalPlayer2Id]); 
     }
 
     if (message.final.isFinished) {
       if (message.final.score[0] > message.final.score[1]) {
         winner.value = await fetchUserById(message.final.player1id)
+        if (message.final.player1id === userStore.getId) {
+          tournamentStatusMessage.value =  'Congratulations, you won the final !'
+        } else {
+          tournamentStatusMessage.value =  'You lost, better luck next time !'
+          hasLost.value = true
+        }
       } else {
         winner.value = await fetchUserById(message.final.player2id)
+        if (message.final.player2id === userStore.getId) {
+          tournamentStatusMessage.value =  'Congratulations, you won the final !'
+        } else {
+          tournamentStatusMessage.value =  'You lost, better luck next time !'
+          hasLost.value = true
+        }
       }
-      console.log(winner.value)
     }
-    
   })
 
   eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {
@@ -120,6 +145,12 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   height: 600px;
+}
+
+.status-message {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .timer {

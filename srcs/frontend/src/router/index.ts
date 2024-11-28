@@ -36,11 +36,6 @@ const routes = [
     component: Game, 
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
   },
-  {
-    path: '/match_history', 
-    component: MatchHistory, 
-    meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
-  },
   { 
     path: '/:nickname', 
     component: Account, 
@@ -50,7 +45,13 @@ const routes = [
   {
     path: '/:pathMatch(.*)*', 
     component: NotFound
-  }
+  },
+  { 
+    path: '/:nickname/match_history', 
+    component: MatchHistory, 
+    meta: { requiresAuth: true },
+    props: true 
+  },
 ]
 
 const router = createRouter({

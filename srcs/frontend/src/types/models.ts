@@ -17,6 +17,17 @@ export interface UserState {
   isRedirectPending: boolean;
 }
 
+export interface GameHistory {
+  id: number;
+  player1_id: number;
+  player2_id: number;
+  winner_id: number;
+  score1: number;
+  score2: number;
+  is_winner: boolean;
+  created_at: string;
+}
+
 export interface Credentials {
     nickname: string;
     password: string;

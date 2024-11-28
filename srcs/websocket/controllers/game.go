@@ -6,6 +6,8 @@ import (
 	"math"
 	"sync"
 	"time"
+	"bytes"
+    "net/http"
 	"websocket/models"
 
 	"github.com/google/uuid"
@@ -89,7 +91,7 @@ const (
 	PaddleSpeed         = 3
 	Paddle1DistanceWall = 20
 	Paddle2DistanceWall = 760
-	WinningScore        = 5
+	WinningScore        = 1
 	paddleSpeed         = 8.0
 	collisionToBoost    = 3
 	boostMultiplier     = 2.5
@@ -346,11 +348,13 @@ func (g *Game) Update() {
 	if g.State.Score.Player1 == WinningScore {
 		g.State.IsActive = false
 		g.State.Winner = g.Player1.ID
+		g.sendGameResultToBackend()
 	}
 
 	if g.State.Score.Player2 == WinningScore {
 		g.State.IsActive = false
 		g.State.Winner = g.Player2.ID
+		g.sendGameResultToBackend()
 	}
 }
 
@@ -490,4 +494,37 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 			g.State.Player2Boost.IsBoostActive = true
 		}
 	}
+}
+
+func (g *Game) sendGameResultToBackend() {
+    gameResult := map[string]interface{}{
+        "player1_id": g.Player1.ID,
+        "player2_id": g.Player2.ID,
+        "winner_id":  g.State.Winner,
+        "score1":     g.State.Score.Player1,
+        "score2":     g.State.Score.Player2,
+        "played_at":  time.Now(),
+    }
+
+    // Faire la requête HTTP vers le backend
+    client := &http.Client{}
+    jsonData, err := json.Marshal(gameResult)
+    if err != nil {
+        fmt.Printf("Error marshalling game result: %v\n", err)
+        return
+    }
+
+    req, err := http.NewRequest("POST", "http://backend:8080/api/game-history", bytes.NewBuffer(jsonData))
+    if err != nil {
+        fmt.Printf("Error creating request: %v\n", err)
+        return
+    }
+
+    req.Header.Set("Content-Type", "application/json")
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Printf("Error sending game result: %v\n", err)
+        return
+    }
+    defer resp.Body.Close()
 }

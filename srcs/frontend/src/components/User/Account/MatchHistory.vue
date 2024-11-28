@@ -1,165 +1,261 @@
 <template>
-  <div class="game-history">
-    <h2 class="text-2xl font-bold mb-6">Game History</h2>
-    <div class="space-y-6">
-      <!-- Individual game row -->
+  <div class="match-history-container">
+    <!-- Menu de navigation style LoL -->
+    <div class="history-nav">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.id"
+        @click="currentTab = tab.id"
+        :class="['nav-button', { active: currentTab === tab.id }]"
+      >
+        {{ tab.name }}
+        <span class="match-count">{{ tab.count }}</span>
+      </button>
+    </div>
+
+    <!-- Zone de filtres -->
+    <div class="filters">
+      <button class="filter-button">
+        <span>Time Period</span>
+        <span>Last 5 matches</span>
+      </button>
+      <button class="filter-button">
+        <span>Game Type</span>
+        <span>All</span>
+      </button>
+    </div>
+
+    <!-- Liste des matchs -->
+    <div class="matches-list" v-if="games.length > 0">
       <div 
         v-for="game in games" 
         :key="game.id" 
-        class="game-row"
+        :class="['match-card', { 'victory': game.is_winner, 'defeat': !game.is_winner }]"
       >
-        <div class="flex justify-between items-center">
-          <!-- Left side: Game info -->
-          <div class="flex items-center space-x-6">
-            <div 
-              class="game-result" 
-              :class="game.result === 'Victory' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-100 text-red-800 border-red-200'"
-            >
-              {{ game.result }}
-            </div>
-            <div class="game-details">
-              <h3 class="font-semibold text-gray-800">{{ game.gameType }}</h3>
-              <p class="text-gray-600">{{ formatDate(game.date) }}</p>
-            </div>
-          </div>
-          
-          <!-- Right side: Stats -->
-          <div class="flex space-x-8">
-            <div class="stat-item">
-              <span class="stat-label">Score</span>
-              <span class="stat-value">{{ game.score }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Duration</span>
-              <span class="stat-value">{{ game.duration }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-label">Rank</span>
-              <span class="stat-value">{{ game.rank }}</span>
-            </div>
+        <!-- Type de match + Résultat -->
+        <div class="match-info">
+          <span class="match-type">Classic</span>
+          <span class="match-result">{{ game.is_winner ? 'Victory' : 'Defeat' }}</span>
+          <span class="match-duration">5:00</span>
+        </div>
+
+        <!-- Scores -->
+        <div class="match-stats">
+          <div class="score">
+            {{ game.score1 }} - {{ game.score2 }}
           </div>
         </div>
+
+        <!-- Date -->
+        <div class="match-date">
+          {{ formatDate(game.created_at) }}
+        </div>
       </div>
+    </div>
+
+    <!-- Message si pas de matchs -->
+    <div v-else class="no-matches">
+      No matches found
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import  gameHistoryService  from '../../../services/gameHistoryService'
+import { useUserStore } from '../../../stores/user'
 
-interface GameStats {
+
+interface Game {
   id: number
-  result: 'Victory' | 'Defeat'
-  gameType: string
-  date: string
-  score: string
-  duration: string
-  rank: string
+  player1_id: number
+  player2_id: number
+  winner_id: number
+  score1: number
+  score2: number
+  created_at: string
+  is_winner: boolean
 }
 
-const games = ref<GameStats[]>([
-  {
-    id: 1,
-    result: 'Victory',
-    gameType: 'Ranked Match',
-    date: '2024-03-25T14:30:00',
-    score: '15/3/7',
-    duration: '32:45',
-    rank: 'Gold II'
-  },
-  {
-    id: 2,
-    result: 'Defeat',
-    gameType: 'Casual Match',
-    date: '2024-03-25T13:15:00',
-    score: '8/5/4',
-    duration: '28:30',
-    rank: 'Gold II'
-  },
-  {
-    id: 3,
-    result: 'Victory',
-    gameType: 'Ranked Match',
-    date: '2024-03-25T11:45:00',
-    score: '12/2/9',
-    duration: '35:20',
-    rank: 'Gold II'
-  }
+const route = useRoute()
+const userStore = useUserStore()
+const currentTab = ref('all')
+const games = ref<Game[]>([])
+
+const tabs = computed(() => [
+  { id: 'all', name: 'Overview', count: games.value.length },
+  { id: 'ranked', name: 'Ranked', count: 0 },
+  { id: 'normal', name: 'Normal', count: games.value.length },
 ])
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('en-US', {
-    year: 'numeric',
+  const date = new Date(dateString)
+  return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
   })
 }
+console.log("Entire user store state:", userStore.$state); // Ajoutez cette ligne
+
+onMounted(async () => {
+  console.log("MatchHistory component mounted");
+  try {
+    const userId = userStore.id;
+    console.log("User ID from store:", userId);
+    if (userId) {
+      console.log("Attempting to fetch history for user", userId);
+      const history = await gameHistoryService.getUserHistory(userId);
+      console.log("History received:", history);
+      if (history) {
+        // Assigner directement l'historique reçu
+        games.value = history;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to fetch game history:', error);
+  }
+});
+
 </script>
 
 <style scoped>
-.game-history {
-  max-width: 900px;
+.match-history-container {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  background: #f3f3f3;
 }
 
-.game-row {
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease-in-out;
+.history-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: #1a1a1a;
+  padding: 4px;
+  border-radius: 4px;
 }
 
-.game-row:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  background-color: #ffffff;
-}
-
-.game-result {
+.nav-button {
   padding: 8px 16px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  border: 2px solid;
-  transition: all 0.2s ease;
+  color: #9f9f9f;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
 }
 
-.game-result:hover {
-  transform: scale(1.05);
+.nav-button.active {
+  color: #fff;
+  background: #2f2f2f;
+  border-radius: 4px;
 }
 
-.game-details {
-  padding: 4px 0;
+.match-count {
+  background: #3f3f3f;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.8em;
 }
 
-.stat-item {
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.filter-button {
   display: flex;
   flex-direction: column;
-  align-items: center;
   padding: 8px 16px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  min-width: 100px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.stat-label {
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
+.filter-button span:first-child {
+  font-size: 0.8em;
+  color: #666;
 }
 
-.stat-value {
-  font-weight: 600;
-  color: #374151;
-  font-size: 1rem;
+.matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.match-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: 4px;
+  border-left: 4px solid;
+}
+
+.victory {
+  background: rgba(63, 185, 80, 0.1);
+  border-left-color: #3fb950;
+}
+
+.defeat {
+  background: rgba(218, 54, 51, 0.1);
+  border-left-color: #da3633;
+}
+
+.match-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.match-type {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.match-result {
+  font-weight: bold;
+}
+
+.victory .match-result {
+  color: #3fb950;
+}
+
+.defeat .match-result {
+  color: #da3633;
+}
+
+.match-duration {
+  font-size: 0.8em;
+  color: #666;
+}
+
+.match-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.score {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.match-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.no-matches {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  background: #fff;
+  border-radius: 4px;
 }
 </style>

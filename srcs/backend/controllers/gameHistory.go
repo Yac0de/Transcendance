@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"api/models"
-	"strconv"
 	"api/database"
     "io"
     "bytes"
@@ -64,22 +63,17 @@ func SaveGameHistory(c *gin.Context) {
 
 
 func GetUserGameHistory(c *gin.Context) {
-    userID := c.Param("userId")
-    fmt.Printf("Fetching games for user ID: %s\n", userID)
-    
-    // Vérifier si id est valide
-    id, err := strconv.ParseUint(userID, 10, 64)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{
-            "error": "Invalid user ID",
-        })
-        return
-    }
+    userID := c.GetUint("UserId")
 
     var gameHistories []models.GameHistory
     
     // Utiliser directement database.DB
-    if err := database.DB.Where("player1_id = ? OR player2_id = ?", id, id).
+    if err := database.DB.
+    
+    Where("player1_id = ? OR player2_id = ?", userID, userID).
+    Preload("Player1").
+    Preload("Player2").
+    Preload("Winner").
     Order("created_at desc").
     Find(&gameHistories).Error; err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{
@@ -99,7 +93,7 @@ func GetUserGameHistory(c *gin.Context) {
     for _, game := range gameHistories {
         response = append(response, GameHistoryResponse{
             GameHistory: game,
-            IsWinner:    game.WinnerID == id,
+            IsWinner:    game.WinnerID == uint64(userID),
         })
     }
 

@@ -33,11 +33,15 @@
   <div class="match-stats">
     <div class="score">
       <!-- Modifions l'ordre des scores en fonction de si vous êtes player1 ou player2 -->
-      <template v-if="game.player1_id === userStore.id">
+      <template v-if="game.player1_id === profileId">
+        <span class="player-name">{{ game.player1.nickname }}</span>
         {{ game.score1 }} - {{ game.score2 }}
+        <span class="player-name">{{ game.player2.nickname }}</span>
       </template>
       <template v-else>
-        {{ game.score2 }} - {{ game.score1 }}
+        <span class="player-name">{{ game.player2.nickname }}</span>
+      {{ game.score2 }} - {{ game.score1 }}
+      <span class="player-name">{{ game.player1.nickname }}</span>
       </template>
     </div>
   </div>
@@ -45,7 +49,7 @@
 
         <!-- Date -->
         <div class="match-date">
-          {{ formatDate(game.created_at) }}
+          {{ formatDate(game.CreatedAt) }}
         </div>
       </div>
     </div>
@@ -74,12 +78,16 @@ interface Game {
   winner_id: number
   score1: number
   score2: number
-  created_at: string
+  CreatedAt: string
   is_winner: boolean
+  player1: User
+  player2: User
+  winner: User
 }
 
 const winrate =ref(0)
 const route = useRoute()
+const profileId = computed(() => route.params.id ? parseInt(route.params.id as string) : userStore.id)
 const userStore = useUserStore()
 const games = ref<Game[]>([])
 
@@ -87,22 +95,21 @@ const limitedGames = computed(() => {
   return games.value.slice(0, 8);
 })
 
-const formatDate = (dateString: string): string => {
+
+
+const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
   })
 }
-console.log("Entire user store state:", userStore.$state); // Ajoutez cette ligne
-
 onMounted(async () => {
   console.log("MatchHistory component mounted");
   try {
     const userId = userStore.id;
-    console.log("User ID from store:", userId);
     if (userId) {
-      const history = await gameHistoryService.getUserHistory(userId);
+      const history = await gameHistoryService.getUserHistory(profileId.value);
       console.log("History received:", history);
       if (history) {
         // Assigner directement l'historique reçu
@@ -272,4 +279,17 @@ onMounted(async () => {
   margin-right: 4px;
 }
 
+.score {
+  display: flex;
+  align-items: center;
+  gap: 8px;  /* Espace entre les éléments */
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.player-name {
+  font-size: 0.8em;  /* Taille plus petite pour les noms */
+  font-weight: normal;  /* Police normale pour les noms */
+  color: #9f9f9f;  /* Couleur grise pour les noms */
+}
 </style>

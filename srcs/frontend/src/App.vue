@@ -3,12 +3,12 @@
     <nav class="sticky-nav">
       <div class="nav-content">
         <div class="nav-left">
-          <router-link to="/" class="nav-button home-button">Home</router-link>
+          <router-link to="/" class="nav-button home-button">HOME</router-link>
         </div>
         <div class="nav-right">
           <template v-if="!userStore.isSignedIn">
-            <router-link to="/signin" class="nav-button">Sign In</router-link>
-            <router-link to="/signup" class="nav-button">Sign Up</router-link>
+            <router-link to="/signin" class="nav-button">SIGN IN</router-link>
+            <router-link to="/signup" class="nav-button">SIGN UP</router-link>
           </template>
           <template v-else>
             <router-link to="/pong" class="nav-button">Play Pong</router-link>
@@ -18,11 +18,13 @@
         </div>
       </div>
     </nav>
-    <div class="content">
-      <router-view></router-view>
-      <InvitePopUp />
-      <FriendList v-if="userStore.isSignedIn" />
-      <Chat v-if="userStore.isSignedIn" />
+    <div class="gradient_backgroud">
+      <div class="content">
+        <router-view></router-view>
+        <InvitePopUp />
+        <FriendList v-if="userStore.isSignedIn" />
+        <Chat v-if="userStore.isSignedIn" />
+      </div>
     </div>
   </div>
 </template>
@@ -56,12 +58,25 @@ const handleSignout = async () => {
 onMounted(checkAuth);
 </script>
 
+<style>
+:root {
+  --main-color: #2f4454;
+  --secondary-dark-color: #2e151b;
+  --secondary-bright-color: #da7b93;
+  --main-extra-color: #376e6f;
+  --secondary-extra-color: #1c3334;
+  font-family: "Audiowide", sans-serif;
+}
+</style>
+
 <style scoped>
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .sticky-nav {
@@ -69,26 +84,28 @@ onMounted(checkAuth);
   top: 0;
   left: 0;
   right: 0;
-  background-color: #f8f9fa;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  height: 7vh; 
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--main-color);
 }
 
 .nav-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  max-width: 100%;
-  margin: 0 auto;
+  padding: 1vh 2vw;
 }
 
 .nav-left {
-  flex: 0 0 auto;
+  position: absolute;
+  left: 2vw;
 }
 
 .nav-right {
-  flex: 0 0 auto;
+  position: absolute;
+  right: 2.5vw;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -96,11 +113,14 @@ onMounted(checkAuth);
 
 .nav-button {
   margin-left: 10px;
-  padding: 5px 10px;
-  font-size: 16px;
-  background-color: #007bff;
+  padding: 0.5vh 1vw;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-shadow: 0.5px 0.5px 1px black;
+  background: var(--main-color);
+  border: 1px solid white;
   color: white;
-  border: none;
+  /* border: none; */
   border-radius: 4px;
   cursor: pointer;
   text-decoration: none;
@@ -108,37 +128,67 @@ onMounted(checkAuth);
 }
 
 .home-button {
-  margin-left: 0;
 }
 
 .nav-button:hover {
-  background-color: #0056b3;
+  background-color: var(--main-extra-color);
+}
+
+.gradient_backgroud {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, var(--secondary-dark-color), var(--secondary-bright-color));
+  width: 100%;
+  overflow: hidden;
+  margin-top: 7vh;
 }
 
 .content {
-  margin-top: 60px;
-  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--main-extra-color);
+  background-color: var(--main-color);
+  width: 95vw;
+  height: 85vh;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 1);
 }
 
-@media (max-width: 600px) {
-  .nav-content {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .nav-right {
-    margin-top: 10px;
-    justify-content: flex-start;
-  }
-
+@media (max-width: 1320px), (max-height: 655px) {
   .nav-button {
-    margin-left: 0;
-    margin-right: 10px;
-    margin-bottom: 5px;
+    font-size: 1.1rem;
   }
+}
 
-  .home-button {
-    margin-bottom: 10px;
+@media (max-width: 800px), (max-height: 430px) {
+  .nav-button {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px), (max-height: 430px) {
+  .nav-button {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 520px), (max-height: 300px)  {
+  .nav-button {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 370px), (max-height: 250px) {
+  .nav-button {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-height: 200px) {
+  .nav-button {
+    font-size: 0.6rem;
   }
 }
 </style>

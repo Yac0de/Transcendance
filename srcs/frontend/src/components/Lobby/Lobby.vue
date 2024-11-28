@@ -146,7 +146,6 @@ onUnmounted(() => {
   position: relative;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -189,7 +188,8 @@ onUnmounted(() => {
 .versus {
   font-size: 48px;
   font-weight: bold;
-  color: #2c3e50;
+  color: white;
+  text-shadow: 1px 1px 2px black;
   margin: 0 20px;
 }
 

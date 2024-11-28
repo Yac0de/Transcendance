@@ -44,7 +44,7 @@ const {
   height: 50px;
   border-radius: 50%;
   border: none;
-  background-color: #007bff;
+  background-color: var(--main-extra-color);
   color: white;
   font-size: 20px;
   cursor: pointer;
@@ -54,16 +54,16 @@ const {
 }
 
 .icon-button:hover {
-  background-color: #0056b3;
+  background-color: color-mix(in srgb, var(--main-extra-color) 85%, white);
 }
 
 .icon-button.xmark-button {
-  background-color: red;
+  background-color: var(--secondary-extra-color);
   color: white;
 }
 
 .icon-button.xmark-button:hover {
-  background-color: darkred;
+  background-color: color-mix(in srgb, var(--secondary-extra-color) 95%, white);
 }
 
 .notification-badge {

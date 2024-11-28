@@ -94,7 +94,7 @@ onMounted(fetchFriendRequests);
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--main-extra-color);
   position: relative;
 }
 
@@ -123,7 +123,7 @@ onMounted(fetchFriendRequests);
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--main-extra-color);
 }
 
 .friend-avatar {

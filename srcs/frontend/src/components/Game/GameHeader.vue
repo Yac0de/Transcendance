@@ -1,37 +1,37 @@
 <template>
-    <div class="game-header">
-      <div class="scoreP1">
-        <div class="player-info">
-          <div class="avatar-and-name">
-            <div class="avatar-container">
-              <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" alt="Player 1 avatar">
-            </div>
-            <span>{{ player1?.nickname || 'Player 1' }}</span>
+  <div class="game-header">
+    <div class="scoreP1">
+      <div class="player-info">
+        <div class="avatar-and-name">
+          <div class="avatar-container">
+            <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" alt="Player 1 avatar">
           </div>
-          <span> {{ state.score.player1 }}</span>
+          <span :style="nameStyle(player1)">{{ player1?.nickname || 'Player 1' }}</span>
         </div>
-      </div>
-      <div class="timer-container">
-        <div class="timer-title">TIME
-          <div class="timer">{{ state.remainingTime }}s</div>
-        </div>
-      </div>
-      <div class="scoreP2">
-        <div class="player-info">
-          <div class="avatar-and-name">
-            <div class="avatar-container">
-              <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" alt="Player 2 avatar">
-            </div>
-            <span>{{ player2?.nickname || 'Player 2' }}</span>
-          </div>
-          <span>{{ state.score.player2 }}</span>
-        </div>
+        <span>{{ state.score.player1 }}</span>
       </div>
     </div>
+    <div class="timer-container">
+      <div class="timer-title">TIME
+        <div class="timer">{{ state.remainingTime }}s</div>
+      </div>
+    </div>
+    <div class="scoreP2">
+      <div class="player-info">
+        <div class="avatar-and-name">
+          <div class="avatar-container">
+            <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" alt="Player 2 avatar">
+          </div>
+          <span :style="nameStyle(player2)">{{ player2?.nickname || 'Player 2' }}</span>
+        </div>
+        <span>{{ state.score.player2 }}</span>
+      </div>
+    </div>
+  </div>
 </template>
   
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { GameState } from '../../types/game';
 import { UserData } from '../../types/models'
 import { fetchUserById } from '../../utils/fetch'
@@ -59,6 +59,22 @@ onMounted(fetchPlayerData)
 
 // Watch for changes in player IDs and refetch data when they change
 watch([() => props.player1id, () => props.player2id], fetchPlayerData)
+
+// Fonction pour calculer la taille du texte en fonction du pseudo
+const nameStyle = (player: UserData | null) => {
+  const nickname = player?.nickname || '';
+  const minFontSize = 15;  // Taille minimum de la police
+  const maxFontSize = 24;  // Taille maximum de la police
+  const minLength = 3;     // Longueur minimale du pseudo
+  const maxLength = 16;    // Longueur maximale du pseudo
+
+  const length = nickname.length;
+  const fontSize = Math.max(minFontSize, Math.min(maxFontSize, maxFontSize - (length - minLength) * 1.5));
+
+  return {
+    fontSize: `${fontSize}px`,
+  };
+}
 </script>
 
 <style scoped>

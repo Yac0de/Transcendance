@@ -2,7 +2,7 @@ package models
 
 type User struct {
 	ID          uint    `json:"id" gorm:"primary_key;autoIncrement"`
-	DisplayName string  `json:"displayname" gorm:"not null" binding:"required,min=3" validate:"required,min=3,max=30"`
+	DisplayName string  `json:"displayname" gorm:"not null" binding:"required,min=3" validate:"required,min=3,max=16"`
 	Nickname    string  `json:"nickname" gorm:"unique;not null" binding:"required,min=3" validate:"required,min=3,max=20"`
 	Password    string  `json:"password" gorm:"not null" binding:"required,min=6" validate:"required,min=6"`
 	Avatar      string  `json:"avatar"`
@@ -22,7 +22,7 @@ type CreateUserDto struct {
 }
 
 type UpdateUserDto struct {
-	DisplayName string `json:"displayname,omitempty" binding:"omitempty,min=3,max=30"`
+	DisplayName string `json:"displayname,omitempty" binding:"omitempty,min=3,max=16"`
 	Nickname    string `json:"nickname,omitempty" binding:"omitempty,min=3,max=20"`
 	Password    string `json:"password,omitempty" binding:"omitempty,min=6,max=50"`
 	Avatar      string `json:"avatar" binding:"omitempty"`

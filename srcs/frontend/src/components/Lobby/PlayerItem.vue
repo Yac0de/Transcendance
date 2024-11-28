@@ -8,7 +8,7 @@
             :alt="(isLeft ? user_store.getNickname : challengedFriend?.nickname) + '\'s avatar'" class="avatar-image" />
         </div>
       </div>
-      <div class="player-name">
+      <div class="player-name" :style="nameStyle">
         {{ isLeft ? user_store.getNickname : challengedFriend?.nickname }}
       </div>
     </div>
@@ -16,17 +16,33 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useUserStore } from '../../stores/user';
 import api from '../../services/api';
 import type { UserData } from '../../types/models';
 
-defineProps<{
+const props = defineProps<{
   isLeft: boolean;
   challengedFriend?: UserData | null;
 }>();
 
 const user_store = useUserStore();
 
+// Calcul de la taille de la police en fonction du pseudo
+const nameStyle = computed(() => {
+  const displayName = (props.isLeft ? user_store.getNickname : props.challengedFriend?.nickname) || '';
+  const minFontSize = 11;  // Taille minimum de la police
+  const maxFontSize = 24;  // Taille maximum de la police
+  const minLength = 3;     // Longueur minimale du pseudo
+  const maxLength = 16;    // Longueur maximale du pseudo
+
+  const length = displayName.length;
+  const fontSize = Math.max(minFontSize, Math.min(maxFontSize, maxFontSize - (length - minLength) * 1.5));
+
+  return {
+    fontSize: `${fontSize}px`,
+  };
+});
 </script>
 
 <style scoped>
@@ -73,7 +89,6 @@ const user_store = useUserStore();
 }
 
 .player-name {
-  font-size: 24px;
   font-weight: bold;
   color: #2c3e50;
   overflow: hidden;

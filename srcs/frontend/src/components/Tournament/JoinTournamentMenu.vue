@@ -21,10 +21,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import type { joinTournamentWithCode } from '../types/tournament'
+import { ref } from 'vue'
 import { useUserStore } from '../../stores/user'
-import { eventBus } from '../../events/eventBus'
 
 const tournamentCode = ref<string>('')
 const userStore = useUserStore()

@@ -13,7 +13,8 @@ export interface GameStart {
 }
 
 export interface GameFinished {
-    type: 'GAME_START';
+    type: 'GAME_FINISHED';
+    state?: GameState;
     isTournamentGame: boolean;
 }
 
@@ -47,7 +48,7 @@ export interface GameState {
     isPaused: boolean;
     pauseTime: string; 
     player1boost: BoostState;  
-	player2boost: BoostState;
+    player2boost: BoostState;
     remainingTime: number;
 }
 

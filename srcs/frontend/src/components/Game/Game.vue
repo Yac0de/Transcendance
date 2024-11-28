@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { GameEvent, GameState } from '../../types/game'
+import { GameEvent, GameState, GameFinished } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall, drawEndGame } from '../../services/gamerender';
@@ -150,7 +150,7 @@ onMounted(() => {
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
   window.addEventListener('keydown', handleSpace)
-  const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
+  const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
 
@@ -176,7 +176,7 @@ onMounted(() => {
     }
   })
 
-  eventBus.on('GAME_FINISHED', async (message: GameEvent) => {
+  eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
     console.log("<- GAME FINISHED: ", message);
     console.log("PLAYERS = ", player1Id.value, player2Id.value);
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);

@@ -41,18 +41,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 import JoinTournamentMenu from './JoinTournamentMenu.vue'
 import TournamentWaitingRoom from './TournamentWaitingRoom.vue'
 import TournamentTree from './TournamentTree.vue'
 import { eventBus } from '../../events/eventBus'
-import { TournamentJoinWithCode, TournamentCreate, TournamentStart } from '../../types/tournament'
+import { TournamentCreate, TournamentEvent, TournamentError } from '../../types/tournament'
 
 type ViewState = 'menu' | 'join' | 'waiting-room' | 'tournament-tree'
 
 const userStore = useUserStore();
-const router = useRouter()
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
 const route = useRoute();
@@ -64,7 +63,7 @@ const error = ref<string>('')
 
 const handleCreateTournament = (): void => {
   if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.createTournamentWaitingRoom(tournamentCode.value)
+    userStore.getWebSocketService?.createTournamentWaitingRoom()
   } else {
     console.error('WebSocket is not connected');
   }
@@ -75,29 +74,25 @@ const handleJoinTournament = (): void => {
   currentView.value = 'join'
 }
 
-const handleBack = (): void => {
-  currentView.value = 'menu'
-}
-
 onMounted(() => {
   if (route.query.view === 'tournament-tree') {
     currentView.value = 'tournament-tree'
   }
 
   eventBus.on('TOURNAMENT_CREATE', (message: TournamentCreate) => {
-    tournamentCode.value = message.code
+    tournamentCode.value = String(message.code)
     currentView.value = 'waiting-room'
   })
 
-  eventBus.on('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
+  eventBus.on('TOURNAMENT_JOIN_WITH_CODE', () => {
     currentView.value = 'waiting-room'
   })
 
   eventBus.on('TOURNAMENT_EVENT', (message: TournamentEvent) => {
-    tournamentCode.value = message.code
+    tournamentCode.value = String(message.code)
   })
 
-  eventBus.on('TOURNAMENT_START', (message: TournamentStart) => {
+  eventBus.on('TOURNAMENT_START', () => {
     console.log("<- TOURNEY START, CHANGING VIEW TO THE TREE, WAITING FOR TREE STATE EVENT")
     currentView.value = 'tournament-tree'
   })

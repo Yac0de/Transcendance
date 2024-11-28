@@ -18,14 +18,12 @@
 </template>
 
 <script setup lang="ts">
-interface Player {
-  username: string;
-  status: 'ready' | 'not-ready';
-}
+import { UserData } from '../../types/models'
 
 defineProps<{
-  player?: Player;
+  player?: UserData;
 }>();
+
 </script>
 
 <style scoped>

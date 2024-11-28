@@ -9,6 +9,7 @@ import (
 	"bytes"
     "net/http"
 	"websocket/models"
+	"io"
 
 	"github.com/google/uuid"
 )
@@ -501,20 +502,22 @@ func (g *Game) sendGameResultToBackend() {
         "player1_id": g.Player1.ID,
         "player2_id": g.Player2.ID,
         "winner_id":  g.State.Winner,
-        "score1":     g.State.Score.Player1,
-        "score2":     g.State.Score.Player2,
-        "played_at":  time.Now(),
+        "Score1":     g.State.Score.Player1,
+        "Score2":     g.State.Score.Player2,
     }
 
-    // Faire la requête HTTP vers le backend
+
     client := &http.Client{}
     jsonData, err := json.Marshal(gameResult)
+	fmt.Printf("%s\n", string(jsonData))
     if err != nil {
         fmt.Printf("Error marshalling game result: %v\n", err)
         return
     }
 
-    req, err := http.NewRequest("POST", "http://backend:8080/api/game-history", bytes.NewBuffer(jsonData))
+    fmt.Printf("Sending game result to backend: %+v\n", gameResult)
+
+    req, err := http.NewRequest("POST", "http://backend:4000/api/game-history", bytes.NewBuffer(jsonData))
     if err != nil {
         fmt.Printf("Error creating request: %v\n", err)
         return
@@ -527,4 +530,15 @@ func (g *Game) sendGameResultToBackend() {
         return
     }
     defer resp.Body.Close()
+
+    // Lire le corps de la réponse
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        fmt.Printf("Error reading response body: %v\n", err)
+        return
+    }
+
+    // Log la réponse complète
+    fmt.Printf("Response Status: %d\n", resp.StatusCode)
+    fmt.Printf("Response Body: %s\n", string(body))
 }

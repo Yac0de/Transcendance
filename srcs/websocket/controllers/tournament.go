@@ -339,7 +339,12 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 						event.Semi1.IsFinished = true
 						event.Final.Player1 = tournament.LobbiesSemi[0].Game.State.Winner
 						jsonData, _ := json.Marshal(&event)
-						SendDataToPlayers(tournament, jsonData)
+						fmt.Printf("s1 TOURNAMENT_TREE_STATE TO BE SENT: %s\n", string(jsonData))
+
+						safeSend(h.Clients[tournament.Semi1[0]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi1[1]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi2[0]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi2[1]].Send, jsonData)
 					}
 					if tournament.Final[1] == 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
 						fmt.Printf("semi2\n")
@@ -349,7 +354,12 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 						event.Semi2.IsFinished = true
 						event.Final.Player2 = tournament.LobbiesSemi[1].Game.State.Winner
 						jsonData, _ := json.Marshal(&event)
-						SendDataToPlayers(tournament, jsonData)
+						fmt.Printf("s2 TOURNAMENT_TREE_STATE TO BE SENT: %s\n", string(jsonData))
+
+						safeSend(h.Clients[tournament.Semi1[0]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi1[1]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi2[0]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi2[1]].Send, jsonData)
 					}
 					if tournament.Final[0] != 0 && tournament.Final[1] != 0 {
 						fmt.Printf("TIMER_FINAL ON SEMI: %+v\n", tournament.Final)
@@ -380,6 +390,16 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					}()
 				} else if state == "TOURNAMENT_ON_FINAL" {
 					if tournament.LobbyFinal.Game.State.Winner != 0 {
+
+						event.Final.Score[0] = uint8(tournament.LobbyFinal.Game.State.Score.Player1)
+						event.Final.Score[1] = uint8(tournament.LobbyFinal.Game.State.Score.Player2)
+						event.Final.IsFinished = true
+						jsonData, _ := json.Marshal(&event)
+
+						safeSend(h.Clients[tournament.Semi1[0]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi1[1]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi2[0]].Send, jsonData)
+						safeSend(h.Clients[tournament.Semi2[1]].Send, jsonData)
 						fmt.Printf("ITS FINISH -> Userid %d won\n", tournament.LobbyFinal.Game.State.Winner)
 						return
 					}

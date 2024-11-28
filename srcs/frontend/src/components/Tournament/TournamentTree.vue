@@ -5,7 +5,7 @@
     <div class="bracket">
       <!-- Final -->
       <div class="match-winner">
-        <p>Tournament Winner</p>
+        <p> {{ winner?.displayname }} </p>
       </div>
       <div class="match-connections">
         <!-- Semi-Final 1 -->
@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { UserData } from '../../types/models'
-import { fetchMultipleUsers } from '../../utils/fetch'
+import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
 import { useRouter } from 'vue-router';
 
@@ -58,17 +58,13 @@ const UsersInSemis1 = ref<(UserData | null)[]>([null, null]);
 const UsersInSemis2 = ref<(UserData | null)[]>([null, null]); 
 const UsersInFinal = ref<(UserData | null)[]>([null, null]); 
 
-const semis1Score = ref<number[]>([])
-const semis2Score = ref<number[]>([])
-const finalScore = ref<number[]>([])
+const semis1Score = ref<number[]>([]);
+const semis2Score = ref<number[]>([]);
+const finalScore = ref<number[]>([]);
+const winner = ref<UserData | null>(null);
 
 const remainingSeconds = ref<number>(16);
 const router = useRouter();
-
-//const props = defineProps<{
-//  semi1array: number[]; 
-//  semi2array: number[]; 
-//}>();
 
 onMounted(async () => {
 
@@ -86,8 +82,20 @@ onMounted(async () => {
       UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
     }
     if (message.final) {
-      UsersInFinal.value = await fetchMultipleUsers([message.final.player1id, message.final.player2id]); 
+      const finalPlayer1Id = message.final?.player1id ?? null
+      const finalPlayer2Id = message.final?.player2id ?? null
+      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id, finalPlayer2Id]); 
     }
+
+    if (message.final.isFinished) {
+      if (message.final.score[0] > message.final.score[1]) {
+        winner.value = await fetchUserById(message.final.player1id)
+      } else {
+        winner.value = await fetchUserById(message.final.player2id)
+      }
+      console.log(winner.value)
+    }
+    
   })
 
   eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {

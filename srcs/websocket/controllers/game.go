@@ -90,7 +90,7 @@ const (
 	PaddleSpeed         = 3
 	Paddle1DistanceWall = 20
 	Paddle2DistanceWall = 760
-	WinningScore        = 5
+	WinningScore        = 1
 	paddleSpeed         = 8.0
 	collisionToBoost    = 3
 	boostMultiplier     = 2.5

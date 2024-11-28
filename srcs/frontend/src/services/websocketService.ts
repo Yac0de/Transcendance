@@ -164,13 +164,20 @@ export class WebSocketService {
             };
             this.ws.onmessage = (event) => {
                 try {
-                    const message = JSON.parse(event.data);
-                    console.log(message);
-                    const handler = this.messageHandlers[message.type];
-                    if (handler) {
-                        handler(message);
-                    } else
-                        console.warn(`No handler found for message type: ${message.type}`);
+
+                    const events = event.data.split('\n');
+
+                    // Use for...of to properly iterate through the array of events
+                    for (const eventData of events) {
+                        const message = JSON.parse(eventData);
+                        const handler = this.messageHandlers[message.type];
+                        console.log("<-", message);
+                        if (handler) {
+                            handler(message);
+                        } else
+                            console.warn(`No handler found for message type: ${message.type}`);
+                    }
+
                 } catch (e) {
                     console.error('Error parsing WebSocket message:', e);
                 }

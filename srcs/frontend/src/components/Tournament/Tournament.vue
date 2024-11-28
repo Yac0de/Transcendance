@@ -81,7 +81,6 @@ const handleBack = (): void => {
 
 onMounted(() => {
   if (route.query.view === 'tournament-tree') {
-    console.log("ygejwhg");
     currentView.value = 'tournament-tree'
   }
 

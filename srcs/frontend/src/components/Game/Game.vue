@@ -62,14 +62,12 @@ const handlePressUp = (event: KeyboardEvent): void => {
   if (event.code === 'ArrowUp' || event.code === 'KeyW') {
     event.preventDefault();
     if (userStore.getWebSocketService?.isConnected()) {
-      console.log("PRESS UP")
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
         lobbyId: route.query.lobbyId as string,
         userId: userStore.getId!,
         keyPressed: 'UP',
       };
-      console.log(gameEvent);
       userStore.getWebSocketService?.sendGameEvent(gameEvent);
     } else {
       console.error('WebSocket is not connected');
@@ -179,7 +177,8 @@ onMounted(() => {
   })
 
   eventBus.on('GAME_FINISHED', async (message: GameEvent) => {
-    console.log("GAME FINISHED: ", message);
+    console.log("<- GAME FINISHED: ", message);
+    console.log("PLAYERS = ", player1Id.value, player2Id.value);
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
 
     if (message.isTournamentGame === false) {
@@ -192,7 +191,7 @@ onMounted(() => {
         path:'/tournament',
         query: { view: 'tournament-tree' }
         });
-      }, 3000)
+      })
     }
   })
 

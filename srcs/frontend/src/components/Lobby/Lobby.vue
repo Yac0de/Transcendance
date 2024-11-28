@@ -12,6 +12,7 @@
         <ToggleButton
           :activeLabel="'ON'"
           :inactiveLabel="'OFF'"
+          :isActive="isSpecialMode"
           @toggle="handleToggleMode"
         />
       </div>

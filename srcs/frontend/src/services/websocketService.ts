@@ -1,7 +1,7 @@
 import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
-import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
+import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed, SpecialModeStatus } from '../types/lobby';
 import { GameEvent, GameStart } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
@@ -97,6 +97,10 @@ export class WebSocketService {
         this.setMessageHandler<LobbyPlayerStatus>('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
             eventBus.emit('LOBBY_PLAYER_STATUS', message);
         });
+        this.setMessageHandler<SpecialModeStatus>('LOBBY_SPECIAL_MODE_TOGGLED', (message: SpecialModeStatus) => {
+            console.log("test in setMessageHandler SpecialModeStatus", message);
+            eventBus.emit('LOBBY_SPECIAL_MODE_TOGGLED', message);
+        });
         this.setMessageHandler<LobbyPregameRemainingTime>('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
             eventBus.emit('LOBBY_PREGAME_REMAINING_TIME', message);
         });
@@ -131,8 +135,10 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
+                console.log('Received event:', event);
                 try {
                     const message = JSON.parse(event.data);
+                    console.log('Received message type:', message.type);
                     const handler = this.messageHandlers[message.type];
                     if (handler) {
                         handler(message);
@@ -222,6 +228,21 @@ export class WebSocketService {
             console.warn("Can't send a message, ws is not connected");
         }
     }
+
+    public sendSpecialModeToggleMessage(lobbyId: string, isActive: boolean): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            console.log("test in sendSpecialModeToggleMessage")
+            const message: SpecialModeStatus = {
+                type: 'LOBBY_SPECIAL_MODE_TOGGLED',
+                lobbyId: lobbyId,
+                isActive: isActive,
+            };  
+            console.log("Sending SpecialModeStatus message: ", message);
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }    
 
     public sendPlayerReadyMessage(lobbyId: string, isGameMode: boolean): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {

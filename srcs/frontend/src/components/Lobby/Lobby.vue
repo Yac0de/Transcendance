@@ -7,7 +7,7 @@
           Maybe your opponent was scared ?
         </div>
       </div>
-      <div v-if="!isAcceptingPlayer" class="modes">
+      <div class="modes">
         <h1>SPECIAL MODE</h1>
         <ToggleButton
           :activeLabel="'ON'"
@@ -23,7 +23,7 @@
           <PlayerItem :is-left="true"
             :challenged-friend="challengedFriend" />
           <ReadyCheck :both-players-ready="player1Ready && player2Ready"
-          :isGameMode="gameSettingsStore.gameMode"
+          :isGameMode="isSpecialMode"
           :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
         </div>
         <div class="versus">VS</div>
@@ -33,7 +33,7 @@
             :isWaiting="isWaitingForResponse"
             @friend-selected="handleFriendSelected" />
           <ReadyCheck :both-players-ready="player1Ready && player2Ready"
-           :isGameMode="gameSettingsStore.gameMode"
+           :isGameMode="isSpecialMode"
            :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
         </div>
       </div>
@@ -52,7 +52,7 @@ import Timer from './Timer.vue'
 import { useUserStore } from '../../stores/user'
 import { useGameSettingsStore } from '../../stores/gameSettings.js';
 import { UserData } from '../../types/models';
-import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime } from '../../types/lobby';
+import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime, SpecialModeStatus } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
 import { useRouter, useRoute } from 'vue-router'
@@ -66,10 +66,10 @@ const isWaitingForResponse = ref<boolean>(false)
 const player1Ready = ref<boolean>(false)
 const player2Ready = ref<boolean>(false)
 
-let lobbyId: string = '';
 const challengedFriend = ref<UserData | null>(null);
 let challengedFriendId = ref<number>(0);
 let isAcceptingPlayer: boolean = false;
+let lobbyId= ref<string>("");
 
 const showNotification = ref<boolean>(false);
 
@@ -85,7 +85,17 @@ const showTimer = ref<boolean>(false);
 const handleToggleMode = (newValue: boolean) => {
   isSpecialMode.value = newValue;
   gameSettingsStore.setGameMode(newValue);
+  
+  console.log("lobbyId " + lobbyId.value)
+  console.log("new value " + newValue);
+
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.sendSpecialModeToggleMessage(lobbyId.value, newValue);
+  } else {
+    console.error('WebSocket is not connected');
+  }
 };
+
 
 const handleFriendSelected = (friendId: number) => {
   if (userStore.getWebSocketService?.isConnected()) {
@@ -114,13 +124,24 @@ onMounted(async () => {
   }
 
   eventBus.on('LOBBY_CREATED', async (message: LobbyCreated) => {
-    lobbyId = message.lobbyId;
+    console.log("lobby message ", message);
+    lobbyId.value = message.lobbyId;
     isAcceptingPlayer = message.receiver.id === userStore.getId;
     challengedFriendId.value = isAcceptingPlayer ? message.sender.id : message.receiver.id;
     challengedFriend.value = await fetchUserById(challengedFriendId.value);
   })
 
+  eventBus.on('LOBBY_SPECIAL_MODE_TOGGLED', (message: SpecialModeStatus) => {
+    console.log("message eventBus.on LOBBY_SPECIAL_MODE_TOGGLED ", message)
+  if (message.lobbyId === lobbyId.value) {
+    console.log('Received LOBBY_SPECIAL_MODE_TOGGLED:', message.isGameMode);
+    console.log("message.isGameMode " + message.isGameMode);
+    isSpecialMode.value = message.isGameMode;
+  }
+  });
+
   eventBus.on('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
+    console.log("lobby player status ", message);
     if (message.userId === userStore.getId) {
       player1Ready.value = player1Ready.value ? false : true 
     } else if (message.userId === challengedFriendId.value) {
@@ -157,6 +178,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   eventBus.off('LOBBY_CREATED')
+  eventBus.off('LOBBY_SPECIAL_MODE_TOGGLED')
   eventBus.off('LOBBY_PLAYER_STATUS')
   eventBus.off('LOBBY_PREGAME_REMAINING_TIME')
   eventBus.off('LOBBY_DESTROYED')

@@ -31,6 +31,7 @@ type Lobby struct {
 	Mutex        sync.Mutex      `json:"-"`
 	Destroy      chan struct{}   `json:"-"`
 	Game         *Game           `json:"game"`
+	IsGameMode	 bool			 `json:"isGameMode"`
 }
 
 type LobbyUserState struct {
@@ -44,6 +45,7 @@ type LobbyEvent struct {
 	UserId   uint64         `json:"userId"`
 	Sender   LobbyUserState `json:"sender"`
 	Receiver LobbyUserState `json:"receiver"`
+	IsGameMode	 bool	    `json:"isGameMode"`
 }
 
 type LobbyErrorEvent struct {
@@ -71,6 +73,8 @@ func HandleLobby(h *Hub, event string, data []byte) {
 		LobbyDenied(h, request)
 	case "LOBBY_TERMINATE":
 		LobbyTerminate(h, request)
+	case "LOBBY_SPECIAL_MODE_TOGGLED":
+		UpdateSpecialMode(h, request)
 	case "LOBBY_PLAYER_READY_STATUS":
 		LobbyUpdatePlayerStatus(h, request)
 	case "LOBBY_PLAYER_UNREADY_STATUS":
@@ -214,8 +218,10 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 		isReady = true
 	}
 
+	fmt.Printf("Request: \n", request)
 	if request.UserId == lobby.Sender.Id {
 		lobby.PlayersReady[0] = isReady
+		lobby.IsGameMode = request.IsGameMode
 	} else if request.UserId == lobby.Receiver.Id {
 		lobby.PlayersReady[1] = isReady
 	}
@@ -241,10 +247,42 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	if lobby.PlayersReady[0] && lobby.PlayersReady[1] {
 		go func() {
 			time.Sleep(10 * time.Millisecond)
+			fmt.Printf("Lobby game mode %v\n\n\n", lobby.IsGameMode)
 			StartRoutine(h, lobby)
 		}()
 		return
 	}
+}
+
+func UpdateSpecialMode(h *Hub, request LobbyEvent) {
+    // Récupérer le lobby à partir de son ID
+    lobby, exists := h.Lobbies[request.LobbyId]
+    if !exists {
+        fmt.Printf("Lobby not found: %s\n", request.LobbyId)
+        return
+    }
+
+    // Mettre à jour le mode spécial pour ce lobby
+    lobby.IsGameMode = request.IsGameMode
+
+    // Créer un événement et le transmettre aux clients du lobby
+    event := LobbyEvent{
+        Event: models.Event{
+            Type: "LOBBY_SPECIAL_MODE_TOGGLED",
+        },
+        LobbyId:   lobby.Id,
+        IsGameMode: request.IsGameMode,
+    }
+
+    // Serialiser l'événement et l'envoyer aux clients
+    senderJson, err := json.Marshal(&event)
+    if err != nil {
+        fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())
+        return
+    }
+
+    safeSend(lobby.Sender.Send, senderJson)
+    safeSend(lobby.Receiver.Send, senderJson)
 }
 
 func StartRoutine(h *Hub, lobby *Lobby) {

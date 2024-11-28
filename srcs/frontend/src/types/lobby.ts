@@ -48,6 +48,12 @@ export interface LobbyCreated {
   lobbyId: string;
 }
 
+export interface SpecialModeStatus {
+  type: 'LOBBY_SPECIAL_MODE_TOGGLED';
+  lobbyId: string;
+  isGameMode: boolean;
+}
+
 export interface LobbyPregameRemainingTime {
   type: 'LOBBY_PREGAME_REMAINING_TIME';
   remainingSecondsToStart: number;

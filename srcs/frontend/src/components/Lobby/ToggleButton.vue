@@ -1,11 +1,11 @@
 <template>
     <button
       class="toggle-button"
-      :class="{ 'active': isActive }"
+      :class="{ 'active': isGameMode }"
       @click="toggle"
       :disabled="disabled"
     >
-      {{ isActive ? activeLabel : inactiveLabel }}
+      {{ isGameMode ? activeLabel : inactiveLabel }}
     </button>
   </template>
   
@@ -13,7 +13,7 @@
   interface Props {
     activeLabel: string;
     inactiveLabel: string;
-    isActive: boolean;
+    isGameMode: boolean;
     disabled?: boolean;
   }
   
@@ -26,7 +26,7 @@
   }>();
   
   const toggle = () => {
-    emit('toggle', !props.isActive);
+    emit('toggle', !props.isGameMode);
   };
   </script>
   

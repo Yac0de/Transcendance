@@ -10,7 +10,7 @@ import type {
   LobbyPlayerStatus,
   LobbyTerminate,
   LobbyPregameRemainingTime,
-  SpecialModeStatus,
+  LobbySpecialModeToggled,
 } from '../types/lobby';
 
 import type { 
@@ -34,6 +34,7 @@ type Events = {
   'LOBBY_SPECIAL_MODE_TOGGLED': SpecialModeStatus;
   'LOBBY_TERMINATE': LobbyTerminate;
   'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
+  'LOBBY_SPECIAL_MODE_TOGGLED': LobbySpecialModeToggled;
   'LOBBY_DESTROYED': void;
   'GAME_EVENT' : GameEvent;
   'GAME_START': GameStart;

@@ -7,12 +7,12 @@
           Maybe your opponent was scared ?
         </div>
       </div>
-      <div class="modes">
+      <div v-if="bothPlayerPresent" class="modes">
         <h1>SPECIAL MODE</h1>
         <ToggleButton
           :activeLabel="'ON'"
           :inactiveLabel="'OFF'"
-          :isActive="isSpecialMode"
+          :isGameMode="isSpecialMode"
           @toggle="handleToggleMode"
         />
       </div>
@@ -131,7 +131,7 @@ onMounted(async () => {
     challengedFriend.value = await fetchUserById(challengedFriendId.value);
   })
 
-  eventBus.on('LOBBY_SPECIAL_MODE_TOGGLED', (message: SpecialModeStatus) => {
+  eventBus.on('LOBBY_SPECIAL_MODE_TOGGLED', (message: LobbySpecialModeToggled) => {
     console.log("message eventBus.on LOBBY_SPECIAL_MODE_TOGGLED ", message)
   if (message.lobbyId === lobbyId.value) {
     console.log('Received LOBBY_SPECIAL_MODE_TOGGLED:', message.isGameMode);

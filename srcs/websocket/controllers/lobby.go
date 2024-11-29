@@ -262,6 +262,7 @@ func UpdateSpecialMode(h *Hub, request LobbyEvent) {
     }
 
     // Mettre à jour le mode spécial pour ce lobby
+	fmt.Printf("GAME MODE RECEIVED\n", request.IsGameMode)
     lobby.IsGameMode = request.IsGameMode
 
     // Créer un événement et le transmettre aux clients du lobby
@@ -311,7 +312,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 				gameTicker.Stop()
 				return
 			case <-gameTicker.C:
-				if lobby.Game != nil && lobby.Game.State.IsActive {
+				if lobby.Game != nil && lobby.Game.State.IsGameMode {
 					lobby.Game.Update()
 					evt := GameEvent{
 						Event: models.Event{
@@ -326,7 +327,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 					stateJson, _ := json.Marshal(evt)
 					safeSend(lobby.Sender.Send, stateJson)
 					safeSend(lobby.Receiver.Send, stateJson)
-				} else if lobby.Game.State.IsActive == false && lobby.Game.State.Winner != 0 {
+				} else if lobby.Game.State.IsGameMode == false && lobby.Game.State.Winner != 0 {
 					evt := GameEvent{
 						Event: models.Event{
 							Type: "GAME_FINISHED",

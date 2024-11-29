@@ -40,7 +40,7 @@ const currentGameState: GameState = reactive({
         player1: 0, 
         player2: 0 
     },
-    isActive: false,
+    isGameMode: false,
     winner: 0,  // or 0, depending on how you represent no winner
     isPaused: false,
     pauseTime: '',  // or null, depending on how you handle empty time
@@ -184,7 +184,7 @@ onMounted(() => {
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
         drawBoostStatus(ctx, message.state!);
-        if (!message.state!.isActive && message.state!.winner !== 0) {
+        if (!message.state!.IsGameMode && message.state!.winner !== 0) {
           drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
           
           if (!endGameTimeout){

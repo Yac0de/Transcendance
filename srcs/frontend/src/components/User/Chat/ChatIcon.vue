@@ -28,7 +28,7 @@ const unreadMessages = computed(() => chatStore.totalUnreadMessages);
 .chat-icon {
 	width: 50px;
 	height: 50px;
-	background-color: #28a745;
+	background-color: var(--main-extra-color);
 	border-radius: 50%;
 	display: flex;
 	justify-content: center;
@@ -39,7 +39,7 @@ const unreadMessages = computed(() => chatStore.totalUnreadMessages);
 }
 
 .chat-icon:hover {
-	background-color: #218838;
+	background-color: color-mix(in srgb, var(--main-extra-color) 85%, white);
 	transform: scale(1.05);
 }
 

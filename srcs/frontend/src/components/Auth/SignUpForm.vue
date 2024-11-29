@@ -1,5 +1,5 @@
 <template>
-  <AuthForm formTitle="Sign Up" submitButtonLabel="Sign Up" :fields="fields" :successMessage="successMessage"
+  <AuthForm formTitle="SIGN UP" submitButtonLabel="Sign Up" :fields="fields" :successMessage="successMessage"
     :errorMessage="errorMessage" @submit="handleSubmit" @secondaryAction="handleSignin"
     secondaryButtonLabel="Back to sign in" />
 </template>
@@ -20,7 +20,7 @@ const router = useRouter();
 
 // Form fields
 const fields: Field[] = [
-  { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 20 },
+  { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 16 },
   { label: 'Password', model: password, type: 'password', required: true, maxlength: 50 },
   { label: 'Confirm Password', model: confirmPassword, type: 'password', required: true, maxlength: 50 },
 ];

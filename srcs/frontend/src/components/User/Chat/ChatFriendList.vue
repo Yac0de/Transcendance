@@ -39,7 +39,7 @@ const getUnreadCount = (friendId: number) => {
 .friend-list {
 	width: 250px;
 	flex-shrink: 0;
-	border-right: 1px solid #e0e0e0;
+	border-right: 1px solid var(--main-extra-color);
 	background-color: white;
 	display: flex;
 	flex-direction: column;
@@ -90,7 +90,7 @@ const getUnreadCount = (friendId: number) => {
 .friend-item.active {
 	background-color: #e2e8f0;
 	font-weight: 500;
-	color: #1a73e8;
+	color: var(--main-extra-color);
 }
 
 .unread-badge {

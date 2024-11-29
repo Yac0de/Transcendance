@@ -16,6 +16,7 @@ const router = useRouter();
 const startTournament = () => {
   // TODO: Implement tournament logic 
   console.log('Starting tournament');
+  router.push('/tournament');
 };
 
 const startPlayerVsRobot = () => {
@@ -57,7 +58,9 @@ const startPlayerVsFriend = () => {
 .menu-button {
   padding: 10px 20px;
   font-size: 1.2rem;
-  background-color: #007bff;
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--secondary-dark-color), var(--secondary-bright-color));
+  box-shadow: 0 0 2px rgba(0, 0, 0, 1);
   color: white;
   border: none;
   border-radius: 4px;
@@ -67,7 +70,8 @@ const startPlayerVsFriend = () => {
 }
 
 .menu-button:hover {
-  background-color: #0056b3;
+  opacity: 0.85;
+  transform: scale(1.02);
 }
 
 @media (max-width: 600px) {

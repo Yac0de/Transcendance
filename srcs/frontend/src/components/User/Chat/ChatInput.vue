@@ -64,7 +64,7 @@ defineExpose({
 <style scoped>
 .message-input {
 	padding: 12px 16px;
-	border-top: 1px solid #e0e0e0;
+	border-top: 1px solid var(--main-extra-color);
 	display: flex;
 	gap: 8px;
 	background-color: #fff;
@@ -76,7 +76,7 @@ defineExpose({
 	flex: 1;
 	min-width: 0; /* Prevents input from overflowing */
 	padding: 10px 16px;
-	border: 1px solid #e0e0e0;
+	border: 1px solid var(--main-extra-color);
 	border-radius: 24px;
 	font-size: 14px;
 	transition: all 0.2s ease;
@@ -85,7 +85,7 @@ defineExpose({
 
 .message-input input:focus {
 	outline: none;
-	border-color: #1a73e8;
+	border-color: var(--main-extra-color);
 	background-color: #fff;
 	box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
 }
@@ -98,7 +98,7 @@ defineExpose({
 
 .message-input .action-button {
 	padding: 10px;
-	background-color: #1a73e8;
+	background-color: var(--main-extra-color);
 	color: white;
 	border: none;
 	border-radius: 24px;
@@ -119,13 +119,13 @@ defineExpose({
 }
 
 .message-input .action-button.disabled {
-	background-color: #ccc;
+	background-color: var(--secondary-extra-color);
 	cursor: not-allowed;
 	transform: none;
 }
 
 .message-input .action-button:hover:not(.disabled) {
-	background-color: #1557b0;
+	background-color: color-mix(in srgb, var(--main-extra-color) 85%, white);
 	transform: translateY(-1px);
 }
 

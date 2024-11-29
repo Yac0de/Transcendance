@@ -82,7 +82,7 @@ const addFriend = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--main-extra-color);
   position: relative;
 }
 
@@ -120,7 +120,7 @@ const addFriend = async () => {
 .add-friend-btn {
   width: 100%;
   padding: 8px;
-  background-color: #007bff;
+  background-color: var(--main-extra-color);
   color: white;
   border: none;
   border-radius: 4px;
@@ -130,7 +130,8 @@ const addFriend = async () => {
 }
 
 .add-friend-btn:hover {
-  background-color: #0056b3;
+	background-color: color-mix(in srgb, var(--main-extra-color) 85%, white);
+	transform: scale(1.025);
 }
 
 .error-message,

@@ -1,5 +1,6 @@
 <template>
   <div v-if="userExists" class="account-container">
+    <!-- <div class="header-account-details"> -->
     <div class="account-content">
       <h2>Account Details</h2>
       <AccountView v-if="!isViewingStats && !isEditing && !isDeleting" :user="userToDisplay"
@@ -130,17 +131,16 @@ const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) =>
     userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath ?? '' }
     successMessage.value = 'Profile updated successfully'
   } catch (error: any) {
-    const errorResponse = await error.response?.json()
-    if (errorResponse && errorResponse.error) {
-      errorMessage.value = errorResponse.error
+    if (error && error.error) {
+      errorMessage.value = error.error;  // Utilise directement error.error ici
     } else {
-      errorMessage.value = 'Error updating profile: ' + (error as Error).message
+      errorMessage.value = 'Error updating profile: ' + (error.message || 'Unknown error');
     }
   }
 }
 
 const cancelEdit = () => {
-  isEditing.value = false
+  isEditing.value = false 
   resetMessages()
 }
 
@@ -183,19 +183,22 @@ const cancelDelete = () => {
 
 .account-content {
   padding: 20px;
-  border: 1px solid #ccc;
   border-radius: 10px;
-  background-color: #f9f9f9;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--main-color);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   width: 300px;
+  overflow: hidden;
 }
 
 h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: white;
+  text-shadow: 1px 1px 2px black;
 }
 
 .alert {
+  font-size: 0.75rem;
   padding: 10px;
   margin-bottom: 10px;
   margin-top: 5px;
@@ -217,7 +220,7 @@ h2 {
 .toggle-button {
   width: 100%;
   padding: 10px;
-  background-color: #007bff;
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 75%, white));
   color: white;
   border: none;
   border-radius: 4px;
@@ -227,6 +230,8 @@ h2 {
 }
 
 .toggle-button:hover {
-  background-color: #0056b3;
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 85%, white));
+  transform: scale(1.02);
 }
+
 </style>

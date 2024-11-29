@@ -2,8 +2,8 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
-import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
-import { GameEvent, GameStart, GameFinished } from '../types/game';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
+import { GameEvent, GameStart, GameFinished, GameLeave } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 import { useChatStore } from '../stores/chatStore';
@@ -331,12 +331,11 @@ export class WebSocketService {
         }
     }
 
-    public leaveTournamentWaitingRoom(code: string): void {
+    public leaveTournament(): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: TournamentLeaveWaitingRoom = {
+            const message: TournamentLeave = {
                 type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
                 userId: this.userStore.getId!,
-                code: code
             };
             this.ws.send(JSON.stringify(message));
         }
@@ -356,6 +355,18 @@ export class WebSocketService {
     public sendGameEvent(game_event: GameEvent): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(game_event));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public sendGameLeave(): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: GameLeave = {
+                type: 'GAME_LEAVE',
+                userId: this.userStore.getId!,
+            };
+            this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
         }

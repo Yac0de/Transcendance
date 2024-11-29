@@ -33,6 +33,7 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const player1Id = ref<number | null>(null)
 const player2Id = ref<number | null>(null)
+let isTournamentGame: boolean =  false;
 
 const currentGameState: GameState = reactive({
     ball: { x: 0, y: 0 },  // Assuming Ball has x, y properties
@@ -163,6 +164,10 @@ onMounted(() => {
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
 
+    if (message.isTournamentGame === true) {
+      isTournamentGame = true;
+    }
+
     if (player1Id.value === null) {
       player1Id.value = message.player1id ?? null;
     }
@@ -190,7 +195,7 @@ onMounted(() => {
   eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
 
-    if (message.isTournamentGame === false) {
+    if (isTournamentGame === false) {
       window.setTimeout(() => {
         router.push('/');
       }, 3000)
@@ -203,17 +208,32 @@ onMounted(() => {
       })
     }
   })
-
 })
 
 onUnmounted(() => {
-  // Remove key listener
+  if (isTournamentGame) {
+    if (userStore.getWebSocketService?.isConnected()) {
+      console.log("-> TOURNAMENT_LEAVE (IN A GAME)");
+      userStore.getWebSocketService?.sendLeaveTournament()
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  } else {
+    if (userStore.getWebSocketService?.isConnected()) {
+      console.log("-> GAME LEAVE (IN A GAME)");
+      userStore.getWebSocketService?.sendGameLeave()
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }
+
   window.removeEventListener('keydown', handlePressUp)
   window.removeEventListener('keydown', handlePressDown)
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
   window.removeEventListener('keydown', handleSpace)
   eventBus.off('GAME_EVENT')
+  eventBus.off('GAME_FINISHED')
 })
 </script>
 

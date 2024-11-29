@@ -102,16 +102,16 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (tournamentCode.value) {
-    if (userStore.getWebSocketService?.isConnected()) {
-      userStore.getWebSocketService?.leaveTournamentWaitingRoom(tournamentCode.value)
-    } else {
-      console.error('WebSocket is not connected');
-    }
+  if (userStore.getWebSocketService?.isConnected()) {
+    console.log("-> TOURNAMENT_LEAVE");
+    userStore.getWebSocketService?.sendLeaveTournament()
+  } else {
+    console.error('WebSocket is not connected');
   }
 
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
+  eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_START');
   eventBus.off('TOURNAMENT_ERROR');
 })

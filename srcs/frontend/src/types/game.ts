@@ -18,6 +18,11 @@ export interface GameFinished {
     isTournamentGame: boolean;
 }
 
+export interface GameLeave {
+    type: 'GAME_LEAVE';
+    userId: number;
+}
+
 export interface Ball {
     x: number;
     y: number;

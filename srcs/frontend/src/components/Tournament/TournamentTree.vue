@@ -128,6 +128,14 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+
+  if (userStore.getWebSocketService?.isConnected()) {
+    console.log("-> TOURNAMENT_LEAVE");
+    userStore.getWebSocketService?.sendLeaveTournament()
+  } else {
+    console.error('WebSocket is not connected');
+  }
+
   eventBus.off('TOURNAMENT_TIMER')
   eventBus.off('TOURNAMENT_TREE_STATE')
   eventBus.off('TOURNAMENT_GAME')

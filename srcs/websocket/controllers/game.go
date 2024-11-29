@@ -13,13 +13,13 @@ import (
 
 type GameEvent struct {
 	models.Event
-	LobbyId    uuid.UUID `json:"lobbyId"`
-	UserId     uint64    `json:"userId"`
-	State      GameState `json:"state"`
-	KeyPressed string    `json:"keyPressed"`
-	Player1Id  uint64    `json:"player1id"`
-	Player2Id  uint64    `json:"player2id"`
-	IsTournamentGame bool `json:"isTournamentGame"`
+	LobbyId          uuid.UUID `json:"lobbyId"`
+	UserId           uint64    `json:"userId"`
+	State            GameState `json:"state"`
+	KeyPressed       string    `json:"keyPressed"`
+	Player1Id        uint64    `json:"player1id"`
+	Player2Id        uint64    `json:"player2id"`
+	IsTournamentGame bool      `json:"isTournamentGame"`
 }
 
 type Ball struct {
@@ -97,7 +97,7 @@ const (
 )
 
 // create instance of game and init all data
-func NewGame(player1ID, player2ID uint64) *Game {
+func NewGame(player1ID uint64, player2ID uint64) *Game {
 	return &Game{
 		Player1: Player{
 			ID:       player1ID,
@@ -149,6 +149,25 @@ func NewGame(player1ID, player2ID uint64) *Game {
 		},
 		Status: "PREGAME",
 	}
+}
+
+func (g *Game) PlayerLeaved(id uint64) {
+	g.State.mutex.Lock()
+	defer g.State.mutex.Unlock()
+
+	if !g.State.IsActive {
+		return
+	}
+
+	if id == g.Player2.ID {
+		g.State.Winner = g.Player1.ID
+		g.State.Score.Player1 = WinningScore
+		g.State.Score.Player2 = 0
+		return
+	}
+	g.State.Winner = g.Player2.ID
+	g.State.Score.Player2 = WinningScore
+	g.State.Score.Player1 = 0
 }
 
 func (g *Game) Update() {
@@ -490,4 +509,3 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 		}
 	}
 }
-

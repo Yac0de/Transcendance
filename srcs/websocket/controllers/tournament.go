@@ -78,8 +78,8 @@ func HandleTournament(h *Hub, event string, data []byte) {
 		CreateTournament(h, request)
 	case "TOURNAMENT_JOIN_WITH_CODE":
 		JoinTournament(h, request)
-	case "TOURNAMENT_LEAVE_WAITING_ROOM":
-		LeaveWaitingRoomTournament(h, request)
+	case "TOURNAMENT_LEAVE":
+		LeaveTournament(h, request)
 	case "TOURNAMENT_START":
 		StartTournament(h, request)
 	}
@@ -168,12 +168,7 @@ func SendDataToPlayers(tournament *Tournament, datas []byte) {
 	}
 }
 
-func LeaveWaitingRoomTournament(h *Hub, request TournamentEvent) {
-	clientLeft := h.Clients[request.UserId]
-	tournament := h.Tournaments[request.Code]
-	if clientLeft == nil || tournament == nil {
-		return
-	}
+func LeaveWaitingLobby(h *Hub, tournament *Tournament, clientLeft *Client, request TournamentEvent) {
 	if tournament.Player1 == clientLeft {
 		request.Type = "TOURNAMENT_TERMINATE"
 		tnTerminate, err := json.Marshal(&request)
@@ -269,8 +264,12 @@ func HandleTimerEvent(h *Hub, tournament *Tournament, sec *int16) {
 func PreventPlayersGameStart(tournament *Tournament, lobby *Lobby) {
 	event := CreateGameStartEvent(tournament, lobby.Id)
 	ev, _ := json.Marshal(&event)
-	safeSend(lobby.Sender.Send, ev)
-	safeSend(lobby.Receiver.Send, ev)
+	if lobby.Sender != nil {
+		safeSend(lobby.Sender.Send, ev)
+	}
+	if lobby.Receiver != nil {
+		safeSend(lobby.Receiver.Send, ev)
+	}
 }
 
 func StartSemiFinals(h *Hub, tournament *Tournament) {
@@ -296,7 +295,7 @@ func StartFinal(h *Hub, tournament *Tournament) {
 func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	tournament.State = "TIMER_SEMI_FINAL"
-	sec := int16(5)
+	sec := int16(15)
 
 	CreateLobbies(h, tournament)
 	event := CreateTournamentTreeEvent(tournament)
@@ -313,7 +312,7 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 				} else if tournament.State == "TOURNAMENT_ON_SEMI" {
 					UpdateSemiFinals(h, tournament, event)
 					if tournament.Final[0] != 0 && tournament.Final[1] != 0 {
-						sec = 5
+						sec = 15
 						tournament.State = "TIMER_FINAL"
 					}
 				} else if tournament.State == "TOURNAMENT_START_FINAL" {
@@ -371,15 +370,31 @@ func UpdateSemiFinals(h *Hub, tournament *Tournament, event *TournamentTreeEvent
 }
 
 func TournamentClientHasLeft(h *Hub, tn *Tournament, c *Client) {
-	if tn.State == "TOURNAMENT_LOBBY" {
-		evt := TournamentEvent{
-			Event: models.Event{
-				Type: "TOURNAMENT_EVENT",
-			},
-			Code:   tn.Id,
-			UserId: c.Id,
-		}
-		LeaveWaitingRoomTournament(h, evt)
+	evt := TournamentEvent{
+		Event: models.Event{
+			Type: "TOURNAMENT_LEAVE",
+		},
+		Code:   tn.Id,
+		UserId: c.Id,
+	}
+	LeaveTournament(h, evt)
+	return
+}
+
+func LeaveTournament(h *Hub, request TournamentEvent) {
+	clientLeft := h.Clients[request.UserId]
+	tournament := h.Tournaments[request.Code]
+	if clientLeft == nil || tournament == nil {
 		return
+	}
+
+	if tournament.State == "TOURNAMENT_LOBBY" {
+		LeaveWaitingLobby(h, tournament, clientLeft, request)
+	} else {
+		if tournament.Semi1[0] == clientLeft.Id || tournament.Semi1[1] == clientLeft.Id {
+			tournament.LobbiesSemi[0].Game.PlayerLeaved(clientLeft.Id)
+		} else if tournament.Semi2[0] == clientLeft.Id || tournament.Semi2[1] == clientLeft.Id {
+			tournament.LobbiesSemi[1].Game.PlayerLeaved(clientLeft.Id)
+		}
 	}
 }

@@ -39,16 +39,17 @@ func (h *Hub) GetEventType(message []byte) (models.Event, error) {
 }
 
 func (h *Hub) RemoveClient(client *Client) {
-	if _, ok := h.Clients[client.Id]; !ok {
+	target, ok := h.Clients[client.Id]
+	if !ok {
 		return
 	}
 
-	target := h.Clients[client.Id]
 	for id := range h.Lobbies {
 		if h.Lobbies[id].Sender == target || h.Lobbies[id].Receiver == target {
-			LobbyClientHasLeft(h, h.Lobbies[id].Id)
+			LobbyClientHasLeft(h, h.Lobbies[id].Id, target.Id)
 		}
 	}
+
 	for id := range h.Tournaments {
 		if ClientIsPresentOnTournament(h.Tournaments[id], target) {
 			TournamentClientHasLeft(h, h.Tournaments[id], target)

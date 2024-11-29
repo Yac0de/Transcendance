@@ -83,7 +83,7 @@ func (l *Lobby) ArePlayersReachable() bool {
 	return true
 }
 
-func LobbyClientHasLeft(h *Hub, lobbyId uuid.UUID) {
+func LobbyClientHasLeft(h *Hub, lobbyId uuid.UUID, clientId uint64) {
 	lobby := h.Lobbies[lobbyId]
 	error := LobbyErrorEvent{
 		Event: models.Event{
@@ -99,14 +99,17 @@ func LobbyClientHasLeft(h *Hub, lobbyId uuid.UUID) {
 		return
 	}
 
-	safeSend(lobby.Sender.Send, errorJson)
-	safeSend(lobby.Receiver.Send, errorJson)
-
-	if lobby.Destroy != nil {
-		fmt.Printf("lobby destroyed lobby %+v\n", lobby.Id)
-		safeClose(lobby.Destroy)
+	if lobby.Sender != nil {
+		safeSend(lobby.Sender.Send, errorJson)
 	}
-	delete(h.Lobbies, lobby.Id)
+
+	if lobby.Receiver != nil {
+		safeSend(lobby.Receiver.Send, errorJson)
+	}
+
+	if lobby.Game != nil {
+		lobby.Game.PlayerLeaved(clientId)
+	}
 }
 
 func LobbyInvitation(h *Hub, request LobbyEvent) {
@@ -204,7 +207,7 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	}
 
 	if lobby.ArePlayersReachable() == false {
-		LobbyClientHasLeft(h, lobby.Id)
+		LobbyClientHasLeft(h, lobby.Id, request.UserId)
 		return
 	}
 

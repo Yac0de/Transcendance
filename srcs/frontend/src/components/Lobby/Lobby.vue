@@ -161,7 +161,7 @@ onMounted(async () => {
   eventBus.on('GAME_START', () => {
     router.push({
       path: '/game', 
-      query: {lobbyId: lobbyId }
+      query: {lobbyId: lobbyId.value }
     });
   });
 

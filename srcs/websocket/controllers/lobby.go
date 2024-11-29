@@ -32,6 +32,7 @@ type Lobby struct {
 	Destroy      chan struct{}   `json:"-"`
 	Game         *Game           `json:"game"`
 	IsTournamentGame bool            `json:"isTournamentGame"`
+	IsActive	 bool			 `json:"isActive"`
 	IsGameMode	 bool			 `json:"isGameMode"`
 }
 
@@ -46,8 +47,8 @@ type LobbyEvent struct {
 	UserId   uint64         `json:"userId"`
 	Sender   LobbyUserState `json:"sender"`
 	Receiver LobbyUserState `json:"receiver"`
-	IsGameMode	 bool	    `json:"isGameMode"`
 	IsTournamentGame bool           `json:"isTournamentGame"`
+	IsGameMode	 bool			 `json:"isGameMode"`
 }
 
 type LobbyErrorEvent struct {
@@ -220,7 +221,6 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	fmt.Printf("Request: \n", request)
 	if request.UserId == lobby.Sender.Id {
 		lobby.PlayersReady[0] = isReady
-		lobby.IsGameMode = request.IsGameMode
 	} else if request.UserId == lobby.Receiver.Id {
 		lobby.PlayersReady[1] = isReady
 	}
@@ -246,7 +246,7 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 	if lobby.PlayersReady[0] && lobby.PlayersReady[1] {
 		go func() {
 			time.Sleep(10 * time.Millisecond)
-			fmt.Printf("Lobby game mode %v\n\n\n", lobby.IsGameMode)
+			//fmt.Printf("Lobby game mode %v\n\n\n", lobby.IsGameMode)
 			StartRoutine(h, lobby)
 		}()
 		return
@@ -312,7 +312,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 				gameTicker.Stop()
 				return
 			case <-gameTicker.C:
-				if lobby.Game != nil && lobby.Game.State.IsGameMode {
+				if lobby.Game != nil && lobby.Game.State.IsActive {
 					lobby.Game.Update()
 					evt := GameEvent{
 						Event: models.Event{
@@ -327,7 +327,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 					stateJson, _ := json.Marshal(evt)
 					safeSend(lobby.Sender.Send, stateJson)
 					safeSend(lobby.Receiver.Send, stateJson)
-				} else if lobby.Game.State.IsGameMode == false && lobby.Game.State.Winner != 0 {
+				} else if lobby.Game.State.IsActive == false && lobby.Game.State.Winner != 0 {
 					evt := GameEvent{
 						Event: models.Event{
 							Type: "GAME_FINISHED",

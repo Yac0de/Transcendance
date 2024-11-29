@@ -50,7 +50,7 @@ type GameState struct {
 	Ball          Ball       `json:"ball"`
 	Paddles       Paddle     `json:"paddle"`
 	Score         Score      `json:"score"`
-	IsGameMode      bool       `json:"isGameMode"`
+	IsActive      bool       `json:"isActive"`
 	Winner        uint64     `json:"winner"`
 	mutex         sync.Mutex `json:"-"`
 	IsPaused      bool       `json:"isPaused"`
@@ -143,7 +143,7 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				IsBoostActive: false,
 			},
 			Winner:   0,
-			IsGameMode: true,
+			IsActive: true,
 
 			RemainingTime: 300,
 		},
@@ -155,7 +155,7 @@ func (g *Game) Update() {
 	g.State.mutex.Lock()
 	defer g.State.mutex.Unlock()
 
-	if !g.State.IsGameMode {
+	if !g.State.IsActive {
 		return
 	}
 
@@ -173,7 +173,7 @@ func (g *Game) Update() {
 		if g.State.RemainingTime > 0 {
 			g.State.RemainingTime--
 		} else {
-			g.State.IsGameMode = false
+			g.State.IsActive = false
 			if g.State.Score.Player1 > g.State.Score.Player2 {
 				g.State.Winner = g.Player1.ID
 			} else if g.State.Score.Player2 > g.State.Score.Player1 {
@@ -346,12 +346,12 @@ func (g *Game) Update() {
 
 	// Check for winner
 	if g.State.Score.Player1 == WinningScore {
-		g.State.IsGameMode = false
+		g.State.IsActive = false
 		g.State.Winner = g.Player1.ID
 	}
 
 	if g.State.Score.Player2 == WinningScore {
-		g.State.IsGameMode = false
+		g.State.IsActive = false
 		g.State.Winner = g.Player2.ID
 	}
 }
@@ -441,6 +441,7 @@ func handleGameMessage(h *Hub, data []byte) {
 	var evt GameEvent
 	if err := json.Unmarshal(data, &evt); err != nil {
 		fmt.Printf("Error GameEvent type unmarshall\n")
+		fmt.Printf("Data = \n", string(data))
 		return
 	}
 	lobby := h.Lobbies[evt.LobbyId]

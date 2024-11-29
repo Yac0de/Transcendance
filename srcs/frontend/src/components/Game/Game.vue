@@ -186,12 +186,9 @@ onMounted(() => {
         drawBoostStatus(ctx, message.state!);
         if (!message.state!.IsGameMode && message.state!.winner !== 0) {
           drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
-          
-          if (!endGameTimeout){
-            endGameTimeout = window.setTimeout(() => {
-              router.push('/');
-            }, 5000)
-          }
+          window.setTimeout(() => {
+            router.push('/');
+          }, 5000)
         }
       }
     }

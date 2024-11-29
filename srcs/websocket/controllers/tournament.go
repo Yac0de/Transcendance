@@ -320,6 +320,7 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					StartFinal(h, tournament)
 				} else if IsFinalTournamentFinished(tournament) {
 					SendTournamentTreeState(h, tournament, event)
+					delete(h.Tournaments, tournament.Id)
 					return
 				}
 			}

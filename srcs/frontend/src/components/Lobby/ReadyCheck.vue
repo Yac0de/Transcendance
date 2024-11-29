@@ -67,12 +67,12 @@ const toggleUnready = () => {
 }
 
 .ready-button:not(.ready) {
-  background-color: #dc3545;
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 75%, white));
   color: white;
 }
 
 .ready-button.ready {
-  background-color: #28a745;
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 75%, white));
   color: white;
 }
 </style>

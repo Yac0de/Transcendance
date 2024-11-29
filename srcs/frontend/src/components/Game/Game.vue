@@ -11,14 +11,13 @@
         class="game-canvas"
         >
         </canvas>
-        <div class="vertical-line"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { GameEvent, GameState } from '../../types/game'
+import { GameEvent, GameState, GameFinished } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall, drawEndGame } from '../../services/gamerender';
@@ -28,7 +27,6 @@ import GameHeader from './GameHeader.vue';
 
 const route = useRoute()
 const router = useRouter()
-let endGameTimeout: number | null = null;
 
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -144,6 +142,16 @@ const handleSpace = (event: KeyboardEvent): void => {
  }
 }
 
+function drawVerticalLine(ctx: CanvasRenderingContext2D): void {
+    ctx.strokeStyle = '#5b3c54';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ctx.canvas.width / 2, 0);
+    ctx.lineTo(ctx.canvas.width / 2, ctx.canvas.height);
+    ctx.stroke();
+}
+
+
 onMounted(() => {
   // Add key listener
   window.addEventListener('keydown', handlePressUp)
@@ -151,6 +159,7 @@ onMounted(() => {
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
   window.addEventListener('keydown', handleSpace)
+  const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
 
@@ -162,7 +171,6 @@ onMounted(() => {
     }
 
     if (canvasRef.value) {
-      const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {
         Object.assign(currentGameState, message.state);
 
@@ -171,20 +179,31 @@ onMounted(() => {
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height);
 
+        drawVerticalLine(ctx);
+
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
-        if (!message.state!.isActive && message.state!.winner !== 0) {
-          drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
-          
-          if (!endGameTimeout){
-            endGameTimeout = window.setTimeout(() => {
-              router.push('/');
-            }, 5000)
-          }
-        }
       }
     }
   })
+
+  eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
+    drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
+
+    if (message.isTournamentGame === false) {
+      window.setTimeout(() => {
+        router.push('/');
+      }, 3000)
+    } else {
+      window.setTimeout(() => {
+        router.push({
+        path:'/tournament',
+        query: { view: 'tournament-tree' }
+        });
+      })
+    }
+  })
+
 })
 
 onUnmounted(() => {
@@ -194,9 +213,6 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
   window.removeEventListener('keydown', handleSpace)
-  if (endGameTimeout) {
-        clearTimeout(endGameTimeout);
-    }
   eventBus.off('GAME_EVENT')
 })
 </script>
@@ -216,28 +232,29 @@ body {
 }
 
 .game-container {
-  background: #e5c4dc;
-  border: solid 8px #e5c4dc;
-  border-radius: 1% 1% 1% 1%;
+  background: linear-gradient(
+    to right,
+    var(--secondary-bright-color),
+    color-mix(in srgb, var(--secondary-bright-color) 75%, white)
+  );
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+
+  /* Empilement des box-shadow */
+  box-shadow: 
+    0 0 0 6px var(--secondary-bright-color), /* Bordure simulée */
+    0 0 30px rgba(0, 0, 0, 0.85);          /* Ombre réelle */
 }
+
+
 
 .canvas-wrapper {
   position: relative;
 }
 
-.vertical-line {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 100%;
-  background-color: #5b3c54;
-  transform: translateX(-50%);
-}
-
 .game-canvas {
   position: relative;
   display: block;
-  border-radius: 0% 0% 1% 1%;
 }
 </style>

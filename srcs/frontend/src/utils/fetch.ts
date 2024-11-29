@@ -25,3 +25,15 @@ export function getBaseHost(): string {
   // In development, use localhost with direct ports
   return 'http://localhost';
 }
+
+export const fetchMultipleUsers = async (userIds: number[]) => {
+    try {
+        const userPromises = userIds.map(id =>
+            id !== 0 ? fetchUserById(id).catch(() => null) : Promise.resolve(null)
+        );
+        return await Promise.all(userPromises);
+    } catch (error) {
+        console.error("One or more fetches failed:", error);
+        return Array(userIds.length).fill(null); // Return null users instead of throwing
+    }
+};

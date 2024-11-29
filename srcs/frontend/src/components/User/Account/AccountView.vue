@@ -68,8 +68,13 @@ defineEmits(['startEditing']);
 }
 
 .account-info p {
+  color: white;
   font-size: 16px;
   margin-bottom: 10px;
+}
+
+.account-info p strong{
+  text-shadow: 1px 1px 2px black;
 }
 
 .account-actions {
@@ -87,10 +92,13 @@ defineEmits(['startEditing']);
   color: white;
   font-size: 14px;
   transition: background-color 0.3s;
-  background-color: #3498db;
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 75%, white));
 }
 
 .edit-button:hover {
-  background-color: #2980b9;
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 85%, white));
+  transform: scale(1.02);
 }
+
+
 </style>

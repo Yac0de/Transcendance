@@ -2,10 +2,13 @@
     <div class="game-header">
       <div class="scoreP1">
         <div class="player-info">
-          <div class="avatar-container">
-          <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" alt="Player 1 avatar">
+          <div class="avatar-and-name">
+            <div class="avatar-container">
+              <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" alt="Player 1 avatar">
+            </div>
+            <span>{{ player1?.nickname || 'Player 1' }}</span>
           </div>
-          <span>{{ player1?.nickname || 'Player 1' }} {{ state.score.player1 }}</span>
+          <span> {{ state.score.player1 }}</span>
         </div>
       </div>
       <div class="timer-container">
@@ -15,10 +18,13 @@
       </div>
       <div class="scoreP2">
         <div class="player-info">
-          <span>{{ player2?.nickname || 'Player 2' }} {{ state.score.player2 }}</span>
-          <div class="avatar-container">
-            <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" alt="Player 2 avatar">
+          <div class="avatar-and-name">
+            <div class="avatar-container">
+              <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" alt="Player 2 avatar">
+            </div>
+            <span>{{ player2?.nickname || 'Player 2' }}</span>
           </div>
+          <span>{{ state.score.player2 }}</span>
         </div>
       </div>
     </div>
@@ -59,9 +65,9 @@ watch([() => props.player1id, () => props.player2id], fetchPlayerData)
 .game-header {
   position: relative;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
-  background-color: #99307a;
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 75%, white));
   color: black;
   width: 800px;
   height: 50px;
@@ -69,10 +75,28 @@ watch([() => props.player1id, () => props.player2id], fetchPlayerData)
   font-weight: bolder;
 }
 
-.player-info {
+.scoreP1, .scoreP2 {
+  width: 40%;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.player-info {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
+  color: white;
+  font-size: 1.2rem;
+  text-shadow: 0.5px 0.5px 1px black;
+}
+
+.avatar-and-name {
+  display: flex;
+  align-items: center;
+  width: 250px;
 }
 
 .avatar-container {
@@ -80,8 +104,8 @@ watch([() => props.player1id, () => props.player2id], fetchPlayerData)
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #f7ddef;
-  background-color: #5b3c54;
+  border: 2px solid var(--secondary-bright-color);
+  background-color: var(--secondary-dark-color);
 }
 
 .avatar {
@@ -110,21 +134,44 @@ watch([() => props.player1id, () => props.player2id], fetchPlayerData)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #5b3c54;
+  color: var(--secondary-dark-color);
+  text-shadow: 
+    1px 1px 0 white,
+    -1px 1px 0 white,
+    1px -1px 0 white,
+    -1px -1px 0 white;
+  font-weight: bold;       
   letter-spacing: .2rem;
 }
 
 .timer {
   letter-spacing: normal;
-  color: #f7ddef;
+  color: var(--secondary-bright-color);
+  text-shadow: none;
 }
 
 .scoreP1 .player-info {
   flex-direction: row;
+  margin-left: 20px;
+  margin-right: 25px;
+}
+
+.scoreP1 .avatar-and-name span{
+  margin-left: 15px;
 }
 
 .scoreP2 .player-info {
   flex-direction: row-reverse;
+  margin-right: 20px;
+  margin-left: 25px;
+}
+
+.scoreP2 .avatar-and-name {
+  flex-direction: row-reverse;
+}
+
+.scoreP2 .avatar-and-name span{
+  margin-right: 15px;
 }
 
 /* Optional: Add hover effect on avatar */

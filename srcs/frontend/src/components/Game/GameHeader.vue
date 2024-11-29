@@ -6,7 +6,7 @@
           <div class="avatar-container">
             <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" alt="Player 1 avatar">
           </div>
-          <span :style="nameStyle(player1)">{{ player1?.nickname || 'Player 1' }}</span>
+          <span :style="nameStyle(player1)">{{ player1?.displayname || 'Player 1' }}</span>
         </div>
         <span>{{ state.score.player1 }}</span>
       </div>
@@ -22,7 +22,7 @@
           <div class="avatar-container">
             <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" alt="Player 2 avatar">
           </div>
-          <span :style="nameStyle(player2)">{{ player2?.nickname || 'Player 2' }}</span>
+          <span :style="nameStyle(player2)">{{ player2?.displayname || 'Player 2' }}</span>
         </div>
         <span>{{ state.score.player2 }}</span>
       </div>

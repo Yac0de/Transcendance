@@ -5,11 +5,11 @@
         <div class="avatar-wrapper">
           <img
             :src="isLeft ? api.user.getAvatarUrl(user_store.getAvatarPath) : api.user.getAvatarUrl(challengedFriend?.avatar ?? null)"
-            :alt="(isLeft ? user_store.getNickname : challengedFriend?.nickname) + '\'s avatar'" class="avatar-image" />
+            :alt="(isLeft ? user_store.displayname : challengedFriend?.displayname) + '\'s avatar'" class="avatar-image" />
         </div>
       </div>
       <div class="player-name" :style="nameStyle">
-        {{ isLeft ? user_store.getNickname : challengedFriend?.nickname }}
+        {{ isLeft ? user_store.displayname : challengedFriend?.displayname }}
       </div>
     </div>
   </div>
@@ -30,7 +30,7 @@ const user_store = useUserStore();
 
 // Calcul de la taille de la police en fonction du pseudo
 const nameStyle = computed(() => {
-  const displayName = (props.isLeft ? user_store.getNickname : props.challengedFriend?.nickname) || '';
+  const displayName = (props.isLeft ? user_store.displayname : props.challengedFriend?.displayname) || '';
   const minFontSize = 11;  // Taille minimum de la police
   const maxFontSize = 24;  // Taille maximum de la police
   const minLength = 3;     // Longueur minimale du pseudo

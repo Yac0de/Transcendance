@@ -57,10 +57,17 @@ import { UserData } from '../../types/models'
 import { TournamentTimer, TournamentTreeState, TournamentGame } from '../../types/tournament'
 import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '../../stores/user';
 
+const props = defineProps<{
+  tournamentCode: string;
+}>();
+
+const route = useRoute()
 const userStore = useUserStore()
+
+let goingIntoGame: boolean = false;
 
 const UsersInSemis1 = ref<(UserData | null)[]>([null, null]); 
 const UsersInSemis2 = ref<(UserData | null)[]>([null, null]); 
@@ -74,6 +81,16 @@ const tournamentStatusMessage = ref<string>('');
 const router = useRouter();
 
 onMounted(async () => {
+  if (userStore.getWebSocketService?.isConnected()) {
+    console.log("TC: ", props.tournamentCode)
+    if (props.tournamentCode) {
+      userStore.getWebSocketService?.sendTreeStateMessage(props.tournamentCode)
+    } else if (route.query.lobbyId) {
+      userStore.getWebSocketService?.sendTreeStateMessage(route.query.lobbyId)
+    }
+  } else {
+    console.error('WebSocket is not connected');
+  }
 
   eventBus.on('TOURNAMENT_TIMER', (message: TournamentTimer) => {
     remainingSeconds.value = message.remainingTime;
@@ -83,6 +100,7 @@ onMounted(async () => {
     if (message.semi1) {
       UsersInSemis1.value = await fetchMultipleUsers([message.semi1.player1id, message.semi1.player2id]); 
     }
+
     if (message.semi2) {
       UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
     }
@@ -120,6 +138,7 @@ onMounted(async () => {
   })
 
   eventBus.on('TOURNAMENT_GAME', (message: TournamentGame) => {
+    goingIntoGame = true;
     router.push({
       path: '/game', 
       query: { lobbyId: message.lobbyId }
@@ -128,12 +147,13 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-
-  if (userStore.getWebSocketService?.isConnected()) {
-    console.log("-> TOURNAMENT_LEAVE");
-    userStore.getWebSocketService?.sendLeaveTournament()
-  } else {
-    console.error('WebSocket is not connected');
+  if (!goingIntoGame) {
+    if (userStore.getWebSocketService?.isConnected()) {
+      console.log("-> TOURNAMENT_LEAVE");
+      userStore.getWebSocketService?.sendLeaveTournament()
+    } else {
+      console.error('WebSocket is not connected');
+    }
   }
 
   eventBus.off('TOURNAMENT_TIMER')

@@ -141,6 +141,7 @@ export class WebSocketService {
             eventBus.emit('TOURNAMENT_ERROR', message);
         })
         this.setMessageHandler<TournamentTreeState>('TOURNAMENT_TREE_STATE', (message: TournamentTreeState) => {
+            console.log("RECEIVED THE TREE STATE");
             eventBus.emit('TOURNAMENT_TREE_STATE', message);
         })
     }
@@ -331,7 +332,19 @@ export class WebSocketService {
         }
     }
 
-    public leaveTournament(): void {
+    public sendTreeStateMessage(tournamentCode: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentTreeState = {
+                type: 'TOURNAMENT_TREE_STATE',
+                userId: this.userStore.getId!,
+                code: tournamentCode,
+            };
+            console.log(message);
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public sendLeaveTournament(): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: TournamentLeave = {
                 type: 'TOURNAMENT_LEAVE_WAITING_ROOM',

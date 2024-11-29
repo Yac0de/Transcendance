@@ -34,7 +34,7 @@
     </div>
     <div v-else-if="currentView === 'tournament-tree'" class="create-view">
       <!-- CreateTournament component will go here -->
-      <TournamentTree :game1array="game1array" :game2array="game2array"/>
+      <TournamentTree :tournamentCode="tournamentCode" :game1array="game1array" :game2array="game2array"/>
     </div>
   </div>
 </template>
@@ -102,13 +102,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (userStore.getWebSocketService?.isConnected()) {
-    console.log("-> TOURNAMENT_LEAVE");
-    userStore.getWebSocketService?.sendLeaveTournament()
-  } else {
-    console.error('WebSocket is not connected');
-  }
-
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
   eventBus.off('TOURNAMENT_EVENT');

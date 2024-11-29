@@ -358,6 +358,7 @@ func UpdateSemiFinals(h *Hub, tournament *Tournament, event *TournamentTreeEvent
 		jsonData, _ := json.Marshal(&event)
 		SendDatasToGame(h, tournament.Semi1, jsonData)
 		SendDatasToGame(h, tournament.Semi2, jsonData)
+
 	}
 	if tournament.Final[1] == 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
 		tournament.Final[1] = tournament.LobbiesSemi[1].Game.State.Winner

@@ -62,12 +62,12 @@ watch([() => props.player1id, () => props.player2id], fetchPlayerData)
 
 // Fonction pour calculer la taille du texte en fonction du pseudo
 const nameStyle = (player: UserData | null) => {
-  const nickname = player?.nickname || '';
+  const displayname = player?.displayname || '';
   const minFontSize = 15;  // Taille minimum de la police
   const maxFontSize = 24;  // Taille maximum de la police
   const minLength = 3;     // Longueur minimale du pseudo
 
-  const length = nickname.length;
+  const length = displayname.length;
   const fontSize = Math.max(minFontSize, Math.min(maxFontSize, maxFontSize - (length - minLength) * 1.5));
 
   return {

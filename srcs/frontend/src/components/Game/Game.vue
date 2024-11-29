@@ -188,12 +188,8 @@ onMounted(() => {
         drawBall(ctx, message.state!);
         if(gameSettingsStore.gameMode)
           drawBoostStatus(ctx, message.state!);
-        if (!message.state!.isGameMode && message.state!.winner !== 0) {
+        if (!message.state!.isGameMode && message.state!.winner !== 0)
           drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
-          window.setTimeout(() => {
-            router.push('/');
-          }, 5000)
-        }
       }
     }
   })

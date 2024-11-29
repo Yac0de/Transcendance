@@ -5,7 +5,7 @@ export const useGameSettingsStore = defineStore("gameSettings", {
       gameMode: false,
     }),
     actions: {
-      setGameMode(mode) {
+      setGameMode(mode: boolean) {
         this.gameMode = mode;
       },
     },

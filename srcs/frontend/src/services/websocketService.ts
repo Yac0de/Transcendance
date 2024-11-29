@@ -279,7 +279,7 @@ export class WebSocketService {
         }
     }    
 
-    public sendPlayerReadyMessage(lobbyId: string, isGameMode: boolean): void {
+    public sendPlayerReadyMessage(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
                 type: 'LOBBY_PLAYER_READY_STATUS',

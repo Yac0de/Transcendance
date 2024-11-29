@@ -31,7 +31,6 @@ type Events = {
   'LOBBY_DENY_FROM_FRIEND': LobbyDenyFromFriend;
   'LOBBY_CREATED': LobbyCreated;
   'LOBBY_PLAYER_STATUS': LobbyPlayerStatus;
-  'LOBBY_SPECIAL_MODE_TOGGLED': SpecialModeStatus;
   'LOBBY_TERMINATE': LobbyTerminate;
   'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
   'LOBBY_SPECIAL_MODE_TOGGLED': LobbySpecialModeToggled;

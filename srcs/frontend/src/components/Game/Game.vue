@@ -200,7 +200,7 @@ onMounted(() => {
 
   eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
-
+    gameSettingsStore.gameMode = false;
     if (message.isTournamentGame === false) {
       window.setTimeout(() => {
         router.push('/');
@@ -223,7 +223,8 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handlePressDown)
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
-  window.removeEventListener('keydown', handleSpace)
+  if(gameSettingsStore.gameMode)
+    window.removeEventListener('keydown', handleSpace)
   eventBus.off('GAME_EVENT')
 })
 </script>

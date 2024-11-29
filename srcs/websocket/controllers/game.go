@@ -19,6 +19,7 @@ type GameEvent struct {
 	KeyPressed string    `json:"keyPressed"`
 	Player1Id  uint64    `json:"player1id"`
 	Player2Id  uint64    `json:"player2id"`
+	IsTournamentGame bool `json:"isTournamentGame"`
 }
 
 type Ball struct {
@@ -54,15 +55,15 @@ type GameState struct {
 	mutex         sync.Mutex `json:"-"`
 	IsPaused      bool       `json:"isPaused"`
 	PauseTime     time.Time  `json:"pauseTime"`
-	Player1Boost BoostState  `json:"player1boost"`
-	Player2Boost BoostState  `json:"player2boost"`
+	Player1Boost  BoostState `json:"player1boost"`
+	Player2Boost  BoostState `json:"player2boost"`
 	RemainingTime int        `json:"remainingTime"`
 }
 
 type BoostState struct {
-	BallHit    int        `json:"ballhit"`
-	BoostReady    bool       `json:"boostReady"`
-	IsBoostActive bool       `json:"isboostactive"`
+	BallHit       int  `json:"ballhit"`
+	BoostReady    bool `json:"boostReady"`
+	IsBoostActive bool `json:"isboostactive"`
 }
 
 type Player struct {
@@ -89,7 +90,7 @@ const (
 	PaddleSpeed         = 3
 	Paddle1DistanceWall = 20
 	Paddle2DistanceWall = 760
-	WinningScore        = 5
+	WinningScore        = 1
 	paddleSpeed         = 8.0
 	collisionToBoost    = 3
 	boostMultiplier     = 2.5
@@ -121,8 +122,8 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Width:    20,
 				Height:   120,
 				Speed:    PaddleSpeed,
-				Player1Y: (CanvasHeight / 2) - 120 / 2,
-				Player2Y: (CanvasHeight / 2) - 120 / 2,
+				Player1Y: (CanvasHeight / 2) - 120/2,
+				Player2Y: (CanvasHeight / 2) - 120/2,
 				Player1X: Paddle1DistanceWall,
 				Player2X: Paddle2DistanceWall,
 			},
@@ -132,17 +133,18 @@ func NewGame(player1ID, player2ID uint64) *Game {
 				Player2: 0,
 			},
 			Player1Boost: BoostState{
-				BallHit:    0,
+				BallHit:       0,
 				BoostReady:    false,
 				IsBoostActive: false,
 			},
 			Player2Boost: BoostState{
-				BallHit:    0,
+				BallHit:       0,
 				BoostReady:    false,
 				IsBoostActive: false,
 			},
-			IsActive:      true,
-	
+			Winner:   0,
+			IsActive: true,
+
 			RemainingTime: 300,
 		},
 		Status: "PREGAME",
@@ -206,7 +208,7 @@ func (g *Game) Update() {
 		if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height &&
 			g.State.Ball.X-g.State.Ball.Radius > g.State.Paddles.Player1X {
-			
+
 			multiplier := 1.0
 			if g.State.Player1Boost.IsBoostActive {
 				multiplier = boostMultiplier
@@ -229,7 +231,7 @@ func (g *Game) Update() {
 		if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height &&
 			g.State.Ball.X+g.State.Ball.Radius < g.State.Paddles.Player2X+g.State.Paddles.Width {
-			
+
 			multiplier := 1.0
 			if g.State.Player2Boost.IsBoostActive {
 				multiplier = boostMultiplier
@@ -370,7 +372,6 @@ func (g *Game) isBallBelowPaddle() bool {
 	}
 }
 
-
 func computeDeviation(ballY, paddleY, paddleHeight float64) float64 {
 	// trouve la position du milieu du paddel
 	midPaddle := paddleY + (paddleHeight / 2)
@@ -408,7 +409,6 @@ func (g *Game) resetBall() {
 	g.State.Player2Boost.BoostReady = false
 	g.State.Player2Boost.IsBoostActive = false
 
-
 	if g.State.Ball.DX > 0 {
 		g.State.Ball.DX = -BallSpeed
 	} else {
@@ -428,7 +428,7 @@ func (g *Game) hitCounter(playerNum int) {
 			g.State.Player1Boost.BoostReady = true
 			g.State.Player1Boost.BallHit = 0
 		}
-	}else {
+	} else {
 		g.State.Player2Boost.BallHit++
 		if g.State.Player2Boost.BallHit >= collisionToBoost {
 			g.State.Player2Boost.BoostReady = true
@@ -453,10 +453,9 @@ func handleGameMessage(h *Hub, data []byte) {
 		Command:  evt.KeyPressed,
 	}
 	fmt.Printf("CMD: %+v\n", cmd)
-	
+
 	lobby.Game.HandleCommand(cmd)
 }
-
 
 func (g *Game) HandleCommand(cmd GameCommand) {
 	g.State.mutex.Lock()
@@ -491,3 +490,4 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 		}
 	}
 }
+

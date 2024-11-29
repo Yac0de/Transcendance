@@ -22,15 +22,16 @@ type LobbyTimestamps struct {
 }
 
 type Lobby struct {
-	Id           uuid.UUID       `json:"id"`
-	Sender       *Client         `json:"sender"`
-	Receiver     *Client         `json:"receiver"`
-	Timestamps   LobbyTimestamps `json:"timestamps"`
-	Status       string          `json:"status"`
-	PlayersReady [2]bool         `json:"playersReady"`
-	Mutex        sync.Mutex      `json:"-"`
-	Destroy      chan struct{}   `json:"-"`
-	Game         *Game           `json:"game"`
+	Id               uuid.UUID       `json:"id"`
+	Sender           *Client         `json:"sender"`
+	Receiver         *Client         `json:"receiver"`
+	Timestamps       LobbyTimestamps `json:"timestamps"`
+	Status           string          `json:"status"`
+	PlayersReady     [2]bool         `json:"playersReady"`
+	Mutex            sync.Mutex      `json:"-"`
+	Destroy          chan struct{}   `json:"-"`
+	Game             *Game           `json:"game"`
+	IsTournamentGame bool            `json:"isTournamentGame"`
 }
 
 type LobbyUserState struct {
@@ -40,20 +41,17 @@ type LobbyUserState struct {
 
 type LobbyEvent struct {
 	models.Event
-	LobbyId  uuid.UUID      `json:"lobbyId"`
-	UserId   uint64         `json:"userId"`
-	Sender   LobbyUserState `json:"sender"`
-	Receiver LobbyUserState `json:"receiver"`
+	LobbyId          uuid.UUID      `json:"lobbyId"`
+	UserId           uint64         `json:"userId"`
+	Sender           LobbyUserState `json:"sender"`
+	Receiver         LobbyUserState `json:"receiver"`
+	IsTournamentGame bool           `json:"isTournamentGame"`
 }
 
 type LobbyErrorEvent struct {
 	models.Event
 	LobbyId uuid.UUID `json:"lobbyId"`
 	Error   string    `json:"error"`
-}
-
-type GameStart struct {
-	models.Event
 }
 
 func HandleLobby(h *Hub, event string, data []byte) {
@@ -151,7 +149,8 @@ func LobbyCreation(h *Hub, request LobbyEvent) {
 			Id:      lobby.Receiver.Id,
 			IsReady: false,
 		},
-		LobbyId: lobby.Id,
+		LobbyId:          lobby.Id,
+		IsTournamentGame: false,
 	}
 	jsonData, err := json.Marshal(&response)
 	if err != nil {
@@ -252,12 +251,9 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 	lobby.Destroy = make(chan struct{})
 	lobby.Game = NewGame(lobby.Sender.Id, lobby.Receiver.Id)
 	gameTicker := time.NewTicker(GameTickRate)
-	//gameTicker := time.NewTicker(time.Second * 2)
 
-	gameStart := GameStart{
-		Event: models.Event{
-			Type: "GAME_START",
-		},
+	gameStart := models.Event{
+		Type: "GAME_START",
 	}
 
 	dataJson, err := json.Marshal(gameStart)
@@ -265,6 +261,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 		fmt.Printf("Impossible to parse GameStart type: ", err.Error())
 		return
 	}
+
 	safeSend(lobby.Sender.Send, dataJson)
 	safeSend(lobby.Receiver.Send, dataJson)
 
@@ -282,15 +279,31 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 						Event: models.Event{
 							Type: "GAME_EVENT",
 						},
-
-						LobbyId:   lobby.Id,
-						State:     lobby.Game.State,
-						Player1Id: lobby.Sender.Id,
-						Player2Id: lobby.Receiver.Id,
+						LobbyId:          lobby.Id,
+						State:            lobby.Game.State,
+						Player1Id:        lobby.Sender.Id,
+						Player2Id:        lobby.Receiver.Id,
+						IsTournamentGame: lobby.IsTournamentGame,
 					}
 					stateJson, _ := json.Marshal(evt)
 					safeSend(lobby.Sender.Send, stateJson)
 					safeSend(lobby.Receiver.Send, stateJson)
+				} else if lobby.Game.State.IsActive == false && lobby.Game.State.Winner != 0 {
+					evt := GameEvent{
+						Event: models.Event{
+							Type: "GAME_FINISHED",
+						},
+
+						LobbyId:          lobby.Id,
+						State:            lobby.Game.State,
+						Player1Id:        lobby.Sender.Id,
+						Player2Id:        lobby.Receiver.Id,
+						IsTournamentGame: lobby.IsTournamentGame,
+					}
+					stateJson, _ := json.Marshal(evt)
+					safeSend(lobby.Sender.Send, stateJson)
+					safeSend(lobby.Receiver.Send, stateJson)
+					return
 				}
 			}
 		}

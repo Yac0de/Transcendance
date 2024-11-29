@@ -52,7 +52,7 @@ import Timer from './Timer.vue'
 import { useUserStore } from '../../stores/user'
 import { useGameSettingsStore } from '../../stores/gameSettings.js';
 import { UserData } from '../../types/models';
-import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime, SpecialModeStatus } from '../../types/lobby';
+import { LobbyPlayerStatus, LobbyCreated, LobbyPregameRemainingTime, LobbySpecialModeToggled } from '../../types/lobby';
 import { eventBus } from '../../events/eventBus'
 import { fetchUserById } from '../../utils/fetch'
 import { useRouter, useRoute } from 'vue-router'
@@ -84,11 +84,6 @@ const showTimer = ref<boolean>(false);
 
 const handleToggleMode = (newValue: boolean) => {
   isSpecialMode.value = newValue;
-  gameSettingsStore.setGameMode(newValue);
-  
-  console.log("lobbyId " + lobbyId.value)
-  console.log("new value " + newValue);
-
   if (userStore.getWebSocketService?.isConnected()) {
     userStore.getWebSocketService?.sendSpecialModeToggleMessage(lobbyId.value, newValue);
   } else {
@@ -132,11 +127,9 @@ onMounted(async () => {
   })
 
   eventBus.on('LOBBY_SPECIAL_MODE_TOGGLED', (message: LobbySpecialModeToggled) => {
-    console.log("message eventBus.on LOBBY_SPECIAL_MODE_TOGGLED ", message)
   if (message.lobbyId === lobbyId.value) {
-    console.log('Received LOBBY_SPECIAL_MODE_TOGGLED:', message.isGameMode);
-    console.log("message.isGameMode " + message.isGameMode);
     isSpecialMode.value = message.isGameMode;
+    gameSettingsStore.setGameMode(isSpecialMode.value);
   }
   });
 

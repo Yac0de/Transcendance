@@ -22,6 +22,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall, drawEndGame, drawBoostStatus } from '../../services/gamerender';
 import { useUserStore } from '../../stores/user';
+import { useGameSettingsStore } from '../../stores/gameSettings.js';
 import { useRoute, useRouter } from 'vue-router'
 import GameHeader from './GameHeader.vue';
 
@@ -29,6 +30,7 @@ const route = useRoute()
 const router = useRouter()
 
 const userStore = useUserStore();
+const gameSettingsStore = useGameSettingsStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const player1Id = ref<number | null>(null)
@@ -158,7 +160,8 @@ onMounted(() => {
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
-  window.addEventListener('keydown', handleSpace)
+  if(gameSettingsStore.gameMode)
+    window.addEventListener('keydown', handleSpace)
   const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
@@ -183,7 +186,8 @@ onMounted(() => {
 
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
-        drawBoostStatus(ctx, message.state!);
+        if(gameSettingsStore.gameMode)
+          drawBoostStatus(ctx, message.state!);
         if (!message.state!.IsGameMode && message.state!.winner !== 0) {
           drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
           window.setTimeout(() => {

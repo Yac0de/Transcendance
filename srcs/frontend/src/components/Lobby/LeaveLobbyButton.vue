@@ -31,6 +31,8 @@ const leaveLobby = () => {
 
 <style scoped>
 .leave-button-container {
+  display: flex;
+  align-items: start;
 }
 
 .leave-lobby-button {

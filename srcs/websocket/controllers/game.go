@@ -441,6 +441,7 @@ func handleGameMessage(h *Hub, data []byte) {
 	var evt GameEvent
 	if err := json.Unmarshal(data, &evt); err != nil {
 		fmt.Printf("Error GameEvent type unmarshall\n")
+		fmt.Printf("Data = \n", string(data))
 		return
 	}
 	lobby := h.Lobbies[evt.LobbyId]

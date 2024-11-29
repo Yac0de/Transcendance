@@ -80,7 +80,6 @@ onUnmounted(() => {
 .scroll-down-container {
   position: relative;
   width: 220px;
-  font-family: 'Arial', sans-serif;
 }
 
 .selected-friend {

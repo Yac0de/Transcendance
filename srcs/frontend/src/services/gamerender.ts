@@ -63,10 +63,9 @@ export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
     
     // Dessiner les indicateurs de boost
     ctx.globalCompositeOperation = 'source-over';
-    drawBoostStatus(ctx, state);
 }
 
-function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
+export function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
     const statusHeight = 30;
     const margin = 20;
     const width = 100;

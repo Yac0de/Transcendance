@@ -16,6 +16,7 @@ const router = useRouter();
 const startTournament = () => {
   // TODO: Implement tournament logic 
   console.log('Starting tournament');
+  router.push('/tournament');
 };
 
 const startPlayerVsRobot = () => {

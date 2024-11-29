@@ -3,33 +3,30 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"strings"
+	"time"
 	"websocket/models"
+
+	"github.com/google/uuid"
 )
 
 type Hub struct {
-	Clients    map[uint64]*Client
-	Broadcast  chan []byte
-	Register   chan *Client
-	Unregister chan *Client
-	Lobbies    map[uuid.UUID]*Lobby
+	Clients     map[uint64]*Client
+	Broadcast   chan []byte
+	Register    chan *Client
+	Unregister  chan *Client
+	Lobbies     map[uuid.UUID]*Lobby
+	Tournaments map[string]*Tournament
 }
-
-// type GameMessage struct {
-// 	Type     string          `json:"type"`
-// 	Command  string          `json:"command,omitempty"`
-// 	PlayerID uint64          `json:"playerId,omitempty"`
-// 	State    *GameState `json:"state,omitempty"`
-// }
 
 func NewHub() *Hub {
 	return &Hub{
-		Clients:    make(map[uint64]*Client),
-		Broadcast:  make(chan []byte),
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Lobbies:    make(map[uuid.UUID]*Lobby),
+		Clients:     make(map[uint64]*Client),
+		Broadcast:   make(chan []byte),
+		Register:    make(chan *Client),
+		Unregister:  make(chan *Client),
+		Lobbies:     make(map[uuid.UUID]*Lobby),
+		Tournaments: make(map[string]*Tournament),
 	}
 }
 
@@ -52,7 +49,13 @@ func (h *Hub) RemoveClient(client *Client) {
 			LobbyClientHasLeft(h, h.Lobbies[id].Id)
 		}
 	}
+	for id := range h.Tournaments {
+		if ClientIsPresentOnTournament(h.Tournaments[id], target) {
+			TournamentClientHasLeft(h, h.Tournaments[id], target)
+		}
+	}
 	go func() {
+		time.Sleep(10 * time.Millisecond)
 		NotifyClients(h, client.Id, "USER_DISCONNECTED")
 	}()
 	delete(h.Clients, client.Id)
@@ -72,6 +75,7 @@ func (h *Hub) Run() {
 			event, err := h.GetEventType(message)
 			if err != nil {
 				fmt.Printf("Hub.broadcast error on event cast: %s | error: %v\n", string(message), err)
+				return
 			}
 			switch {
 			case event.Type == "CHAT":
@@ -80,6 +84,8 @@ func (h *Hub) Run() {
 				HandleLobby(h, event.Type, message)
 			case event.Type == "GAME_EVENT":
 				handleGameMessage(h, message)
+			case strings.HasPrefix(event.Type, "TOURNAMENT_"):
+				HandleTournament(h, event.Type, message)
 			default:
 				fmt.Printf("models.Event not handled: %+v\n", event)
 			}

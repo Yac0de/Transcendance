@@ -1,5 +1,5 @@
 import mitt from 'mitt'
-import type { GameEvent, GameStart } from '../types/game.ts';
+import type { GameEvent, GameStart, GameFinished } from '../types/game.ts';
 
 import type { 
   LobbyInvitationToFriend,
@@ -13,6 +13,17 @@ import type {
   SpecialModeStatus,
 } from '../types/lobby';
 
+import type { 
+   TournamentJoinWithCode,
+   TournamentCreate,
+   TournamentEvent,
+   TournamentStart,
+   TournamentTimer,
+   TournamentGame,
+   TournamentTreeState,
+   TournamentError
+} from '../types/tournament';
+
 type Events = {
   'LOBBY_INVITATION_TO_FRIEND': LobbyInvitationToFriend;
   'LOBBY_INVITATION_FROM_FRIEND': LobbyInvitationFromFriend;
@@ -24,8 +35,18 @@ type Events = {
   'LOBBY_TERMINATE': LobbyTerminate;
   'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
   'LOBBY_DESTROYED': void;
+  'GAME_EVENT' : GameEvent;
   'GAME_START': GameStart;
-  'GAME_EVENT': GameEvent;
+  'GAME_FINISHED': GameFinished;
+  'TOURNAMENT_JOIN_WITH_CODE': TournamentJoinWithCode
+  'TOURNAMENT_CREATE': TournamentCreate
+  'TOURNAMENT_EVENT': TournamentEvent
+  'TOURNAMENT_START': TournamentStart
+  'TOURNAMENT_TERMINATE': void
+  'TOURNAMENT_TIMER': TournamentTimer
+  'TOURNAMENT_GAME': TournamentGame
+  'TOURNAMENT_TREE_STATE': TournamentTreeState
+  'TOURNAMENT_ERROR': TournamentError
 }
 
 export const eventBus = mitt<Events>();

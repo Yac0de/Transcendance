@@ -31,6 +31,7 @@ type Lobby struct {
 	Mutex        sync.Mutex      `json:"-"`
 	Destroy      chan struct{}   `json:"-"`
 	Game         *Game           `json:"game"`
+	IsTournamentGame bool            `json:"isTournamentGame"`
 	IsGameMode	 bool			 `json:"isGameMode"`
 }
 
@@ -46,16 +47,13 @@ type LobbyEvent struct {
 	Sender   LobbyUserState `json:"sender"`
 	Receiver LobbyUserState `json:"receiver"`
 	IsGameMode	 bool	    `json:"isGameMode"`
+	IsTournamentGame bool           `json:"isTournamentGame"`
 }
 
 type LobbyErrorEvent struct {
 	models.Event
 	LobbyId uuid.UUID `json:"lobbyId"`
 	Error   string    `json:"error"`
-}
-
-type GameStart struct {
-	models.Event
 }
 
 func HandleLobby(h *Hub, event string, data []byte) {
@@ -155,7 +153,8 @@ func LobbyCreation(h *Hub, request LobbyEvent) {
 			Id:      lobby.Receiver.Id,
 			IsReady: false,
 		},
-		LobbyId: lobby.Id,
+		LobbyId:          lobby.Id,
+		IsTournamentGame: false,
 	}
 	jsonData, err := json.Marshal(&response)
 	if err != nil {
@@ -290,12 +289,9 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 	lobby.Destroy = make(chan struct{})
 	lobby.Game = NewGame(lobby.Sender.Id, lobby.Receiver.Id)
 	gameTicker := time.NewTicker(GameTickRate)
-	//gameTicker := time.NewTicker(time.Second * 2)
 
-	gameStart := GameStart{
-		Event: models.Event{
-			Type: "GAME_START",
-		},
+	gameStart := models.Event{
+		Type: "GAME_START",
 	}
 
 	dataJson, err := json.Marshal(gameStart)
@@ -303,6 +299,7 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 		fmt.Printf("Impossible to parse GameStart type: ", err.Error())
 		return
 	}
+
 	safeSend(lobby.Sender.Send, dataJson)
 	safeSend(lobby.Receiver.Send, dataJson)
 
@@ -320,15 +317,31 @@ func StartRoutine(h *Hub, lobby *Lobby) {
 						Event: models.Event{
 							Type: "GAME_EVENT",
 						},
-
-						LobbyId:   lobby.Id,
-						State:     lobby.Game.State,
-						Player1Id: lobby.Sender.Id,
-						Player2Id: lobby.Receiver.Id,
+						LobbyId:          lobby.Id,
+						State:            lobby.Game.State,
+						Player1Id:        lobby.Sender.Id,
+						Player2Id:        lobby.Receiver.Id,
+						IsTournamentGame: lobby.IsTournamentGame,
 					}
 					stateJson, _ := json.Marshal(evt)
 					safeSend(lobby.Sender.Send, stateJson)
 					safeSend(lobby.Receiver.Send, stateJson)
+				} else if lobby.Game.State.IsActive == false && lobby.Game.State.Winner != 0 {
+					evt := GameEvent{
+						Event: models.Event{
+							Type: "GAME_FINISHED",
+						},
+
+						LobbyId:          lobby.Id,
+						State:            lobby.Game.State,
+						Player1Id:        lobby.Sender.Id,
+						Player2Id:        lobby.Receiver.Id,
+						IsTournamentGame: lobby.IsTournamentGame,
+					}
+					stateJson, _ := json.Marshal(evt)
+					safeSend(lobby.Sender.Send, stateJson)
+					safeSend(lobby.Receiver.Send, stateJson)
+					return
 				}
 			}
 		}

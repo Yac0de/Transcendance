@@ -56,3 +56,39 @@ const toggleUnready = () => {
   }
 };
 </script>
+<<<<<<< HEAD
+=======
+
+<style scoped>
+.ready-check {
+  width: 120px;
+  margin: 10px;
+}
+
+.ready-button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.ready-button:not(.ready) {
+  background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 75%, white));
+  color: white;
+}
+
+.ready-button.ready {
+  background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 75%, white));
+  color: white;
+}
+
+.ready-button.opponent {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+</style>
+>>>>>>> main

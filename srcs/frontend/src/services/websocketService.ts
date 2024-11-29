@@ -2,7 +2,8 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed, SpecialModeStatus } from '../types/lobby';
-import { GameEvent, GameStart } from '../types/game';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
+import { GameEvent, GameStart, GameFinished } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
 import { useChatStore } from '../stores/chatStore.ts';
@@ -113,6 +114,36 @@ export class WebSocketService {
         this.setMessageHandler<GameStart>('GAME_START',(message: GameStart)  => {
             eventBus.emit('GAME_START', message);
         });
+        this.setMessageHandler<GameFinished>('GAME_FINISHED',(message: GameFinished)  => {
+            eventBus.emit('GAME_FINISHED', message);
+        });
+        this.setMessageHandler<TournamentJoinWithCode>('TOURNAMENT_JOIN_WITH_CODE', (message: TournamentJoinWithCode) => {
+            eventBus.emit('TOURNAMENT_JOIN_WITH_CODE', message);
+        });
+        this.setMessageHandler<TournamentCreate>('TOURNAMENT_CREATE', (message: TournamentCreate) => {
+            eventBus.emit('TOURNAMENT_CREATE', message);
+        })
+        this.setMessageHandler<TournamentEvent>('TOURNAMENT_EVENT', (message: TournamentEvent) => {
+            eventBus.emit('TOURNAMENT_EVENT', message);
+        })
+        this.setMessageHandler<TournamentStart>('TOURNAMENT_START', (message: TournamentStart) => {
+            eventBus.emit('TOURNAMENT_START', message);
+        })
+        this.setMessageHandler<TournamentTerminate>('TOURNAMENT_TERMINATE', () => {
+            eventBus.emit('TOURNAMENT_TERMINATE');
+        })
+        this.setMessageHandler<TournamentTimer>('TOURNAMENT_TIMER', (message: TournamentTimer) => {
+            eventBus.emit('TOURNAMENT_TIMER', message);
+        })
+        this.setMessageHandler<TournamentGame>('TOURNAMENT_GAME', (message: TournamentGame) => {
+            eventBus.emit('TOURNAMENT_GAME', message);
+        })
+        this.setMessageHandler<TournamentError>('TOURNAMENT_ERROR', (message: TournamentError) => {
+            eventBus.emit('TOURNAMENT_ERROR', message);
+        })
+        this.setMessageHandler<TournamentTreeState>('TOURNAMENT_TREE_STATE', (message: TournamentTreeState) => {
+            eventBus.emit('TOURNAMENT_TREE_STATE', message);
+        })
     }
 
     public setMessageHandler<T>(type: string, handler: MessageHandler<T>): void {
@@ -137,13 +168,18 @@ export class WebSocketService {
             this.ws.onmessage = (event) => {
                 console.log('Received event:', event);
                 try {
-                    const message = JSON.parse(event.data);
-                    console.log('Received message type:', message.type);
-                    const handler = this.messageHandlers[message.type];
-                    if (handler) {
-                        handler(message);
-                    } else
-                        console.warn(`No handler found for message type: ${message.type}`);
+                    const events = event.data.split('\n');
+
+                    // Use for...of to properly iterate through the array of events
+                    for (const eventData of events) {
+                        const message = JSON.parse(eventData);
+                        const handler = this.messageHandlers[message.type];
+                        //console.log("<-", message);
+                        if (handler) {
+                            handler(message);
+                        } else
+                            console.warn(`No handler found for message type: ${message.type}`);
+                    }
                 } catch (e) {
                     console.error('Error parsing WebSocket message:', e);
                 }
@@ -285,6 +321,52 @@ export class WebSocketService {
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public joinTournamentWithCode(code: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentJoinWithCode = {
+                type: 'TOURNAMENT_JOIN_WITH_CODE',
+                userId: this.userStore.getId!,
+                code: code
+            };
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public createTournamentWaitingRoom(): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentCreate = {
+                type: 'TOURNAMENT_CREATE',
+                userId: this.userStore.getId!,
+                code: '',
+            };
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public leaveTournamentWaitingRoom(code: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentLeaveWaitingRoom = {
+                type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
+                userId: this.userStore.getId!,
+                code: code
+            };
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public sendTournamentStart(code: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentStart = {
+                type: 'TOURNAMENT_START',
+                userId: this.userStore.getId!,
+                code: code,
+            };
+            this.ws.send(JSON.stringify(message));
         }
     }
 

@@ -140,53 +140,73 @@ func UpdateProfile(ctx *gin.Context) {
 }
 
 func UpdateUser(ctx *gin.Context, id uint) (int, error) {
-	validate := validator.New()
-	var user models.User
+    validate := validator.New()
+    var user models.User
 
-	result := database.DB.First(&user, "id = ?", id)
-	if result.Error != nil {
-		return http.StatusNotFound, result.Error
-	}
+    // Vérifier si l'utilisateur existe
+    result := database.DB.First(&user, "id = ?", id)
+    if result.Error != nil {
+        return http.StatusNotFound, result.Error
+    }
 
-	form, err := ctx.MultipartForm()
-	if err != nil {
-		return http.StatusNotFound, err
-	}
+    // Récupérer les données envoyées via le formulaire
+    form, err := ctx.MultipartForm()
+    if err != nil {
+        return http.StatusNotFound, err
+    }
 
-	for key := range form.Value {
-		switch strings.ToLower(key) {
-		case "nickname":
-			user.Nickname = strings.ToLower(form.Value[key][0])
-		case "displayname":
-			user.DisplayName = form.Value[key][0]
-			// Handle password case
-		}
-	}
+    // Récupérer les valeurs du formulaire
+    var newNickname, newDisplayName string
+    for key := range form.Value {
+        switch strings.ToLower(key) {
+        case "nickname":
+            newNickname = strings.ToLower(form.Value[key][0])
+        case "displayname":
+            newDisplayName = form.Value[key][0]
+        }
+    }
 
-	err = validate.Struct(user)
-	if err != nil {
-		var e string
-		for _, err := range err.(validator.ValidationErrors) {
-			e += fmt.Sprintf("Error validation for '%s': %s\n", err.Field(), err.Tag())
-		}
-		return http.StatusBadRequest, fmt.Errorf(e)
-	}
+    // Vérifier si le displayname a changé et s'il existe déjà
+    if newDisplayName != user.DisplayName {
+        var existingUser models.User
+        err := database.DB.Where("display_name = ?", newDisplayName).First(&existingUser).Error
+        if err == nil && existingUser.ID != id {
+            return http.StatusBadRequest, fmt.Errorf("Display name already exists, please choose another one.")
+        }
+    }
 
-	if form.File["avatar"] != nil {
-		filename, err := SaveAvatar(ctx, form.File["avatar"][0])
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		if len(user.Avatar) > 0 {
-			err = os.Remove(filepath.Join("./avatars", user.Avatar))
-		}
-		user.Avatar = filename
-	}
+    // Mettre à jour le nickname et le displayname si nécessaire
+    user.Nickname = newNickname
+    user.DisplayName = newDisplayName
 
-	if err := database.DB.Save(&user).Error; err != nil {
-		return http.StatusBadRequest, err
-	}
-	return 0, nil
+    // Valider les données
+    err = validate.Struct(user)
+    if err != nil {
+        var e string
+        for _, err := range err.(validator.ValidationErrors) {
+            e += fmt.Sprintf("Error validation for '%s': %s\n", err.Field(), err.Tag())
+        }
+        return http.StatusBadRequest, fmt.Errorf(e)
+    }
+
+    // Gérer l'avatar
+    if form.File["avatar"] != nil {
+        filename, err := SaveAvatar(ctx, form.File["avatar"][0])
+        if err != nil {
+            return http.StatusInternalServerError, err
+        }
+        if len(user.Avatar) > 0 {
+            err = os.Remove(filepath.Join("./avatars", user.Avatar))
+        }
+        user.Avatar = filename
+    }
+
+    // Sauvegarder l'utilisateur
+    if err := database.DB.Save(&user).Error; err != nil {
+        return http.StatusBadRequest, err
+    }
+
+    return 0, nil
 }
 
 func SaveAvatar(ctx *gin.Context, file *multipart.FileHeader) (string, error) {

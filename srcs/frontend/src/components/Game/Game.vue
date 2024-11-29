@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { GameEvent, GameState } from '../../types/game'
+import { GameEvent, GameState, GameFinished } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
 import { drawPaddle, drawBall, drawEndGame, drawBoostStatus } from '../../services/gamerender';
@@ -27,7 +27,6 @@ import GameHeader from './GameHeader.vue';
 
 const route = useRoute()
 const router = useRouter()
-let endGameTimeout: number | null = null;
 
 const userStore = useUserStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -160,6 +159,7 @@ onMounted(() => {
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
   window.addEventListener('keydown', handleSpace)
+  const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
 
@@ -171,7 +171,6 @@ onMounted(() => {
     }
 
     if (canvasRef.value) {
-      const ctx:CanvasRenderingContext2D = canvasRef.value.getContext('2d') as CanvasRenderingContext2D
       if (ctx) {
         Object.assign(currentGameState, message.state);
 
@@ -197,6 +196,24 @@ onMounted(() => {
       }
     }
   })
+
+  eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
+    drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
+
+    if (message.isTournamentGame === false) {
+      window.setTimeout(() => {
+        router.push('/');
+      }, 3000)
+    } else {
+      window.setTimeout(() => {
+        router.push({
+        path:'/tournament',
+        query: { view: 'tournament-tree' }
+        });
+      })
+    }
+  })
+
 })
 
 onUnmounted(() => {
@@ -206,9 +223,6 @@ onUnmounted(() => {
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
   window.removeEventListener('keydown', handleSpace)
-  if (endGameTimeout) {
-        clearTimeout(endGameTimeout);
-    }
   eventBus.off('GAME_EVENT')
 })
 </script>

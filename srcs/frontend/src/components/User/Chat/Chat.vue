@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useUserStore } from '../../../stores/user';
 import { useChatStore } from '../../../stores/chatStore';
 import { eventBus } from '../../../events/eventBus'
@@ -31,7 +31,9 @@ import { ChatMessage } from '../../../types/chat';
 const TOURNAMENT_MASTER: Friend = {
     id: 0,
     nickname: "Tournament Master",
-    avatar: ''
+    displayname: "Tournament Master",
+    avatar: '',
+    isOnline: true
 };
 
 const showChatInterface = ref(false);
@@ -95,12 +97,6 @@ const loadFriendDiscussion = async (friendId: number) => {
 
 const sendMessage = (message: string) => {
     if (message.trim() && currentFriendId.value) {
-        const newMessage: Message = {
-            content: message,
-            senderId: userStore.getId ?? 0,
-            receiverId: currentFriendId.value,
-            createdAt: new Date().toISOString(),
-        };
 
         if (!conversations.value[currentFriendId.value]) {
             conversations.value[currentFriendId.value] = [];
@@ -201,6 +197,13 @@ onMounted(() => {
     })
     fetchFriendList();
 });
+
+onUnmounted(() => {
+    if (!conversations?.value[0]) {
+        chatStore.resetUnreadMessage(0);
+    }
+});
+
 </script>
 
 <style scoped>

@@ -20,6 +20,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useUserStore } from '../../../stores/user';
 import { useChatStore } from '../../../stores/chatStore';
+import { eventBus } from '../../../events/eventBus'
 import api from '../../../services/api';
 import ChatIcon from './ChatIcon.vue';
 import FriendList from './ChatFriendList.vue';
@@ -28,7 +29,7 @@ import { Friend, Message } from '../../../types/models';
 import { ChatMessage } from '../../../types/chat';
 
 const TOURNAMENT_MASTER: Friend = {
-    id: -999,
+    id: 0,
     nickname: "Tournament Master",
     avatar: ''
 };
@@ -46,7 +47,7 @@ const currentFriend = computed(() =>
 );
 
 const currentConversation = computed(() =>
-	currentFriendId.value
+	currentFriendId.value !== null
 		? conversations.value[currentFriendId.value] || []
 		: []
 );
@@ -76,7 +77,7 @@ const selectFriend = async (friendId: number) => {
 };
 
 const loadFriendDiscussion = async (friendId: number) => {
-    if (friendId === -1 || friendId === -999 || fetchedConversationsTracker.value.has(friendId)) return;
+    if (friendId === -1 || friendId === 0 || fetchedConversationsTracker.value.has(friendId)) return;
 
     try {
         const messages = await api.chat.getChatHistory(friendId);
@@ -182,8 +183,25 @@ watch(() => chatStore.selectedFriendId, async (newFriendId) => {
 });
 
 onMounted(() => {
-    //eventBus.on('', async (message:) => {
-    //})
+    eventBus.on('CHAT_FROM_TOURNAMENT_MASTER', (message: string) => {
+        console.log('Received Tournament Master message:', message);
+        if (!conversations.value[0] || message === "You just started a tournament, good luck ..") {
+            conversations.value[0] = [];
+            chatStore.resetUnreadMessage(0);
+        }
+        const formattedMessage: Message = {
+            content: message,
+            senderId: 0,  
+            receiverId: userStore.getId ?? 0,
+            createdAt: new Date().toISOString()
+        };
+        conversations.value[0].push(formattedMessage);
+
+        if (currentFriendId.value !== 0) {
+            chatStore.addUnreadMessage(0);
+        }
+        console.log('Updated Tournament Master conversation:', conversations.value[0]);
+    })
     fetchFriendList();
 });
 </script>

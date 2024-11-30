@@ -2,10 +2,10 @@
 	<div class="current-discussion">
 		<template v-if="currentFriend">
 			<component 
-				:is="currentFriend.id === -999 ? 'div' : 'router-link'"
-				:to="currentFriend.id !== -999 ? `/${currentFriend.nickname}` : undefined"
+				:is="currentFriend.id === 0 ? 'div' : 'router-link'"
+				:to="currentFriend.id !== 0 ? `/${currentFriend.nickname}` : undefined"
 				class="friend-profile-link"
-				:class="{ 'is-bot': currentFriend.id === -999 }">
+				:class="{ 'is-bot': currentFriend.id === 0 }">
 				<h4>{{ currentFriend.nickname }}</h4>
 			</component>
 			<div class="messages" ref="messageContainer">
@@ -16,7 +16,7 @@
 					</div>
 				</div>
 			</div>
-			<ChatInput v-if="currentFriend.id !== -999" :currentFriendId="currentFriend.id" ref="chatInputRef" @send="handleSend" />
+			<ChatInput v-if="currentFriend.id !== 0" :currentFriendId="currentFriend.id" ref="chatInputRef" @send="handleSend" />
 		</template>
 		<template v-else>
 			<p class="no-friend-selected"> Select a friend to start chatting</p>

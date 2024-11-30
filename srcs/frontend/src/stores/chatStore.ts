@@ -15,6 +15,10 @@ export const useChatStore = defineStore('chat', () => {
     unreadMessagesCount.value[friendId]++;
   };
 
+  const resetUnreadMessage = (friendId: number) => {
+    unreadMessagesCount.value[friendId] = 0;
+  };
+
   const getUnreadCountForFriend = (friendId: number) => unreadMessagesCount.value[friendId] || 0;
 
   const totalUnreadMessages = computed(() =>
@@ -34,6 +38,7 @@ export const useChatStore = defineStore('chat', () => {
     unreadMessagesCount,
     selectFriend,
     addUnreadMessage,
+    resetUnreadMessage,
     getUnreadCountForFriend,
     totalUnreadMessages,
     toggleFriend,

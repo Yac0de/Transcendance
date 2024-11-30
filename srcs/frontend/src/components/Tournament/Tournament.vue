@@ -91,6 +91,7 @@ onMounted(() => {
 
   eventBus.on('TOURNAMENT_START', () => {
     currentView.value = 'tournament-tree'
+    eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You just started a tournament, good luck ..");
   })
 
   eventBus.on('TOURNAMENT_ERROR', (message: TournamentError) => {

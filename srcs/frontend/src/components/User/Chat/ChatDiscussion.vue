@@ -1,9 +1,13 @@
 <template>
 	<div class="current-discussion">
 		<template v-if="currentFriend">
-			<router-link :to="`/${currentFriend.nickname}`" class="friend-profile-link">
-                <h4>{{ currentFriend.nickname }}</h4>
-            </router-link>
+			<component 
+				:is="currentFriend.id === 0 ? 'div' : 'router-link'"
+				:to="currentFriend.id !== 0 ? `/${currentFriend.nickname}` : undefined"
+				class="friend-profile-link"
+				:class="{ 'is-bot': currentFriend.id === 0 }">
+				<h4>{{ currentFriend.nickname }}</h4>
+			</component>
 			<div class="messages" ref="messageContainer">
 				<div v-for="message in messages" :key="`${message.senderId} - ${message.createdAt}`"
 					:class="['message-wrapper', message.senderId === userId ? 'user-message' : 'receiver-message']">
@@ -12,7 +16,7 @@
 					</div>
 				</div>
 			</div>
-			<ChatInput :currentFriendId="currentFriend.id" ref="chatInputRef" @send="handleSend" />
+			<ChatInput v-if="currentFriend.id !== 0" :currentFriendId="currentFriend.id" ref="chatInputRef" @send="handleSend" />
 		</template>
 		<template v-else>
 			<p class="no-friend-selected"> Select a friend to start chatting</p>
@@ -168,9 +172,14 @@ onMounted(() => {
 	font-weight: 300;
 }
 
-.friend-profile-link:hover h4 {
+.friend-profile-link:not(.is-bot):hover h4 {
     text-decoration: underline;
     color: rgb(215, 213, 213);
+}
+
+.friend-profile-link.is-bot:hover h4 {
+    text-decoration: none;
+    color: inherit;
 }
 
 @media (max-width: 640px) {

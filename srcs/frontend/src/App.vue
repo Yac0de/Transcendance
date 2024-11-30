@@ -34,6 +34,7 @@
 import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from './stores/user';
+import { useChatStore } from './stores/chatStore';
 import { useThemeStore } from './stores/themeStore';
 import api from './services/api';
 import FriendList from './components/User/Friend/FriendMenu.vue';
@@ -41,6 +42,7 @@ import Chat from './components/User/Chat/Chat.vue';
 import InvitePopUp from './components/Lobby/InvitePopUp.vue';
 
 const userStore = useUserStore();
+const chatStore = useChatStore();
 const themeStore = useThemeStore();
 
 const router = useRouter();
@@ -52,7 +54,8 @@ const checkAuth = async () => {
 const handleSignout = async () => {
   try {
     await api.auth.signout();
-    userStore.clearUser();  
+    userStore.clearUser();
+    chatStore.resetUnreadMessage(0);
     router.push('/');
   } catch (error) {
     console.error('Error signing out:', error);

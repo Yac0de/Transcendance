@@ -67,6 +67,7 @@ const UsersInSemis2 = ref<(UserData | null)[]>([null, null]);
 const UsersInFinal = ref<(UserData | null)[]>([null, null]); 
 
 const winner = ref<UserData | null>(null);
+let hasEmittedFinalMessage: boolean = false;
 
 const hasLost = ref<boolean>(false);
 const remainingSeconds = ref<number>(-1);
@@ -74,7 +75,6 @@ const tournamentStatusMessage = ref<string>('');
 const router = useRouter();
 
 onMounted(async () => {
-
   eventBus.on('TOURNAMENT_TIMER', (message: TournamentTimer) => {
     remainingSeconds.value = message.remainingTime;
   })
@@ -86,23 +86,13 @@ onMounted(async () => {
     if (message.semi2) {
       UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
     }
-    if (message.final?.player1id !== 0 || message.final?.player2id !== 0) {
-      const finalPlayer1Id = message.final?.player1id ?? null
-      const finalPlayer2Id = message.final?.player2id ?? null
-      if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
-        tournamentStatusMessage.value =  'Congratulations, you are qualified in the final'
-      } else {
-        tournamentStatusMessage.value =  'You lost, better luck next time !'
-        hasLost.value = true
-      }
-      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id, finalPlayer2Id]); 
-    }
 
     if (message.final.isFinished) {
       if (message.final.score[0] > message.final.score[1]) {
         winner.value = await fetchUserById(message.final.player1id)
         if (message.final.player1id === userStore.getId) {
           tournamentStatusMessage.value =  'Congratulations, you won the final !'
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You proved yourself .. Well done.");
         } else {
           tournamentStatusMessage.value =  'You lost, better luck next time !'
           hasLost.value = true
@@ -111,11 +101,32 @@ onMounted(async () => {
         winner.value = await fetchUserById(message.final.player2id)
         if (message.final.player2id === userStore.getId) {
           tournamentStatusMessage.value =  'Congratulations, you won the final !'
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You proved yourself .. Well done.");
         } else {
           tournamentStatusMessage.value =  'You lost, better luck next time !'
           hasLost.value = true
         }
       }
+      return
+    }
+
+    if (message.final?.player1id !== 0 || message.final?.player2id !== 0) {
+      const finalPlayer1Id = message.final?.player1id ?? null
+      const finalPlayer2Id = message.final?.player2id ?? null
+      if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
+        tournamentStatusMessage.value =  'Congratulations, you are qualified in the final'
+        if (finalPlayer1Id === userStore.getId && !hasEmittedFinalMessage) {
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You are expected to play in the final, prepare yourself ..");
+          hasEmittedFinalMessage = true;
+        } else if (finalPlayer2Id === userStore.getId && !hasEmittedFinalMessage) {
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You are expected to play in the final, prepare yourself ..");
+          hasEmittedFinalMessage = true;
+        }
+      } else {
+        tournamentStatusMessage.value =  'You lost, better luck next time !'
+        hasLost.value = true
+      }
+      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id, finalPlayer2Id]); 
     }
   })
 

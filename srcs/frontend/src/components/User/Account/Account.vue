@@ -128,17 +128,16 @@ const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) =>
     userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath ?? '' }
     successMessage.value = 'Profile updated successfully'
   } catch (error: any) {
-    const errorResponse = await error.response?.json()
-    if (errorResponse && errorResponse.error) {
-      errorMessage.value = errorResponse.error
+    if (error && error.error) {
+      errorMessage.value = error.error;  // Utilise directement error.error ici
     } else {
-      errorMessage.value = 'Error updating profile: ' + (error as Error).message
+      errorMessage.value = 'Error updating profile: ' + (error.message || 'Unknown error');
     }
   }
 }
 
 const cancelEdit = () => {
-  isEditing.value = false
+  isEditing.value = false 
   resetMessages()
 }
 
@@ -197,6 +196,7 @@ h2 {
 }
 
 .alert {
+  font-size: 0.75rem;
   padding: 10px;
   margin-bottom: 10px;
   margin-top: 5px;

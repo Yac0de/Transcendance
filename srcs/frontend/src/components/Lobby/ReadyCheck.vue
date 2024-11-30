@@ -2,7 +2,7 @@
   <div class="ready-check">
     <button 
       class="ready-button" 
-      :class="{ 'ready': isPlayerReady }" 
+      :class="{ 'ready': isPlayerReady, 'opponent': disabled }" 
       @click="isPlayerReady ? toggleUnready() : toggleReady()"
       :disabled="disabled || bothPlayersReady"
     >
@@ -75,4 +75,10 @@ const toggleUnready = () => {
   background: linear-gradient(to right, var(--secondary-bright-color), color-mix(in srgb, var(--secondary-bright-color) 75%, white));
   color: white;
 }
+
+.ready-button.opponent {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 </style>

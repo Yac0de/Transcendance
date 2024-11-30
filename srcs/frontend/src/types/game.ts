@@ -43,7 +43,7 @@ export interface GameState {
     ball: Ball;
     paddle?: Paddle;
     score: Score;
-    isActive: boolean;
+    isGameMode: boolean;
     winner: number;
     isPaused: boolean;
     pauseTime: string; 

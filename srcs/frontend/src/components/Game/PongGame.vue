@@ -1,9 +1,11 @@
 <template>
   <div class="pong-menu">
-    <div class="menu-buttons">
-      <button @click="startTournament" class="menu-button">Tournament</button>
-      <button @click="startPlayerVsRobot" class="menu-button">Player VS Robot</button>
-      <button @click="startPlayerVsFriend" class="menu-button">Play against your friend</button>
+    <div class="pong-menu-container">
+      <div class="menu-buttons">
+        <button @click="startTournament" class="menu-button">Tournament</button>
+        <button @click="startPlayerVsRobot" class="menu-button">Player VS Robot</button>
+        <button @click="startPlayerVsFriend" class="menu-button">Play against your friend</button>
+      </div>
     </div>
   </div>
 </template>
@@ -38,10 +40,23 @@ const startPlayerVsFriend = () => {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+}
+
+.pong-menu-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  text-align: center;
+  height: 40vh;
+  min-height: 65px;
+  min-width: 300px;
+  padding: 2vh 5vw;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  background: var(--main-color);
 }
 
 .menu-title {

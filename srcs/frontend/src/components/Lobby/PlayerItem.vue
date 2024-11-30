@@ -5,28 +5,43 @@
         <div class="avatar-wrapper">
           <img
             :src="isLeft ? api.user.getAvatarUrl(user_store.getAvatarPath) : api.user.getAvatarUrl(challengedFriend?.avatar ?? null)"
-            :alt="(isLeft ? user_store.getNickname : challengedFriend?.nickname) + '\'s avatar'" class="avatar-image" />
+            :alt="(isLeft ? user_store.nickname : challengedFriend?.nickname) + '\'s avatar'" class="avatar-image" />
         </div>
       </div>
-      <div class="player-name">
-        {{ isLeft ? user_store.getNickname : challengedFriend?.nickname }}
+      <div class="player-name" :style="nameStyle">
+        {{ isLeft ? user_store.nickname : challengedFriend?.nickname }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useUserStore } from '../../stores/user';
 import api from '../../services/api';
 import type { UserData } from '../../types/models';
 
-defineProps<{
+const props = defineProps<{
   isLeft: boolean;
   challengedFriend?: UserData | null;
 }>();
 
 const user_store = useUserStore();
 
+// Calcul de la taille de la police en fonction du pseudo
+const nameStyle = computed(() => {
+  const nickname = (props.isLeft ? user_store.nickname : props.challengedFriend?.nickname) || '';
+  const minFontSize = 11;  // Taille minimum de la police
+  const maxFontSize = 24;  // Taille maximum de la police
+  const minLength = 3;     // Longueur minimale du pseudo
+
+  const length = nickname.length;
+  const fontSize = Math.max(minFontSize, Math.min(maxFontSize, maxFontSize - (length - minLength) * 1.5));
+
+  return {
+    fontSize: `${fontSize}px`,
+  };
+});
 </script>
 
 <style scoped>
@@ -40,7 +55,7 @@ const user_store = useUserStore();
   justify-content: center;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 10px;
+  padding: 40px 10px;
 }
 
 .player-content {
@@ -73,7 +88,6 @@ const user_store = useUserStore();
 }
 
 .player-name {
-  font-size: 24px;
   font-weight: bold;
   color: #2c3e50;
   overflow: hidden;

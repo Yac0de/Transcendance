@@ -115,7 +115,6 @@ onMounted(async () => {
       const finalPlayer2Id = message.final?.player2id ?? null
       if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
         tournamentStatusMessage.value =  'Congratulations, you are qualified in the final'
-        console.log(hasEmittedFinalMessage)
         if (finalPlayer1Id === userStore.getId && !hasEmittedFinalMessage) {
           eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You are expected to play in the final, prepare yourself ..");
           hasEmittedFinalMessage = true;

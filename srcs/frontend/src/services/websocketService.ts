@@ -70,7 +70,6 @@ export class WebSocketService {
 
             const chatStore = useChatStore();
             if (chatStore.selectedFriendId !== conversationId) {
-                console.log(`Adding unread message for conversation ID: ${conversationId}`);
                 chatStore.addUnreadMessage(conversationId);
             }
         });

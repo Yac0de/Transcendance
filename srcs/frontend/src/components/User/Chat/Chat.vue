@@ -94,7 +94,6 @@ const loadFriendDiscussion = async (friendId: number) => {
 };
 
 const sendMessage = (message: string) => {
-    console.log("Sending message to friend ID:", currentFriendId.value);
     if (message.trim() && currentFriendId.value) {
         const newMessage: Message = {
             content: message,
@@ -184,7 +183,6 @@ watch(() => chatStore.selectedFriendId, async (newFriendId) => {
 
 onMounted(() => {
     eventBus.on('CHAT_FROM_TOURNAMENT_MASTER', (message: string) => {
-        console.log('Received Tournament Master message:', message);
         if (!conversations.value[0] || message === "You just started a tournament, good luck ..") {
             conversations.value[0] = [];
             chatStore.resetUnreadMessage(0);
@@ -200,7 +198,6 @@ onMounted(() => {
         if (currentFriendId.value !== 0) {
             chatStore.addUnreadMessage(0);
         }
-        console.log('Updated Tournament Master conversation:', conversations.value[0]);
     })
     fetchFriendList();
 });

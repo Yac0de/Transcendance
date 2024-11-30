@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useUserStore } from '../../../stores/user';
 import { useChatStore } from '../../../stores/chatStore';
 import { eventBus } from '../../../events/eventBus'
@@ -196,12 +196,6 @@ onMounted(() => {
         }
     })
     fetchFriendList();
-});
-
-onUnmounted(() => {
-    if (!conversations?.value[0]) {
-        chatStore.resetUnreadMessage(0);
-    }
 });
 
 </script>

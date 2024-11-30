@@ -28,11 +28,12 @@
   p {
 	font-size: 1.5rem;
 	margin-bottom: 1.5rem;
+	color: white;
   }
 
   a {
 	font-size: 1.25rem;
-	color: #3498db;
+	color: var(--secondary-bright-color);
 	text-decoration: underline;
   }
   </style>

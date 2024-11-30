@@ -89,7 +89,7 @@ const nameStyle = computed(() => {
 
 .player-name {
   font-weight: bold;
-  color: #2c3e50;
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

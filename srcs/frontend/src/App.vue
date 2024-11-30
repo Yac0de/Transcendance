@@ -17,6 +17,7 @@
           </template>
         </div>
       </div>
+      <button class="nav-button themes" @click="themeStore.nextTheme">SWITCH THEMES</button>
     </nav>
     <div class="gradient_backgroud">
       <div class="content">
@@ -30,15 +31,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from './stores/user';
+import { useThemeStore } from './stores/themeStore';
 import api from './services/api';
 import FriendList from './components/User/Friend/FriendMenu.vue';
 import Chat from './components/User/Chat/Chat.vue';
 import InvitePopUp from './components/Lobby/InvitePopUp.vue';
 
 const userStore = useUserStore();
+const themeStore = useThemeStore();
+
 const router = useRouter();
 
 const checkAuth = async () => {
@@ -48,25 +52,69 @@ const checkAuth = async () => {
 const handleSignout = async () => {
   try {
     await api.auth.signout();
-    userStore.clearUser();
+    userStore.clearUser();  
     router.push('/');
   } catch (error) {
     console.error('Error signing out:', error);
   }
 };
 
-onMounted(checkAuth);
+onMounted(() => {
+  checkAuth();
+  themeStore.loadTheme(); // Charger le thème depuis localStorage
+  themeStore.applyTheme(themeStore.currentTheme); // Appliquer le thème
+});
+
+watch(() => themeStore.currentTheme, (newTheme) => {
+  themeStore.applyTheme(newTheme); // Appliquer le thème lorsque la valeur change
+});
 </script>
 
 <style>
 :root {
+  font-family: "Audiowide", sans-serif;
+}
+
+.main-theme {
   --main-color: #2f4454;
   --secondary-dark-color: #2e151b;
   --secondary-bright-color: #da7b93;
   --main-extra-color: #376e6f;
   --secondary-extra-color: #1c3334;
-  font-family: "Audiowide", sans-serif;
 }
+
+.dark-theme {
+  --main-color: #3d52a0;
+  --secondary-dark-color: #7091e6;
+  --secondary-bright-color: #8697c4;
+  --main-extra-color: #adbbda;
+  --secondary-extra-color: #ede8f5;
+}
+
+.light-theme {
+  --main-color: #003135;
+  --secondary-dark-color: #024950;
+  --secondary-bright-color: #964734;
+  --main-extra-color: #0fa4af;
+  --secondary-extra-color: #afdde5;
+}
+
+.blue-theme {
+  --main-color: #3e362e;
+  --secondary-dark-color: #865d36;
+  --secondary-bright-color: #93785b;
+  --main-extra-color: #ac8968;
+  --secondary-extra-color: #a69080;
+}
+
+.green-theme {
+  --main-color: #141619;
+  --secondary-dark-color: #2c2e3a;
+  --secondary-bright-color: #050a44;
+  --main-extra-color: #0a21c0;
+  --secondary-extra-color: #b3b4bd;
+}
+
 </style>
 
 <style scoped>
@@ -80,6 +128,9 @@ onMounted(checkAuth);
 }
 
 .sticky-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: fixed;
   top: 0;
   left: 0;
@@ -89,14 +140,14 @@ onMounted(checkAuth);
   align-items: center;
   overflow: hidden;
   background: var(--main-color);
+  box-shadow: 0 0px 10px 0px black;
 }
 
 .nav-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1vh 2vw;
-}
+} 
 
 .nav-left {
   position: absolute;
@@ -114,6 +165,7 @@ onMounted(checkAuth);
 .nav-button {
   margin-left: 10px;
   padding: 0.5vh 1vw;
+  font-family: "Audiowide", sans-serif;
   font-size: 1.2rem;
   font-weight: 600;
   text-shadow: 0.5px 0.5px 1px black;
@@ -125,6 +177,10 @@ onMounted(checkAuth);
   cursor: pointer;
   text-decoration: none;
   transition: background-color 0.3s;
+}
+
+.nav-button.themes {
+  margin-left: 0;
 }
 
 .home-button {

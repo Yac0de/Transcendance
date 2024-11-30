@@ -118,7 +118,7 @@ onUnmounted(() => {
 
 .code-display h3 {
   margin-bottom: 0.5rem;
-  color: #333;
+  color: white;
 }
 
 .code-box {
@@ -142,7 +142,9 @@ onUnmounted(() => {
 .start-button {
   padding: 1rem 2rem;
   font-size: 1.1rem;
-  background-color: #4CAF50;
+  font-weight: 600;
+  background: linear-gradient(to right, var(--secondary-bright-color), 
+  color-mix(in srgb, var(--secondary-bright-color) 75%, white));
   color: white;
   border: none;
   border-radius: 8px;
@@ -151,7 +153,8 @@ onUnmounted(() => {
 }
 
 .start-button:hover:not(:disabled) {
-  background-color: #45a049;
+  background: linear-gradient(to right, var(--secondary-bright-color), 
+  color-mix(in srgb, var(--secondary-bright-color) 85%, white));
   transform: translateY(-2px);
 }
 

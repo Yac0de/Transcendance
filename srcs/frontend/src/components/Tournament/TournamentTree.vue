@@ -1,6 +1,6 @@
 <!-- TournamentTree.vue -->
 <template>
-  <div class="tournament-container">
+  <div class="status-bracket-container">
     <div v-if="tournamentStatusMessage" class="tournament-status">
       {{ tournamentStatusMessage }}
     </div>
@@ -135,11 +135,20 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.tournament-container {
+
+.status-bracket-container {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  height: 600px;
+  gap: 2rem;
+}
+
+
+.tournament-status {  
+  color: white;
+  font-size: 1.3rem;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 .status-message {
@@ -152,20 +161,25 @@ onUnmounted(() => {
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
+  color: white;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 .bracket {
   display: flex;
   flex-direction: row-reverse;
+  color: white;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 .bracket p {
   padding: 20px;
   margin: 0;
-  background-color: #f5f5f5;
+  background-color: var(--secondary-bright-color);
   border-radius: 4px;
   min-width: 120px;
   text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-winner {
@@ -182,8 +196,9 @@ onUnmounted(() => {
   height: 2px;
   left: 0;
   top: 50%;
-  background-color: #e0e0e0;
+  background-color: var(--secondary-bright-color);
   transform: translateX(-100%);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-connections {
@@ -204,22 +219,24 @@ onUnmounted(() => {
 .match-branch::before {
   content: '';
   position: absolute;
-  background-color: #e0e0e0;
+  background-color: var(--secondary-bright-color);
   right: 0;
   top: 50%;
   transform: translateX(100%);
   width: 25px;
   height: 2px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-branch::after {
   content: '';
   position: absolute;
-  background-color: #e0e0e0;
+  background-color: var(--secondary-bright-color);
   right: -25px;
   height: calc(50% + 22px);
   width: 2px;
   top: 50%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-branch:last-child::after {

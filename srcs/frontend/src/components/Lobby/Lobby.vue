@@ -171,6 +171,14 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (lobbyId.value) {
+    if (userStore.getWebSocketService?.isConnected()) {
+      userStore.getWebSocketService?.leaveAndTerminateLobby(lobbyId.value);
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }
+
   eventBus.off('LOBBY_CREATED')
   eventBus.off('LOBBY_SPECIAL_MODE_TOGGLED')
   eventBus.off('LOBBY_PLAYER_STATUS')

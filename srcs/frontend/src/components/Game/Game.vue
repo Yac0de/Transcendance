@@ -20,8 +20,9 @@
 import { GameEvent, GameState, GameFinished } from '../../types/game'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { eventBus } from '../../events/eventBus';
-import { drawPaddle, drawBall, drawEndGame } from '../../services/gamerender';
+import { drawPaddle, drawBall, drawEndGame, drawBoostStatus } from '../../services/gamerender';
 import { useUserStore } from '../../stores/user';
+import { useGameSettingsStore } from '../../stores/gameSettings.js';
 import { useRoute, useRouter } from 'vue-router'
 import GameHeader from './GameHeader.vue';
 
@@ -29,6 +30,7 @@ const route = useRoute()
 const router = useRouter()
 
 const userStore = useUserStore();
+const gameSettingsStore = useGameSettingsStore();
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const player1Id = ref<number | null>(null)
@@ -40,7 +42,7 @@ const currentGameState: GameState = reactive({
         player1: 0, 
         player2: 0 
     },
-    isActive: false,
+    isGameMode: false,
     winner: 0,  // or 0, depending on how you represent no winner
     isPaused: false,
     pauseTime: '',  // or null, depending on how you handle empty time
@@ -158,7 +160,8 @@ onMounted(() => {
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
-  window.addEventListener('keydown', handleSpace)
+  if(gameSettingsStore.gameMode)
+    window.addEventListener('keydown', handleSpace)
   const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
@@ -183,13 +186,17 @@ onMounted(() => {
 
         drawPaddle(ctx, message.state!);
         drawBall(ctx, message.state!);
+        if(gameSettingsStore.gameMode)
+          drawBoostStatus(ctx, message.state!);
+        if (!message.state!.isGameMode && message.state!.winner !== 0)
+          drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
       }
     }
   })
 
   eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
-
+    gameSettingsStore.gameMode = false;
     if (message.isTournamentGame === false) {
       window.setTimeout(() => {
         router.push('/');
@@ -212,7 +219,8 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handlePressDown)
   window.removeEventListener('keyup', handleReleaseUp)
   window.removeEventListener('keyup', handleReleaseDown)
-  window.removeEventListener('keydown', handleSpace)
+  if(gameSettingsStore.gameMode)
+    window.removeEventListener('keydown', handleSpace)
   eventBus.off('GAME_EVENT')
 })
 </script>

@@ -15,7 +15,7 @@
         :player="user"
       />
     </div>
-    <button v-if="creatorId === clientId"
+    <button :disabled="users.includes(null)" v-if="creatorId === clientId"
       class="start-button"
       @click="handleStartTournament"
     >
@@ -33,9 +33,6 @@ import { eventBus } from '../../events/eventBus'
 import { fetchMultipleUsers } from '../../utils/fetch'
 import { useRouter } from 'vue-router';
 import { TournamentCreate, TournamentEvent } from '../../types/tournament';
-
-//To allow start with only 4 players
-//:disabled="users.includes(null)"
 
 const userStore = useUserStore();
 const router = useRouter();

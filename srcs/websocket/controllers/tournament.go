@@ -11,17 +11,17 @@ import (
 )
 
 type Tournament struct {
-	Id          string    `json:"id"`
-	Player1     *Client   `json:"player1"`
-	Player2     *Client   `json:"player2"`
-	Player3     *Client   `json:"player3"`
-	Player4     *Client   `json:"player4"`
-	Semi1       [2]uint64 `json:"semi1"`
-	Semi2       [2]uint64 `json:"semi2"`
-	Final       [2]uint64 `json:"final"`
-	LobbiesSemi [2]*Lobby `json:"-"`
-	LobbyFinal  *Lobby    `json:"-"`
-	State       string    `json:"-"`
+	Id          string         `json:"id"`
+	Player1     *Client        `json:"player1"`
+	Player2     *Client        `json:"player2"`
+	Player3     *Client        `json:"player3"`
+	Player4     *Client        `json:"player4"`
+	Semi1       TournamentGame `json:"semi1"`
+	Semi2       TournamentGame `json:"semi2"`
+	Final       TournamentGame `json:"final"`
+	LobbiesSemi [2]*Lobby      `json:"-"`
+	LobbyFinal  *Lobby         `json:"-"`
+	State       string         `json:"-"`
 }
 
 type TournamentEvent struct {
@@ -87,14 +87,30 @@ func HandleTournament(h *Hub, event string, data []byte) {
 
 func NewTournament(h *Hub, request TournamentEvent) *Tournament {
 	return &Tournament{
-		Id:          uuid.New().String(),
-		Player1:     h.Clients[request.UserId],
-		Player2:     nil,
-		Player3:     nil,
-		Player4:     nil,
-		Semi1:       [2]uint64{0, 0},
-		Semi2:       [2]uint64{0, 0},
-		Final:       [2]uint64{0, 0},
+		Id:      uuid.New().String(),
+		Player1: h.Clients[request.UserId],
+		Player2: nil,
+		Player3: nil,
+		Player4: nil,
+		Semi1: TournamentGame{
+			Player1:    0,
+			Player2:    0,
+			Score:      [2]uint8{0, 0},
+			IsFinished: false,
+		},
+		Semi2: TournamentGame{
+			Player1:    0,
+			Player2:    0,
+			Score:      [2]uint8{0, 0},
+			IsFinished: false,
+		},
+		Final: TournamentGame{
+			Player1:    0,
+			Player2:    0,
+			Score:      [2]uint8{0, 0},
+			IsFinished: false,
+		},
+
 		LobbiesSemi: [2]*Lobby{nil, nil},
 		LobbyFinal:  nil,
 		State:       "TOURNAMENT_LOBBY",
@@ -228,14 +244,11 @@ func CreateLobbyGameTournament(player1 *Client, player2 *Client) *Lobby {
 func CreateLobbies(h *Hub, tournament *Tournament) {
 	ShuffleTournamentOpposition(h, tournament)
 
-	semi1 := CreateLobbyGameTournament(h.Clients[tournament.Semi1[0]], h.Clients[tournament.Semi1[1]])
-	semi2 := CreateLobbyGameTournament(h.Clients[tournament.Semi2[0]], h.Clients[tournament.Semi2[1]])
+	tournament.LobbiesSemi[0] = CreateLobbyGameTournament(h.Clients[tournament.Semi1.Player1], h.Clients[tournament.Semi1.Player2])
+	h.Lobbies[tournament.LobbiesSemi[0].Id] = tournament.LobbiesSemi[0]
 
-	h.Lobbies[semi1.Id] = semi1
-	tournament.LobbiesSemi[0] = semi1
-
-	h.Lobbies[semi2.Id] = semi2
-	tournament.LobbiesSemi[1] = semi2
+	tournament.LobbiesSemi[1] = CreateLobbyGameTournament(h.Clients[tournament.Semi2.Player1], h.Clients[tournament.Semi2.Player2])
+	h.Lobbies[tournament.LobbiesSemi[1].Id] = tournament.LobbiesSemi[1]
 }
 
 func HandleTimerEvent(h *Hub, tournament *Tournament, sec *int16) {
@@ -252,7 +265,7 @@ func HandleTimerEvent(h *Hub, tournament *Tournament, sec *int16) {
 	*sec -= 1
 	if *sec < 0 {
 		if tournament.State == "TIMER_FINAL" {
-			tournament.LobbyFinal = CreateLobbyGameTournament(h.Clients[tournament.Final[0]], h.Clients[tournament.Final[1]])
+			tournament.LobbyFinal = CreateLobbyGameTournament(h.Clients[tournament.Final.Player1], h.Clients[tournament.Final.Player2])
 			h.Lobbies[tournament.LobbyFinal.Id] = tournament.LobbyFinal
 			tournament.State = "TOURNAMENT_START_FINAL"
 			return
@@ -311,7 +324,7 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					StartSemiFinals(h, tournament)
 				} else if tournament.State == "TOURNAMENT_ON_SEMI" {
 					UpdateSemiFinals(h, tournament, event)
-					if tournament.Final[0] != 0 && tournament.Final[1] != 0 {
+					if tournament.Final.Player1 != 0 && tournament.Final.Player2 != 0 {
 						sec = 15
 						tournament.State = "TIMER_FINAL"
 					}
@@ -339,30 +352,47 @@ func SendTournamentTreeState(h *Hub, tournament *Tournament, event *TournamentTr
 	SendDatasToGame(h, tournament.Semi2, jsonData)
 }
 
-func SendDatasToGame(h *Hub, players [2]uint64, message []byte) {
-	player1 := h.Clients[players[0]]
-	player2 := h.Clients[players[1]]
+func SendDatasToGame(h *Hub, players TournamentGame, message []byte) {
+	player1 := h.Clients[players.Player1]
+	player2 := h.Clients[players.Player2]
 	safeSend(player1.Send, message)
 	safeSend(player2.Send, message)
 }
 
+func UpdateGameTreeEvent(tn *Tournament, evt *TournamentTreeEvent) {
+	evt.Semi1.Player1 = tn.Semi1.Player1
+	evt.Semi1.Player2 = tn.Semi1.Player2
+	evt.Semi1.Score = tn.Semi1.Score
+	evt.Semi1.IsFinished = tn.Semi1.IsFinished
+	evt.Semi2.Player1 = tn.Semi2.Player1
+	evt.Semi2.Player2 = tn.Semi2.Player2
+	evt.Semi2.Score = tn.Semi2.Score
+	evt.Semi2.IsFinished = tn.Semi2.IsFinished
+	evt.Final.Player1 = tn.Final.Player1
+	evt.Final.Player2 = tn.Final.Player2
+	evt.Final.Score = tn.Final.Score
+	evt.Final.IsFinished = tn.Final.IsFinished
+}
+
 func UpdateSemiFinals(h *Hub, tournament *Tournament, event *TournamentTreeEvent) {
-	if tournament.Final[0] == 0 && tournament.LobbiesSemi[0].Game.State.Winner != 0 {
-		tournament.Final[0] = tournament.LobbiesSemi[0].Game.State.Winner
-		event.Semi1.Score[0] = uint8(tournament.LobbiesSemi[0].Game.State.Score.Player1)
-		event.Semi1.Score[1] = uint8(tournament.LobbiesSemi[0].Game.State.Score.Player2)
-		event.Semi1.IsFinished = true
-		event.Final.Player1 = tournament.LobbiesSemi[0].Game.State.Winner
+	if tournament.Final.Player1 == 0 && tournament.LobbiesSemi[0].Game.State.Winner != 0 {
+		state := tournament.LobbiesSemi[0].Game.State
+		tournament.Final.Player1 = state.Winner
+		tournament.Semi1.Score = [2]uint8{state.Score.Player1, state.Score.Player2}
+		tournament.Semi1.IsFinished = true
+		UpdateGameTreeEvent(tournament, event)
+		UpdateGameTreeEvent(tournament, event)
 		jsonData, _ := json.Marshal(&event)
 		SendDatasToGame(h, tournament.Semi1, jsonData)
 		SendDatasToGame(h, tournament.Semi2, jsonData)
 	}
-	if tournament.Final[1] == 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
-		tournament.Final[1] = tournament.LobbiesSemi[1].Game.State.Winner
-		event.Semi2.Score[0] = uint8(tournament.LobbiesSemi[1].Game.State.Score.Player1)
-		event.Semi2.Score[1] = uint8(tournament.LobbiesSemi[1].Game.State.Score.Player2)
-		event.Semi2.IsFinished = true
-		event.Final.Player2 = tournament.LobbiesSemi[1].Game.State.Winner
+	if tournament.Final.Player2 == 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
+		state := tournament.LobbiesSemi[1].Game.State
+		tournament.Semi2.Score = [2]uint8{state.Score.Player1, state.Score.Player2}
+		tournament.Semi2.IsFinished = true
+		tournament.Final.Player2 = state.Winner
+		UpdateGameTreeEvent(tournament, event)
+		UpdateGameTreeEvent(tournament, event)
 		jsonData, _ := json.Marshal(&event)
 		SendDatasToGame(h, tournament.Semi1, jsonData)
 		SendDatasToGame(h, tournament.Semi2, jsonData)
@@ -391,9 +421,9 @@ func LeaveTournament(h *Hub, request TournamentEvent) {
 	if tournament.State == "TOURNAMENT_LOBBY" {
 		LeaveWaitingLobby(h, tournament, clientLeft, request)
 	} else {
-		if tournament.Semi1[0] == clientLeft.Id || tournament.Semi1[1] == clientLeft.Id {
+		if tournament.Semi1.Player1 == clientLeft.Id || tournament.Semi1.Player2 == clientLeft.Id {
 			tournament.LobbiesSemi[0].Game.PlayerLeaved(clientLeft.Id)
-		} else if tournament.Semi2[0] == clientLeft.Id || tournament.Semi2[1] == clientLeft.Id {
+		} else if tournament.Semi2.Player1 == clientLeft.Id || tournament.Semi2.Player2 == clientLeft.Id {
 			tournament.LobbiesSemi[1].Game.PlayerLeaved(clientLeft.Id)
 		}
 	}

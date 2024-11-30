@@ -42,8 +42,8 @@ type Paddle struct {
 }
 
 type Score struct {
-	Player1 int `json:"player1"`
-	Player2 int `json:"player2"`
+	Player1 uint8 `json:"player1"`
+	Player2 uint8 `json:"player2"`
 }
 
 type GameState struct {

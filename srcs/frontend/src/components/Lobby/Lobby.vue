@@ -61,6 +61,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore();
 const gameSettingsStore = useGameSettingsStore();
+
 const isWaitingForResponse = ref<boolean>(false)
 
 const player1Ready = ref<boolean>(false)
@@ -81,6 +82,7 @@ const isSpecialMode = ref<boolean>(false);
 const remainingSeconds = ref<number>(0);
 const showReadyChecks = ref<boolean>(true);
 const showTimer = ref<boolean>(false);
+let goingIntoGame: boolean = false;
 
 const handleToggleMode = (newValue: boolean) => {
   isSpecialMode.value = newValue;
@@ -153,6 +155,7 @@ onMounted(async () => {
   })
 
   eventBus.on('GAME_START', () => {
+    goingIntoGame = true
     router.push({
       path: '/game', 
       query: {lobbyId: lobbyId.value }
@@ -171,7 +174,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (lobbyId.value) {
+  if (lobbyId.value && !goingIntoGame) {
     if (userStore.getWebSocketService?.isConnected()) {
       userStore.getWebSocketService?.leaveAndTerminateLobby(lobbyId.value);
     } else {

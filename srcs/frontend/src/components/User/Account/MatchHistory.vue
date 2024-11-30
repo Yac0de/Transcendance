@@ -1,6 +1,6 @@
 <template>
-  <div class="match-history-container">
-    <!-- Menu de navigation style LoL -->
+  <div v-if="userExist" class="match-history-container">
+    <!-- Menu de navigation -->
     <div class="history-title">
       <h1>HISTORY</h1>
       <WinrateCircle :percentage="winrate" />
@@ -10,7 +10,7 @@
     <div class="filters">
       <button class="filter-button">
         <span>Time Period</span>
-        <span>Last 8 matches</span>
+        <span>Last 6 matches</span>
       </button>
     </div>
 
@@ -32,19 +32,18 @@
   <!-- Scores -->
   <div class="match-stats">
     <div class="score">
-      <!-- Modifions l'ordre des scores en fonction de si vous êtes player1 ou player2 -->
-      <template v-if="game.player1_id === profileId">
+      <template v-if="game.player1.nickname === targetNickname">
         <span class="player-name">{{ game.player1.nickname }}</span>
         {{ game.score1 }} - {{ game.score2 }}
         <span class="player-name">{{ game.player2.nickname }}</span>
       </template>
       <template v-else>
         <span class="player-name">{{ game.player2.nickname }}</span>
-      {{ game.score2 }} - {{ game.score1 }}
-      <span class="player-name">{{ game.player1.nickname }}</span>
+        {{ game.score2 }} - {{ game.score1 }}
+        <span class="player-name">{{ game.player1.nickname }}</span>
       </template>
     </div>
-  </div>
+</div>
 
 
         <!-- Date -->
@@ -59,6 +58,7 @@
       No matches found
     </div>
   </div>
+  <NotFound v-else />
 </template>
 
 
@@ -67,35 +67,22 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import  gameHistoryService  from '../../../services/gameHistoryService'
 import { useUserStore } from '../../../stores/user'
-import { fetchUserById } from '../../../utils/fetch';
 import WinrateCircle from './WinrateCircle.vue';
-
-
-interface Game {
-  id: number
-  player1_id: number
-  player2_id: number
-  winner_id: number
-  score1: number
-  score2: number
-  CreatedAt: string
-  is_winner: boolean
-  player1: User
-  player2: User
-  winner: User
-}
+import NotFound from '../../General/NotFound.vue';
+import { GameHistory} from '../../../types/models';
 
 const winrate =ref(0)
 const route = useRoute()
-const profileId = computed(() => route.params.id ? parseInt(route.params.id as string) : userStore.id)
 const userStore = useUserStore()
-const games = ref<Game[]>([])
+const games =  ref<GameHistory[]>([])
+const userExist = ref<boolean>(true)
+
 
 const limitedGames = computed(() => {
-  return games.value.slice(0, 8);
+  return games.value.slice(0, 6);
 })
 
-
+const targetNickname = ref(route.params.nickname as string)
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
@@ -104,12 +91,15 @@ const formatDate = (dateString: string) => {
     day: 'numeric',
   })
 }
+
 onMounted(async () => {
-  console.log("MatchHistory component mounted");
+  console.log("test " + targetNickname.value)
   try {
+    console.log("NEW:", route.params);
     const userId = userStore.id;
     if (userId) {
-      const history = await gameHistoryService.getUserHistory(profileId.value);
+      
+      const history = await gameHistoryService.getUserHistory(route.params.nickname as string);
       console.log("History received:", history);
       if (history) {
         // Assigner directement l'historique reçu
@@ -120,6 +110,7 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Failed to fetch game history:', error);
+    userExist.value = false;
   }
 });
 
@@ -290,6 +281,6 @@ onMounted(async () => {
 .player-name {
   font-size: 0.8em;  /* Taille plus petite pour les noms */
   font-weight: normal;  /* Police normale pour les noms */
-  color: #9f9f9f;  /* Couleur grise pour les noms */
+  color: #fffdfd;  /* Couleur grise pour les noms */
 }
 </style>

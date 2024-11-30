@@ -5,8 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"api/models"
 	"api/database"
-    "io"
-    "bytes"
+    "gorm.io/gorm"
 	"fmt"
 )
 
@@ -20,13 +19,9 @@ type GameHistoryInput struct {
 }
 
 func SaveGameHistory(c *gin.Context) {
-    // Log le JSON brut reçu
-    rawData, _ := io.ReadAll(c.Request.Body)
-    fmt.Printf("Raw request body: %s\n", string(rawData))
-    c.Request.Body = io.NopCloser(bytes.NewBuffer(rawData))
 
     var input GameHistoryInput
-    if err := c.ShouldBindJSON(&input); err != nil {
+    if err := c.BindJSON(&input); err != nil {
         fmt.Printf("Binding error: %v\n", err)
         fmt.Printf("Partial input: %+v\n", input)
         c.JSON(http.StatusBadRequest, gin.H{
@@ -63,20 +58,46 @@ func SaveGameHistory(c *gin.Context) {
 
 
 func GetUserGameHistory(c *gin.Context) {
-    userID := c.GetUint("UserId")
-
-    var gameHistories []models.GameHistory
+    nickname := c.Param("nickname")
     
-    // Utiliser directement database.DB
-    if err := database.DB.
-    
-    Where("player1_id = ? OR player2_id = ?", userID, userID).
-    Preload("Player1").
-    Preload("Player2").
-    Preload("Winner").
-    Order("created_at desc").
-    Find(&gameHistories).Error; err != nil {
+    // D'abord, récupérer l'ID de l'utilisateur
+    var user models.User
+    if err := database.DB.Where("nickname = ?", nickname).First(&user).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            c.JSON(http.StatusNotFound, gin.H{
+                "error": "User not found",
+                "details": fmt.Sprintf("No user found with nickname: %s", nickname),
+            })
+            return
+        }
+        // Pour toute autre erreur de base de données, on garde le 500
         c.JSON(http.StatusInternalServerError, gin.H{
+            "error": "Failed to fetch user",
+            "details": err.Error(),
+        })
+        return
+    }
+
+    // Ensuite, récupérer l'historique des parties
+    var gameHistories []models.GameHistory
+    if err := database.DB.
+        // Utiliser une seule condition avec l'ID de l'utilisateur
+        Where("player1_id = ? OR player2_id = ?", user.ID, user.ID).
+        // Charger les relations nécessaires
+        Preload("Player1", func(db *gorm.DB) *gorm.DB {
+            return db.Select("id", "display_name", "nickname", "avatar")
+        }).
+        Preload("Player2", func(db *gorm.DB) *gorm.DB {
+            return db.Select("id", "display_name", "nickname", "avatar")
+        }).
+        Preload("Winner", func(db *gorm.DB) *gorm.DB {
+            return db.Select("id", "display_name", "nickname", "avatar")
+        }).
+        // Trier par date de création décroissante
+        Order("created_at desc").
+        Find(&gameHistories).Error; err != nil {
+            fmt.Printf("Database error: %v\n", err) 
+            c.JSON(http.StatusInternalServerError, gin.H{
             "error": "Failed to fetch game history",
             "details": err.Error(),
         })
@@ -93,7 +114,7 @@ func GetUserGameHistory(c *gin.Context) {
     for _, game := range gameHistories {
         response = append(response, GameHistoryResponse{
             GameHistory: game,
-            IsWinner:    game.WinnerID == uint64(userID),
+            IsWinner:    game.WinnerID == uint64(user.ID), // Maintenant on peut utiliser user.ID
         })
     }
 

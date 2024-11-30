@@ -18,14 +18,18 @@ export interface UserState {
 }
 
 export interface GameHistory {
-  id: number;
-  player1_id: number;
-  player2_id: number;
-  winner_id: number;
-  score1: number;
-  score2: number;
-  is_winner: boolean;
-  created_at: string;
+  id: number
+  player1_id: number
+  player2_id: number
+  CreatedAt: string 
+  UpdatedAt: string
+  DeletedAt: string | null
+  winner_id: number
+  score1: number
+  score2: number
+  is_winner: boolean
+  player1: UserData
+  player2: UserData
 }
 
 export interface Credentials {

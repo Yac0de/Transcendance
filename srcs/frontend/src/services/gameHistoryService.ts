@@ -6,9 +6,9 @@ interface GameHistoryResponse {
 }
 
 export default {
-    async getUserHistory(userId: number): Promise<GameHistory[] | null> {
+    async getUserHistory(nickname: string): Promise<GameHistory[] | null> {
         try {
-            const response = await apiRequest<GameHistoryResponse>(`/api/game-history/${userId}`, { 
+            const response = await apiRequest<GameHistoryResponse>(`/api/game-history/${nickname}`, { 
                 credentials: "include" 
             });
             return response.data;

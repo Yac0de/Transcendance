@@ -53,7 +53,7 @@ const routes = [
     component: NotFound
   },
   { 
-    path: '/:nickname/match_history', 
+    path: '/match_history/:nickname', 
     component: MatchHistory, 
     meta: { requiresAuth: true },
     props: true 

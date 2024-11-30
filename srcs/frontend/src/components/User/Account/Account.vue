@@ -53,7 +53,7 @@ const resetMessages = () => {
 }
 
 const goToHistory = () => {
-  router.push(`/${userToDisplay.value.nickname}/match_history`)
+  router.push(`/match_history/${userToDisplay.value.nickname}`)
 }
 
 const checkOwnProfile = async () => {
@@ -107,10 +107,6 @@ watch(
 const startEditing = () => {
   isEditing.value = true
   resetMessages()
-}
-
-const toggleStats = () => {
-  isViewingStats.value = !isViewingStats.value
 }
 
 const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) => {

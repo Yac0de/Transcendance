@@ -37,9 +37,9 @@ function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
             state.ball.y + offsetY,
             radius
         );
-            gradient.addColorStop(0, 'rgba(171, 196, 255, 0.8)');
-            gradient.addColorStop(0.4, 'rgba(171, 196, 255, 0.4)');
-            gradient.addColorStop(1, 'rgba(171, 196, 255, 0)');
+            gradient.addColorStop(0, 'rgba(94, 96, 206, 0.8)');
+            gradient.addColorStop(0.4, 'rgba(94, 96, 206, 0.4)');
+            gradient.addColorStop(1, 'rgba(94, 96, 206, 0)');
         
         ctx.beginPath();
         ctx.fillStyle = gradient;
@@ -57,7 +57,7 @@ export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
     
     // Dessiner la balle principale (toujours en rouge maintenant)
     ctx.beginPath();
-    ctx.fillStyle = 'rgba(171, 196, 255 0)';
+    ctx.fillStyle = 'rgba(94, 96, 206 , 0.2)';
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
     ctx.fill();
     
@@ -165,18 +165,18 @@ export async function drawEndGame(
 
     const winnerId = state.winner === player1id ? player1id : player2id ?? 0;
     const winner: UserData | null = await fetchUserById(winnerId);
-    ctx.fillText(`${winner?.displayname} GAGNE!`, 0, -40);
+    ctx.fillText(`${winner?.displayname} WIN!`, 0, -40);
 
     // Score final
     ctx.font = '32px Arial';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`Score Final: ${state.score.player1} - ${state.score.player2}`, 0, 20);
+    ctx.fillText(`Final Score: ${state.score.player1} - ${state.score.player2}`, 0, 20);
 
     // Message de redirection
     const alpha = (Math.sin(animationTime * 4) + 1) / 2;
     ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
     ctx.font = '24px Arial';
-    ctx.fillText("Retour au menu dans quelques secondes...", 0, 80);
+    ctx.fillText("Back to Menu soon...", 0, 80);
 
     ctx.restore();
 }

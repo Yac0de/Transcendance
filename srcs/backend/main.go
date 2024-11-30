@@ -35,7 +35,7 @@ func main() {
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.Static("/users/avatar", "./avatars")
 	router.POST("/api/game-history", controllers.SaveGameHistory)
-	router.GET("/api/game-history/:userId", controllers.GetUserGameHistory)
+	router.GET("/api/game-history/:nickname", controllers.GetUserGameHistory)
 
 	users := router.Group("/users")
 	auth := router.Group("/auth")

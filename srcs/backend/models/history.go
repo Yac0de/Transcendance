@@ -4,7 +4,6 @@ import "gorm.io/gorm"
 
 type GameHistory struct {
     gorm.Model 
-    ID uint64   `json:"id" gorm:"primaryKey;autoIncrement"`  
     Player1ID uint64   `json:"player1_id" gorm:"not null"`  
     Player2ID uint64   `json:"player2_id" gorm:"not null"`
     WinnerID  uint64   `json:"winner_id" gorm:"not null"`

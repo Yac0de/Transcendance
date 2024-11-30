@@ -47,11 +47,11 @@
   
   <style scoped>
   .text-gray-200 {
-	color: #374151;
+	color: #BC4749;
   }
   
   .text-blue-600 {
-	color: #36e745;
+	color: #80ED99;
   }
   
   .w-32 {

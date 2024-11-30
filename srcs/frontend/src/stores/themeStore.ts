@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    themes: ['main', 'dark', 'light', 'blue', 'green'], // Liste des thèmes disponibles
+    themes: ['texturized-and-dynamic', 'metallic-chill', 'cool-and-collected', 'erthy-and-serene', 'mechanical-and-floaty', 'striking-and-simple', 'sleek-and-futuristic', 'eye-catching-and-sleek', 'impactful-and-striking-colors', 'vibrant-and-calming'], // Liste des thèmes disponibles
     currentThemeIndex: 0, // Index du thème actif
   }),
   getters: {
@@ -19,7 +19,7 @@ export const useThemeStore = defineStore('theme', {
     },
     applyTheme(theme: string) {
       const rootElement = document.documentElement;
-      const themes = ['main', 'dark', 'light', 'blue', 'green'];
+      const themes = ['texturized-and-dynamic', 'metallic-chill', 'cool-and-collected', 'erthy-and-serene', 'mechanical-and-floaty', 'striking-and-simple', 'sleek-and-futuristic', 'eye-catching-and-sleek', 'impactful-and-striking-colors', 'vibrant-and-calming'];
 
       // Supprime toutes les classes de thèmes existantes
       themes.forEach((t) => rootElement.classList.remove(`${t}-theme`));

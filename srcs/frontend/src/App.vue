@@ -5,6 +5,7 @@
         <div class="nav-left">
           <router-link to="/" class="nav-button home-button">HOME</router-link>
         </div>
+        <button class="nav-button themes" @click="themeStore.nextTheme">SWITCH THEMES</button>
         <div class="nav-right">
           <template v-if="!userStore.isSignedIn">
             <router-link to="/signin" class="nav-button">SIGN IN</router-link>
@@ -17,7 +18,6 @@
           </template>
         </div>
       </div>
-      <button class="nav-button themes" @click="themeStore.nextTheme">SWITCH THEMES</button>
     </nav>
     <div class="gradient_backgroud">
       <div class="content">
@@ -78,7 +78,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   font-family: "Audiowide", sans-serif;
 }
 
-.main-theme {
+.texturized-and-dynamic-theme {
   --main-color: #2f4454;
   --secondary-dark-color: #2e151b;
   --secondary-bright-color: #da7b93;
@@ -86,7 +86,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   --secondary-extra-color: #1c3334;
 }
 
-.dark-theme {
+.metallic-chill-theme {
   --main-color: #3d52a0;
   --secondary-dark-color: #7091e6;
   --secondary-bright-color: #8697c4;
@@ -94,7 +94,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   --secondary-extra-color: #ede8f5;
 }
 
-.light-theme {
+.cool-and-collected-theme {
   --main-color: #003135;
   --secondary-dark-color: #024950;
   --secondary-bright-color: #964734;
@@ -102,7 +102,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   --secondary-extra-color: #afdde5;
 }
 
-.blue-theme {
+.erthy-and-serene-theme {
   --main-color: #3e362e;
   --secondary-dark-color: #865d36;
   --secondary-bright-color: #93785b;
@@ -110,7 +110,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   --secondary-extra-color: #a69080;
 }
 
-.green-theme {
+.mechanical-and-floaty-theme {
   --main-color: #141619;
   --secondary-dark-color: #2c2e3a;
   --secondary-bright-color: #050a44;
@@ -118,6 +118,45 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   --secondary-extra-color: #b3b4bd;
 }
 
+.striking-and-simple-theme {
+  --main-color: #0b0c10;
+  --secondary-dark-color: #1f2833;
+  --secondary-bright-color: #c5c6c7;
+  --main-extra-color: #66fcf1;
+  --secondary-extra-color: #45a29e;
+}
+
+.sleek-and-futuristic-theme {
+  --main-color: #2c3531;
+  --secondary-dark-color: #116466;
+  --secondary-bright-color: #d9b08c;
+  --main-extra-color: #ffcb9a;
+  --secondary-extra-color: #d1e8e2;
+}
+
+.eye-catching-and-sleek-theme {
+  --main-color: #501f3a;
+  --secondary-dark-color: #cb2d6f;
+  --secondary-bright-color: #cccccc;
+  --main-extra-color: #14a098;
+  --secondary-extra-color: #0f292f;
+}
+
+.impactful-and-striking-colors-theme {
+  --main-color: #c34271;
+  --secondary-dark-color: #f070a1;
+  --secondary-bright-color: #16ffbd;
+  --main-extra-color: #12c998;
+  --secondary-extra-color: #439f76;
+}
+
+.vibrant-and-calming-theme {
+  --main-color: #026670;
+  --secondary-dark-color: #9fedd7;
+  --secondary-bright-color: #f7f0a3;
+  --main-extra-color: #fce181;
+  --secondary-extra-color: #edeae5;
+}
 </style>
 
 <style scoped>
@@ -150,6 +189,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  
 } 
 
 .nav-left {
@@ -163,6 +203,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  margin-left: 10px;
 }
 
 .nav-button {
@@ -180,6 +221,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   cursor: pointer;
   text-decoration: none;
   transition: background-color 0.3s;
+  white-space: nowrap;
 }
 
 .nav-button.themes {
@@ -187,6 +229,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
 }
 
 .home-button {
+  margin-right: 10px;
 }
 
 .nav-button:hover {
@@ -225,6 +268,29 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   .nav-button {
     font-size: 1rem;
   }
+}
+
+@media (max-width: 960px) {
+  .sticky-nav {
+  justify-content: space-between;
+}
+.nav-content {
+  width: 100%;
+}
+.nav-button {
+  margin-left: 0px;
+}
+.nav-right button,
+.nav-right a {
+  margin-left: 10px;
+}
+.nav-button.themes {
+  margin-left: 10px;
+}
+.nav-left,
+.nav-right {
+  position: relative;
+}
 }
 
 @media (max-width: 768px), (max-height: 430px) {

@@ -2,8 +2,9 @@
   <div class="tournament-lobby">
     <div class="code-display">
       <h3>Tournament Code</h3>
-      <div class="code-box">
+      <div class="code-box" @click="copyToClipboard">
         {{ tournamentCode.slice(0,8) }}
+        <i class="fas fa-clipboard copy-icon"></i>
       </div>
     </div>
     
@@ -24,9 +25,6 @@
 </template>
 
 <script setup lang="ts">
-//To allow start with only 4 players
-//:disabled="users.includes(null)"
-
 import { ref, onMounted, onUnmounted } from 'vue';
 import PlayerTile from './PlayerTile.vue';
 import { UserData } from '../../types/models';
@@ -36,13 +34,27 @@ import { fetchMultipleUsers } from '../../utils/fetch'
 import { useRouter } from 'vue-router';
 import { TournamentCreate, TournamentEvent } from '../../types/tournament';
 
+//To allow start with only 4 players
+//:disabled="users.includes(null)"
+
 const userStore = useUserStore();
 const router = useRouter();
 const tournamentCode = ref<string>('');
 const creatorId = ref<number>(0);
 const clientId = ref<number | null>(userStore.getId);
-
 const users = ref<(UserData | null)[]>([null, null, null, null]); 
+
+const copyToClipboard = (event: MouseEvent) => {
+  const element = event.currentTarget as HTMLElement;
+  element.classList.add('click-animation');
+  
+  setTimeout(() => {
+    element.classList.remove('click-animation');
+  }, 150); 
+
+  navigator.clipboard.writeText(tournamentCode.value.slice(0,8))
+    .catch(err => console.error('Failed to copy code:', err));
+};
 
 const handleStartTournament = () => {
   if (userStore.getWebSocketService?.isConnected()) {
@@ -80,7 +92,6 @@ onMounted(() => {
         message.player3id ?? 0,
         message.player4id ?? 0
       ];
-
       tournamentCode.value = String(message.code);
       users.value = await fetchMultipleUsers(playerIds);
     } catch (error) {
@@ -122,6 +133,9 @@ onUnmounted(() => {
 }
 
 .code-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background-color: #f5f5f5;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -130,6 +144,19 @@ onUnmounted(() => {
   letter-spacing: 2px;
   color: #333;
   border: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+/* Animation class for click effect */
+.click-animation {
+  transform: scale(0.95);
+}
+
+.copy-icon {
+  font-size: 1rem;
+  color: #666;
+  margin-left: 5px;
 }
 
 .players-container {

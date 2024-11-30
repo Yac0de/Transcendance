@@ -95,6 +95,7 @@ const handleToggleMode = (newValue: boolean) => {
 const handleFriendSelected = (friendId: number) => {
   if (userStore.getWebSocketService?.isConnected()) {
     userStore.getWebSocketService?.inviteFriendToLobbyMessage(friendId);
+    isWaitingForResponse.value = true;
   } else {
     console.error('WebSocket is not connected');
   }

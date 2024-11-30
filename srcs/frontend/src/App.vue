@@ -23,16 +23,16 @@
       <div class="content">
         <router-view></router-view>
         <InvitePopUp />
-        <FriendList v-if="userStore.isSignedIn" />
-        <Chat v-if="userStore.isSignedIn" />
+        <FriendList v-if="!isGameRoute && userStore.isSignedIn"/>
+        <Chat v-if="!isGameRoute && userStore.isSignedIn"/>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { onMounted, computed, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from './stores/user';
 import { useChatStore } from './stores/chatStore';
 import { useThemeStore } from './stores/themeStore';
@@ -46,6 +46,9 @@ const chatStore = useChatStore();
 const themeStore = useThemeStore();
 
 const router = useRouter();
+const route = useRoute();
+
+const isGameRoute = computed(() => route.path.startsWith('/game'));
 
 const checkAuth = async () => {
   await userStore.fetchUser();

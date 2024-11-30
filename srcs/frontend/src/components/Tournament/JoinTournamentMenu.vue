@@ -6,6 +6,7 @@
         type="text"
         class="tournament-input"
         placeholder="Enter tournament code"
+        maxlength="8"
       />
       <button 
         class="join-button"

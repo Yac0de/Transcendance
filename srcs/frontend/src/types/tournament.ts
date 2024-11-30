@@ -8,19 +8,19 @@ export interface TournamentTreeState {
   type: 'TOURNAMENT_TREE_STATE';
   userId: number;
   code: string;
-  final: { 
+  final?: { 
     player1id: number;
     player2id: number;
     score: number[];
     isFinished: boolean
   };
-  semi1: { 
+  semi1?: { 
     player1id: number;
     player2id: number;
     score: number[];
     isFinished: boolean;
   };
-  semi2: { 
+  semi2?: { 
     player1id: number;
     player2id: number;
     score: number[];
@@ -43,10 +43,9 @@ export interface TournamentGame {
   lobbyId: number;
 }
 
-export interface TournamentLeaveWaitingRoom {
-  type: 'TOURNAMENT_LEAVE_WAITING_ROOM';
+export interface TournamentLeave {
+  type: 'TOURNAMENT_LEAVE';
   userId: number;
-  code: string;
 }
 
 export interface TournamentTerminate {

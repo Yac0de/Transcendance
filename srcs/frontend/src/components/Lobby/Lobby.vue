@@ -114,10 +114,12 @@ onMounted(async () => {
   })
 
   eventBus.on('GAME_START', () => {
-    router.push({
-      path: '/game', 
-      query: {lobbyId: lobbyId }
-    });
+    if (lobbyId) {
+      router.push({
+        path: '/game', 
+        query: {lobbyId: lobbyId }
+      });
+    }
   });
 
   eventBus.on('LOBBY_DESTROYED', async () => {

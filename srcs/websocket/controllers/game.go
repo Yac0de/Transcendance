@@ -459,7 +459,7 @@ func (g *Game) hitCounter(playerNum int) {
 func handleGameMessage(h *Hub, data []byte) {
 	var evt GameEvent
 	if err := json.Unmarshal(data, &evt); err != nil {
-		fmt.Printf("Error GameEvent type unmarshall\n")
+		fmt.Printf("Error GameEvent type unmarshall: %s\n", string(data))
 		return
 	}
 	lobby := h.Lobbies[evt.LobbyId]

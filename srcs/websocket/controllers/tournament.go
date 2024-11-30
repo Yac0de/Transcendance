@@ -356,6 +356,7 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 					StartFinal(h, tournament)
 				} else if IsFinalTournamentFinished(tournament) {
 					SendTournamentTreeState(h, tournament, event)
+					delete(h.Tournaments, tournament.Id)
 					return
 				}
 			}
@@ -414,6 +415,7 @@ func UpdateSemiFinals(h *Hub, tournament *Tournament, event *TournamentTreeEvent
 		jsonData, _ := json.Marshal(&event)
 		SendDatasToGame(h, tournament.Semi1, jsonData)
 		SendDatasToGame(h, tournament.Semi2, jsonData)
+
 	}
 	if tournament.Final.Player2 == 0 && tournament.LobbiesSemi[1].Game.State.Winner != 0 {
 		state := tournament.LobbiesSemi[1].Game.State

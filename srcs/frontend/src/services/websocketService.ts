@@ -170,7 +170,7 @@ export class WebSocketService {
                     for (const eventData of events) {
                         const message = JSON.parse(eventData);
                         const handler = this.messageHandlers[message.type];
-                        //console.log("<-", message);
+                        console.log("<-- ", message);
                         if (handler) {
                             handler(message);
                         } else

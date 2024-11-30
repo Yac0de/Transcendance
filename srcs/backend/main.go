@@ -24,12 +24,18 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}
 	router.Use(cors.New(config))
+	router.Use(func(c *gin.Context) {
+		c.Set("db", database.DB)
+		c.Next()
+	})
 	router.Use(middleware.Token())
 	router.Use(prometheus.PrometheusMiddleware())
 
 	// Routes
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.Static("/users/avatar", "./avatars")
+	router.POST("/api/game-history", controllers.SaveGameHistory)
+	router.GET("/api/game-history/:nickname", controllers.GetUserGameHistory)
 
 	users := router.Group("/users")
 	auth := router.Group("/auth")

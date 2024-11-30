@@ -3,7 +3,7 @@
     <!-- <div class="header-account-details"> -->
     <div class="account-content">
       <h2>Account Details</h2>
-      <AccountView v-if="!isViewingStats && !isEditing && !isDeleting" :user="userToDisplay"
+      <AccountView v-if="!isEditing && !isDeleting" :user="userToDisplay"
         :isOwnProfile="isOwnProfile" @startEditing="startEditing" />
       <AccountEdit v-if="isEditing && !isDeleting" :user="userToDisplay" :errorMessage="errorMessage"
         @saveProfile="saveProfile" @cancelEdit="cancelEdit" @confirmDeleteAccount="confirmDeleteAccount"
@@ -11,10 +11,9 @@
       <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted" @deleteAccount="deleteAccount"
         @cancelDelete="cancelDelete" />
 
-      <AccountStats v-if="isViewingStats" />
       <div v-if="!isEditing && !isDeleting">
-        <button @click="toggleStats" class="toggle-button">
-          {{ isViewingStats ? 'Back to Account' : 'View Statistics' }}
+        <button @click="goToHistory" class="toggle-button">
+          match history
         </button>
       </div>
 
@@ -34,12 +33,10 @@ import NotFound from '../../General/NotFound.vue'
 import AccountView from './AccountView.vue'
 import AccountEdit from './AccountEdit.vue'
 import DeleteAccountPrompt from './DeleteAccountPrompt.vue'
-import AccountStats from './AccountStats.vue'
 import { UserData } from '../../../types/models';
 
 const isEditing = ref(false)
 const isDeleting = ref(false)
-const isViewingStats = ref(false)
 const deleted = ref(false)
 const userToDisplay = ref<UserData>({ id: 0, nickname: '', displayname: '', avatar: '' })
 const successMessage = ref('')
@@ -53,6 +50,10 @@ const userExists = ref(true)
 const resetMessages = () => {
   successMessage.value = ''
   errorMessage.value = ''
+}
+
+const goToHistory = () => {
+  router.push(`/match_history/${userToDisplay.value.nickname}`)
 }
 
 const checkOwnProfile = async () => {
@@ -108,10 +109,6 @@ const startEditing = () => {
   resetMessages()
 }
 
-const toggleStats = () => {
-  isViewingStats.value = !isViewingStats.value
-}
-
 const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) => {
   resetMessages()
 
@@ -148,6 +145,7 @@ const confirmDeleteAccount = () => {
   isDeleting.value = true
   resetMessages()
 }
+
 
 const deleteAccount = async (password: string) => {
   resetMessages()

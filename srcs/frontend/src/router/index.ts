@@ -6,6 +6,7 @@ import PongGame from '../components/Game/PongGame.vue'
 import Game from '../components/Game/Game.vue'
 import Account from '../components/User/Account/Account.vue'
 import Lobby from '../components/Lobby/Lobby.vue'
+import MatchHistory from '../components/User/Account/MatchHistory.vue'
 import NotFound from '../components/General/NotFound.vue'
 import Tournament from '../components/Tournament/Tournament.vue'
 import api from '../services/api'
@@ -50,7 +51,13 @@ const routes = [
   {
     path: '/:pathMatch(.*)*', 
     component: NotFound
-  }
+  },
+  { 
+    path: '/match_history/:nickname', 
+    component: MatchHistory, 
+    meta: { requiresAuth: true },
+    props: true 
+  },
 ]
 
 const router = createRouter({

@@ -2,7 +2,7 @@
   <div class="tournament-container">
     <!-- Main Menu View -->
     <div v-if="currentView === 'menu'" class="menu-view">
-      <h1 class="tournament-title">Tournament Hub</h1>
+      <h1 class="tournament-title">Tournament</h1>
       
       <div class="tournament-buttons">
         <button 
@@ -34,7 +34,7 @@
     </div>
     <div v-else-if="currentView === 'tournament-tree'" class="create-view">
       <!-- CreateTournament component will go here -->
-      <TournamentTree :game1array="game1array" :game2array="game2array"/>
+      <TournamentTree/>
     </div>
   </div>
 </template>
@@ -55,9 +55,6 @@ const userStore = useUserStore();
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
 const route = useRoute();
-
-const game1array = ref<number[]>([])
-const game2array = ref<number[]>([])
 
 const error = ref<string>('')
 
@@ -120,11 +117,19 @@ onUnmounted(() => {
 
 <style scoped>
 .tournament-container {
-  position: relative;
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
   text-align: center;
+  height: 65vh;
+  min-height: 200px;
+  min-width: 300px;
+  padding: 2vh 5vw;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  background: var(--main-color);
 }
 
 .back-button {
@@ -146,15 +151,17 @@ onUnmounted(() => {
 }
 
 .tournament-title {
-  margin-bottom: 2rem;
-  font-size: 2rem;
-  color: #333;
+  color: white;
+  text-shadow: 1px 1px 10px black;
+  font-size: 3rem;
+  margin-bottom: 2vh;
 }
 
 .view-title {
-  margin-bottom: 2rem;
-  font-size: 1.8rem;
-  color: #333;
+  color: white;
+  text-shadow: 1px 1px 10px black;
+  font-size: 2.5rem;
+  margin-bottom: 2vh;
 }
 
 .tournament-buttons {
@@ -164,11 +171,14 @@ onUnmounted(() => {
 }
 
 .tournament-button {
-  padding: 1rem 2rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
   font-size: 1.1rem;
+  color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   transition: transform 0.2s, background-color 0.2s;
 }
 
@@ -177,21 +187,31 @@ onUnmounted(() => {
 }
 
 .tournament-button.create {
-  background-color: #4CAF50;
-  color: white;
+  background: linear-gradient(  to right,
+                                var(--secondary-dark-color),
+                                color-mix(in srgb, var(--secondary-dark-color) 75%,
+                                white));
 }
 
 .tournament-button.create:hover {
-  background-color: #45a049;
+  background: linear-gradient(  to right,
+                                var(--secondary-dark-color),
+                                color-mix(in srgb, var(--secondary-dark-color) 85%,
+                                white));
 }
 
 .tournament-button.join {
-  background-color: #2196F3;
-  color: white;
+  background: linear-gradient(  to right,
+                                var(--secondary-bright-color), 
+                                color-mix(in srgb, var(--secondary-bright-color) 75%,
+                                white));
 }
 
 .tournament-button.join:hover {
-  background-color: #1e88e5;
+  background: linear-gradient(  to right,
+                                var(--secondary-bright-color), 
+                                color-mix(in srgb, var(--secondary-bright-color) 85%,
+                                white));
 }
 
 /* View transitions */

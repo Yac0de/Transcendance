@@ -2,7 +2,7 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed, LobbySpecialModeToggled  } from '../types/lobby';
-import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
 import { GameEvent, GameStart, GameFinished, GameLeave } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
@@ -363,10 +363,22 @@ export class WebSocketService {
 
     public sendLeaveTournament(): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentLeave = {
+                type: 'TOURNAMENT_LEAVE',
+                userId: this.userStore.getId!,
+            };
+            console.log(message);
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public sendLeaveTournamentWaitingRoom(): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: TournamentLeaveWaitingRoom = {
                 type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
                 userId: this.userStore.getId!,
             };
+            console.log(message);
             this.ws.send(JSON.stringify(message));
         }
     }

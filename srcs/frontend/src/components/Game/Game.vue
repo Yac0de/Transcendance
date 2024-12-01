@@ -219,20 +219,11 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (isTournamentGame) {
-    if (userStore.getWebSocketService?.isConnected()) {
-      console.log("-> TOURNAMENT_LEAVE (IN A GAME)");
-      userStore.getWebSocketService?.sendLeaveTournament()
-    } else {
-      console.error('WebSocket is not connected');
-    }
+  if (userStore.getWebSocketService?.isConnected()) {
+    console.log("-> GAME LEAVE (IN A GAME)");
+    userStore.getWebSocketService?.sendGameLeave(route.query.lobbyId)
   } else {
-    if (userStore.getWebSocketService?.isConnected()) {
-      console.log("-> GAME LEAVE (IN A GAME)");
-      userStore.getWebSocketService?.sendGameLeave()
-    } else {
-      console.error('WebSocket is not connected');
-    }
+    console.error('WebSocket is not connected');
   }
 
   window.removeEventListener('keydown', handlePressUp)

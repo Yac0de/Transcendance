@@ -20,8 +20,9 @@ export interface GameFinished {
 }
 
 export interface GameLeave {
-    type: 'GAME_LEAVE';
+    type: 'LOBBY_GAME_LEAVE';
     userId: number;
+    lobbyId: string;
 }
 
 export interface Ball {

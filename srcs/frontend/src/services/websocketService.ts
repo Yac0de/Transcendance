@@ -390,11 +390,12 @@ export class WebSocketService {
         }
     }
 
-    public sendGameLeave(): void {
+    public sendGameLeave(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: GameLeave = {
-                type: 'GAME_LEAVE',
+                type: 'LOBBY_GAME_LEAVE',
                 userId: this.userStore.getId!,
+                lobbyId: lobbyId
             };
             this.ws.send(JSON.stringify(message));
         } else {

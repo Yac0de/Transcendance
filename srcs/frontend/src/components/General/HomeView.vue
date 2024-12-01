@@ -2,10 +2,10 @@
   <div class="homepage-container">
     <div class="homepage-content">
       <div class="welcome">
-        <h1>WELCOME TO</h1>
-        <h1>TRANSCENDENCE PONG</h1>
+        <h1>{{ $t('welcomeTo') }}</h1>
+        <h1>{{ $t('transcendencePong') }}</h1>
       </div>
-      <router-link to="/pong" class="pong-button">PLAY NOW</router-link>
+      <router-link to="/pong" class="pong-button">{{ $t('playNow') }}</router-link>
     </div>
   </div>
 </template>

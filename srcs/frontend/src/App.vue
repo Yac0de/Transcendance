@@ -3,18 +3,42 @@
     <nav class="sticky-nav">
       <div class="nav-content">
         <div class="nav-left">
-          <router-link to="/" class="nav-button home-button">HOME</router-link>
+          <router-link to="/" class="nav-button home-button">{{ $t('home') }}</router-link>
         </div>
         <div class="nav-right">
           <template v-if="!userStore.isSignedIn">
-            <router-link to="/signin" class="nav-button">SIGN IN</router-link>
-            <router-link to="/signup" class="nav-button">SIGN UP</router-link>
+            <router-link to="/signin" class="nav-button">{{ $t('signin') }}</router-link>
+            <router-link to="/signup" class="nav-button">{{ $t('signup') }}</router-link>
           </template>
           <template v-else>
-            <router-link to="/pong" class="nav-button">Play Pong</router-link>
-            <router-link :to="`/${userStore.nickname}`" class="nav-button">Account</router-link>
-            <button @click="handleSignout" class="nav-button">Sign Out</button>
+            <router-link to="/pong" class="nav-button">{{ $t('playPong') }}</router-link>
+            <router-link :to="`/${userStore.nickname}`" class="nav-button">{{ $t('account') }}</router-link>
+            <button @click="handleSignout" class="nav-button">{{ $t('signout') }}</button>
           </template>
+          <!-- Section des langues -->
+          <div class="language-switcher">
+            <img 
+              src="../src/assets/flags/Flag_of_France.png" 
+              alt="Français" 
+              class="language-icon" 
+              @click="switchLanguage('fr')" 
+              :class="{ active: currentLanguage === 'fr' }"
+            />
+            <img 
+              src="../src/assets/flags/Flag_of_Spain.png"
+              alt="Español" 
+              class="language-icon" 
+              @click="switchLanguage('es')" 
+              :class="{ active: currentLanguage === 'es' }"
+            />
+            <img 
+              src="../src/assets/flags/Flag_of_the_United_Kingdom.png"
+              alt="English" 
+              class="language-icon" 
+              @click="switchLanguage('en')" 
+              :class="{ active: currentLanguage === 'en' }"
+            />
+          </div>
         </div>
       </div>
     </nav>
@@ -30,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from './stores/user';
 import { useChatStore } from './stores/chatStore';
@@ -38,14 +62,25 @@ import api from './services/api';
 import FriendList from './components/User/Friend/FriendMenu.vue';
 import Chat from './components/User/Chat/Chat.vue';
 import InvitePopUp from './components/Lobby/InvitePopUp.vue';
+import { useI18n } from 'vue-i18n';
 
 const userStore = useUserStore();
 const chatStore = useChatStore();
+const { locale } = useI18n();
 
 const router = useRouter();
 const route = useRoute();
 
 const isGameRoute = computed(() => route.path.startsWith('/game'));
+
+const currentLanguage = ref('en'); // Langue par défaut
+
+const switchLanguage = (language: string) => {
+  currentLanguage.value = language;
+  locale.value = language;
+  localStorage.setItem('language', language);
+  console.log(`Language switched to: ${language}`);
+};
 
 const checkAuth = async () => {
   await userStore.fetchUser();
@@ -62,7 +97,14 @@ const handleSignout = async () => {
   }
 };
 
-onMounted(checkAuth);
+onMounted(() => {
+  checkAuth();
+  const savedLanguage = localStorage.getItem('language');
+  if (savedLanguage) {
+    currentLanguage.value = savedLanguage;
+    locale.value = savedLanguage;
+  }
+});
 </script>
 
 <style>
@@ -119,6 +161,7 @@ onMounted(checkAuth);
 }
 
 .nav-button {
+  font-family: "Audiowide", sans-serif;
   margin-left: 10px;
   padding: 0.5vh 1vw;
   font-size: 1.2rem;
@@ -139,6 +182,32 @@ onMounted(checkAuth);
 
 .nav-button:hover {
   background-color: var(--main-extra-color);
+}
+
+.language-switcher {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.language-icon {
+  width: 30px;
+  height: 20px;
+  margin: 0 5px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.language-icon.active {
+  opacity: 1;
+  transform: scale(1.1);
+  border: 2px solid white;
+  border-radius: 4px;
+}
+
+.language-icon:hover {
+  opacity: 1;
 }
 
 .gradient_backgroud {

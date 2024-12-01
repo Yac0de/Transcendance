@@ -193,7 +193,6 @@ onMounted(() => {
   })
 
   eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
-    console.log("YEAHHH");
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
 
     if (isTournamentGame === false) {
@@ -201,11 +200,10 @@ onMounted(() => {
         router.push('/');
       }, 3000)
     } else {
-      console.log("yeaahahh")
       window.setTimeout(() => {
         router.push({ 
           path: '/tournament', 
-          query: { view: 'tournament-tree', lobbyId: message.lobbyId }
+          query: { view: 'tournament-tree'}
         });
       }, 3000);
     }

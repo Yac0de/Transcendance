@@ -44,7 +44,7 @@ export interface TournamentGame {
 }
 
 export interface TournamentLeave {
-  type: 'TOURNAMENT_LEAVE';
+  type: 'TOURNAMENT_LEAVE_WAITING_ROOM';
   userId: number;
 }
 

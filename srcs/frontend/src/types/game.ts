@@ -6,6 +6,7 @@ export interface GameEvent {
     keyPressed: string;
     player1id?: number;
     player2id?: number;
+    isTournamentGame?: boolean;
 }
 
 export interface GameStart {

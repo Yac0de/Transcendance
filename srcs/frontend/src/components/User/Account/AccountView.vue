@@ -8,7 +8,7 @@
     <div class="account-info">
       <p><strong>Nickname:</strong> {{ user.nickname }}</p>
       <p><strong>Display Name:</strong> {{ user.displayname }}</p>
-      <p v-if="isOwnProfile"><strong>2FA Status:</strong> {{ user.is2faEnabled ? 'Enabled' : 'Disabled' }}</p>
+      <p v-if="isOwnProfile"><strong>2FA Status:</strong> {{  }}</p>
     </div>
     <div v-if="isOwnProfile" class="account-actions">
       <button class="action-button" @click="$emit('startEditing')">Edit Profile</button>
@@ -16,7 +16,7 @@
         class="action-button" 
         @click="showTwoFAModal = true"
       >
-        {{ user.is2faEnabled ? 'Disable 2FA' : 'Enable 2FA' }}
+        {{  }}
       </button>
     </div>
     

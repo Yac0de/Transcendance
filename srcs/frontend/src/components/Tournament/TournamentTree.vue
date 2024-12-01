@@ -57,14 +57,13 @@ import { UserData } from '../../types/models'
 import { TournamentTimer, TournamentTreeState, TournamentGame } from '../../types/tournament'
 import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '../../stores/user';
 
 const props = defineProps<{
   tournamentCode: string;
 }>();
 
-const route = useRoute()
 const userStore = useUserStore()
 
 let goingIntoGame: boolean = false;
@@ -109,21 +108,21 @@ onMounted(async () => {
         tournamentStatusMessage.value =  'You lost, better luck next time !'
         hasLost.value = true
       }
-      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id, finalPlayer2Id]); 
+      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id ?? 0, finalPlayer2Id ?? 0]); 
     }
 
-    if (message.final.isFinished) {
-      if (message.final.score[0] > message.final.score[1]) {
+    if (message.final?.isFinished) {
+      if (message.final?.score[0] > message.final?.score[1]) {
         winner.value = await fetchUserById(message.final.player1id)
-        if (message.final.player1id === userStore.getId) {
+        if (message.final?.player1id === userStore.getId) {
           tournamentStatusMessage.value =  'Congratulations, you won the final !'
         } else {
           tournamentStatusMessage.value =  'You lost, better luck next time !'
           hasLost.value = true
         }
       } else {
-        winner.value = await fetchUserById(message.final.player2id)
-        if (message.final.player2id === userStore.getId) {
+        winner.value = await fetchUserById(message.final?.player2id)
+        if (message.final?.player2id === userStore.getId) {
           tournamentStatusMessage.value =  'Congratulations, you won the final !'
         } else {
           tournamentStatusMessage.value =  'You lost, better luck next time !'

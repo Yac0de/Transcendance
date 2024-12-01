@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import api from '../../../services/api';
 import { UserData } from '../../../types/models';
 

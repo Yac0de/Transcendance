@@ -81,9 +81,7 @@ const tournamentStatusMessage = ref<string>('');
 const router = useRouter();
 
 const handleGameRouting = async (message: TournamentGame) => {
-    console.log("LOBBY EVENT: ", message)
     const lobbyId = message.lobbyId;
-    console.log("WE WILL PUSH THE ROUTER WITH THIS IN THE QUERY", lobbyId)
     
     // Set goingIntoGame before starting navigation
     goingIntoGame = true;
@@ -102,7 +100,6 @@ const handleGameRouting = async (message: TournamentGame) => {
 
 onMounted(() => {
     if (userStore.getWebSocketService?.isConnected()) {
-        console.log("TC: ", props.tournamentCode)
         userStore.getWebSocketService?.sendTreeStateMessage(props.tournamentCode)
     } else {
         console.error('WebSocket is not connected');
@@ -116,7 +113,6 @@ onUnmounted(() => {
     // Only attempt to leave if we're not transitioning to a game
     if (!goingIntoGame) {
         if (userStore.getWebSocketService?.isConnected()) {
-            console.log("-> TOURNAMENT_LEAVE");
             userStore.getWebSocketService?.sendLeaveTournament()
         } else {
             console.error('WebSocket is not connected');
@@ -132,7 +128,6 @@ onUnmounted(() => {
 
 onMounted(async () => {
   if (userStore.getWebSocketService?.isConnected()) {
-    console.log("TC: ", props.tournamentCode)
     userStore.getWebSocketService?.sendTreeStateMessage(props.tournamentCode)
   } else {
     console.error('WebSocket is not connected');
@@ -205,7 +200,6 @@ onMounted(async () => {
 onUnmounted(() => {
   if (!goingIntoGame) {
     if (userStore.getWebSocketService?.isConnected()) {
-      console.log("-> TOURNAMENT_LEAVE");
       userStore.getWebSocketService?.sendLeaveTournament()
     } else {
       console.error('WebSocket is not connected');

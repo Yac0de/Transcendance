@@ -51,6 +51,7 @@ export interface TournamentLeave {
 export interface TournamentLeaveWaitingRoom {
   type: 'TOURNAMENT_LEAVE_WAITING_ROOM';
   userId: number;
+  code: string;
 }
 
 export interface TournamentTerminate {

@@ -198,7 +198,6 @@ onMounted(() => {
     })
 
     eventBus.on('CHAT_FROM_TOURNAMENT_MASTER_SEMIS', (message: string) => {
-        console.log(message);
         const formattedMessage: Message = {
             content: message,
             senderId: 0,  
@@ -215,7 +214,6 @@ onMounted(() => {
     })
 
     eventBus.on('CHAT_FROM_TOURNAMENT_MASTER_FINAL', (message: string) => {
-        console.log("CHAT FROM TM:", message);
         const formattedMessage: Message = {
             content: message,
             senderId: 0,  

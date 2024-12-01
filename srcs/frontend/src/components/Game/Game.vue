@@ -224,7 +224,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (userStore.getWebSocketService?.isConnected()) {
-    console.log("-> GAME LEAVE (IN A GAME)");
     userStore.getWebSocketService?.sendGameLeave(lobbyId)
   } else {
     console.error('WebSocket is not connected');

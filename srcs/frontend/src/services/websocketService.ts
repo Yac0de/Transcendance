@@ -137,14 +137,12 @@ export class WebSocketService {
             eventBus.emit('TOURNAMENT_TIMER', message);
         })
         this.setMessageHandler<TournamentGame>('TOURNAMENT_GAME', (message: TournamentGame) => {
-            console.log("problem: ", message)
             eventBus.emit('TOURNAMENT_GAME', message);
         })
         this.setMessageHandler<TournamentError>('TOURNAMENT_ERROR', (message: TournamentError) => {
             eventBus.emit('TOURNAMENT_ERROR', message);
         })
         this.setMessageHandler<TournamentTreeState>('TOURNAMENT_TREE_STATE', (message: TournamentTreeState) => {
-            console.log("RECEIVED THE TREE STATE");
             eventBus.emit('TOURNAMENT_TREE_STATE', message);
         })
     }
@@ -269,13 +267,11 @@ export class WebSocketService {
 
     public sendSpecialModeToggleMessage(lobbyId: string, isGameMode: boolean): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            console.log("test in sendSpecialModeToggleMessage")
             const message: LobbySpecialModeToggled = {
                 type: 'LOBBY_SPECIAL_MODE_TOGGLED',
                 lobbyId: lobbyId,
                 isGameMode: isGameMode,
             };  
-            console.log("Sending SpecialModeStatus message: ", message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -289,7 +285,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 lobbyId: lobbyId,
             };
-            console.log(message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -356,7 +351,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 code: tournamentCode,
             };
-            console.log(message);
             this.ws.send(JSON.stringify(message));
         }
     }
@@ -367,18 +361,18 @@ export class WebSocketService {
                 type: 'TOURNAMENT_LEAVE',
                 userId: this.userStore.getId!,
             };
-            console.log(message);
             this.ws.send(JSON.stringify(message));
         }
     }
 
-    public sendLeaveTournamentWaitingRoom(): void {
+    public sendLeaveTournamentWaitingRoom(code: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: TournamentLeaveWaitingRoom = {
                 type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
                 userId: this.userStore.getId!,
+                code: code,
             };
-            console.log(message);
+            console.log("->", message);
             this.ws.send(JSON.stringify(message));
         }
     }
@@ -409,7 +403,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 lobbyId: lobbyId
             };
-            console.log("Message -> ", message)
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

@@ -64,7 +64,6 @@ const handleStartTournament = () => {
 onMounted(() => {
   eventBus.on('TOURNAMENT_EVENT', async (message: TournamentEvent) => {
     try {
-      console.log("TOURNAMENT EVENT: ", message);
       creatorId.value = message.player1id ?? 0;
       const playerIds = [
         message.player1id ?? 0,
@@ -103,6 +102,12 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.sendLeaveTournamentWaitingRoom(tournamentCode.value)
+  } else {
+    console.error('WebSocket is not connected');
+  }
+
   eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_TERMINATE');

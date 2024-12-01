@@ -53,14 +53,26 @@ var (
 func PrometheusMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now() // Start time of the request
+		path := c.FullPath()
+		if path == "" {
+			path = c.Request.URL.Path
+		}
 		
 		c.Next() // Call the next handler
 		duration := time.Since(start) // Calculate request duration
 		status := c.Writer.Status() // Get response status
 
 		// Record metrics
-		httpRequests.WithLabelValues(c.Request.Method, c.FullPath(), string(rune(status))).Inc() // Increment request counter
-		httpDuration.WithLabelValues(c.Request.Method, c.FullPath()).Observe(duration.Seconds()) // Observe request duration
+		httpRequests.WithLabelValues(
+            c.Request.Method, 
+            path, 
+            string(rune(status)),
+        ).Inc()
+        
+        httpDuration.WithLabelValues(
+            c.Request.Method, 
+            path,
+        ).Observe(duration.Seconds())
 	}
 }
 

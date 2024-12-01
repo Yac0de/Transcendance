@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { UserData } from '../../types/models'
 import { TournamentTimer, TournamentTreeState, TournamentGame } from '../../types/tournament'
 import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
@@ -80,18 +80,54 @@ const remainingSeconds = ref<number>(-1);
 const tournamentStatusMessage = ref<string>(''); 
 const router = useRouter();
 
-const handleGameRouting = (message: TournamentGame) => {
+const handleGameRouting = async (message: TournamentGame) => {
     console.log("LOBBY EVENT: ", message)
-    goingIntoGame = true;
     const lobbyId = message.lobbyId;
     console.log("WE WILL PUSH THE ROUTER WITH THIS IN THE QUERY", lobbyId)
-    nextTick(() => {
-        router.push({
-            path: '/game', 
-            query: { lobbyId: lobbyId }
+    
+    // Set goingIntoGame before starting navigation
+    goingIntoGame = true;
+    
+    try {
+        // Wait for the navigation to complete
+        await router.push({
+            path: '/game',
+            query: { lobbyId: lobbyId.toString() } // Ensure lobbyId is a string
         });
-    })
+    } catch (error) {
+        console.error('Navigation failed:', error);
+        goingIntoGame = false; // Reset if navigation fails
+    }
 }
+
+onMounted(() => {
+    if (userStore.getWebSocketService?.isConnected()) {
+        console.log("TC: ", props.tournamentCode)
+        userStore.getWebSocketService?.sendTreeStateMessage(props.tournamentCode)
+    } else {
+        console.error('WebSocket is not connected');
+    }
+
+    // Other event listeners...
+    eventBus.on('TOURNAMENT_GAME', handleGameRouting)
+});
+
+onUnmounted(() => {
+    // Only attempt to leave if we're not transitioning to a game
+    if (!goingIntoGame) {
+        if (userStore.getWebSocketService?.isConnected()) {
+            console.log("-> TOURNAMENT_LEAVE");
+            userStore.getWebSocketService?.sendLeaveTournament()
+        } else {
+            console.error('WebSocket is not connected');
+        }
+    }
+
+    // Clean up event listeners
+    eventBus.off('TOURNAMENT_GAME', handleGameRouting)
+    eventBus.off('TOURNAMENT_TIMER')
+    eventBus.off('TOURNAMENT_TREE_STATE')
+});
 
 
 onMounted(async () => {

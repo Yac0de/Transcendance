@@ -53,10 +53,6 @@ const handleJoin = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 2rem;
-  border-radius: 8px;
-  background-color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .tournament-input {
@@ -72,14 +68,19 @@ const handleJoin = () => {
 }
 
 .join-button {
-  padding: 0.75rem;
-  font-size: 1rem;
-  background-color: #2196F3;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 1.1rem;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s, background-color 0.2s;
+  background: linear-gradient(  to right,
+                                var(--secondary-bright-color), 
+                                color-mix(in srgb, var(--secondary-bright-color) 75%,
+                                white));
 }
 
 .join-button:hover {

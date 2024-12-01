@@ -35,6 +35,7 @@ defineProps<{
   border-radius: 8px;
   padding: 1rem;
   transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .player-tile.empty {
@@ -59,7 +60,8 @@ defineProps<{
 .player-avatar {
   width: 40px;
   height: 40px;
-  background-color: #2196F3;
+  background: linear-gradient(to right, var(--secondary-dark-color), 
+  color-mix(in srgb, var(--secondary-dark-color) 75%, white));
   color: white;
   border-radius: 50%;
   display: flex;

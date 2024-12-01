@@ -41,7 +41,6 @@ const onSecondaryAction = () => emit('secondaryAction');
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: "Audiowide", sans-serif;
 }
 
 .auth-form {
@@ -123,6 +122,7 @@ button:hover {
 }
 
 .alert {
+  font-size: 0.75rem;
   padding: 10px;
   margin-bottom: 10px;
   margin-top: 5px;
@@ -161,7 +161,7 @@ button:hover {
   padding: 5px;
   }
   .alert {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   padding: 8px;
   margin-bottom: 8px;
   margin-top: 4px;
@@ -188,7 +188,7 @@ button:hover {
   padding: 2.5px;
   }
   .alert {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   padding: 6px;
   margin-bottom: 6px;
   margin-top: 3px;
@@ -213,7 +213,7 @@ button:hover {
   padding: 1.25px;
   }
   .alert {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   padding: 4px;
   margin-bottom: 4px;
   margin-top: 2px;

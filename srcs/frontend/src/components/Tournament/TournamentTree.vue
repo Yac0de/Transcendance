@@ -1,6 +1,6 @@
 <!-- TournamentTree.vue -->
 <template>
-  <div class="tournament-container">
+  <div class="status-bracket-container">
     <div v-if="tournamentStatusMessage" class="tournament-status">
       {{ tournamentStatusMessage }}
     </div>
@@ -73,6 +73,7 @@ const UsersInSemis2 = ref<(UserData | null)[]>([null, null]);
 const UsersInFinal = ref<(UserData | null)[]>([null, null]); 
 
 const winner = ref<UserData | null>(null);
+let hasEmittedFinalMessage: boolean = false;
 
 const hasLost = ref<boolean>(false);
 const remainingSeconds = ref<number>(-1);
@@ -99,23 +100,13 @@ onMounted(async () => {
     if (message.semi2) {
       UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
     }
-    if (message.final?.player1id !== 0 || message.final?.player2id !== 0) {
-      const finalPlayer1Id = message.final?.player1id ?? null
-      const finalPlayer2Id = message.final?.player2id ?? null
-      if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
-        tournamentStatusMessage.value =  'Congratulations, you are qualified in the final'
-      } else {
-        tournamentStatusMessage.value =  'You lost, better luck next time !'
-        hasLost.value = true
-      }
-      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id ?? 0, finalPlayer2Id ?? 0]); 
-    }
 
     if (message.final?.isFinished) {
       if (message.final?.score[0] > message.final?.score[1]) {
         winner.value = await fetchUserById(message.final.player1id)
         if (message.final?.player1id === userStore.getId) {
           tournamentStatusMessage.value =  'Congratulations, you won the final !'
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You proved yourself .. Well done.");
         } else {
           tournamentStatusMessage.value =  'You lost, better luck next time !'
           hasLost.value = true
@@ -124,11 +115,32 @@ onMounted(async () => {
         winner.value = await fetchUserById(message.final?.player2id)
         if (message.final?.player2id === userStore.getId) {
           tournamentStatusMessage.value =  'Congratulations, you won the final !'
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You proved yourself .. Well done.");
         } else {
           tournamentStatusMessage.value =  'You lost, better luck next time !'
           hasLost.value = true
         }
       }
+      return
+    }
+
+    if (message.final?.player1id !== 0 || message.final?.player2id !== 0) {
+      const finalPlayer1Id = message.final?.player1id ?? null
+      const finalPlayer2Id = message.final?.player2id ?? null
+      if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
+        tournamentStatusMessage.value =  'Congratulations, you are qualified in the final'
+        if (finalPlayer1Id === userStore.getId && !hasEmittedFinalMessage) {
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You are expected to play in the final, prepare yourself ..");
+          hasEmittedFinalMessage = true;
+        } else if (finalPlayer2Id === userStore.getId && !hasEmittedFinalMessage) {
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You are expected to play in the final, prepare yourself ..");
+          hasEmittedFinalMessage = true;
+        }
+      } else {
+        tournamentStatusMessage.value =  'You lost, better luck next time !'
+        hasLost.value = true
+      }
+      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id ?? 0, finalPlayer2Id ?? 0]); 
     }
   })
 
@@ -158,11 +170,20 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.tournament-container {
+
+.status-bracket-container {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  height: 600px;
+  gap: 2rem;
+}
+
+
+.tournament-status {  
+  color: white;
+  font-size: 1.3rem;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 .status-message {
@@ -175,20 +196,25 @@ onUnmounted(() => {
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
+  color: white;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 .bracket {
   display: flex;
   flex-direction: row-reverse;
+  color: white;
+  text-shadow: 0.5px 0.5px 1px black;
 }
 
 .bracket p {
   padding: 20px;
   margin: 0;
-  background-color: #f5f5f5;
+  background-color: var(--secondary-bright-color);
   border-radius: 4px;
   min-width: 120px;
   text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-winner {
@@ -205,8 +231,9 @@ onUnmounted(() => {
   height: 2px;
   left: 0;
   top: 50%;
-  background-color: #e0e0e0;
+  background-color: var(--secondary-bright-color);
   transform: translateX(-100%);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-connections {
@@ -227,22 +254,24 @@ onUnmounted(() => {
 .match-branch::before {
   content: '';
   position: absolute;
-  background-color: #e0e0e0;
+  background-color: var(--secondary-bright-color);
   right: 0;
   top: 50%;
   transform: translateX(100%);
   width: 25px;
   height: 2px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-branch::after {
   content: '';
   position: absolute;
-  background-color: #e0e0e0;
+  background-color: var(--secondary-bright-color);
   right: -25px;
   height: calc(50% + 22px);
   width: 2px;
   top: 50%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .match-branch:last-child::after {

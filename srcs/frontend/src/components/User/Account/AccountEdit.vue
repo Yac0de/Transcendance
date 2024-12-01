@@ -13,9 +13,9 @@
 
     <div class="edit-fields">
       <label for="edit-nickname">Nickname:</label>
-      <input id="edit-nickname" v-model="editedUser.nickname" type="text" maxlength="20" />
+      <input id="edit-nickname" v-model="editedUser.nickname" type="text" maxlength="16" />
       <label for="edit-displayname">Display Name:</label>
-      <input id="edit-displayname" v-model="editedUser.displayname" type="text" maxlength="30" />
+      <input id="edit-displayname" v-model="editedUser.displayname" type="text" maxlength="16" />
 
       <div class="password-toggle">
         <label for="change-password" class="toggle-label">Change password</label>

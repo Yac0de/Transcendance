@@ -6,7 +6,10 @@ import (
 	"math"
 	"sync"
 	"time"
+	"bytes"
+    "net/http"
 	"websocket/models"
+	"io"
 
 	"github.com/google/uuid"
 )
@@ -367,11 +370,13 @@ func (g *Game) Update() {
 	if g.State.Score.Player1 == WinningScore {
 		g.State.IsActive = false
 		g.State.Winner = g.Player1.ID
+		g.sendGameResultToBackend()
 	}
 
 	if g.State.Score.Player2 == WinningScore {
 		g.State.IsActive = false
 		g.State.Winner = g.Player2.ID
+		g.sendGameResultToBackend()
 	}
 }
 
@@ -508,4 +513,50 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 			g.State.Player2Boost.IsBoostActive = true
 		}
 	}
+}
+
+func (g *Game) sendGameResultToBackend() {
+    gameResult := map[string]interface{}{
+        "player1_id": g.Player1.ID,
+        "player2_id": g.Player2.ID,
+        "winner_id":  g.State.Winner,
+        "Score1":     g.State.Score.Player1,
+        "Score2":     g.State.Score.Player2,
+    }
+
+
+    client := &http.Client{}
+    jsonData, err := json.Marshal(gameResult)
+	fmt.Printf("%s\n", string(jsonData))
+    if err != nil {
+        fmt.Printf("Error marshalling game result: %v\n", err)
+        return
+    }
+
+    fmt.Printf("Sending game result to backend: %+v\n", gameResult)
+
+    req, err := http.NewRequest("POST", "http://backend:4000/api/game-history", bytes.NewBuffer(jsonData))
+    if err != nil {
+        fmt.Printf("Error creating request: %v\n", err)
+        return
+    }
+
+    req.Header.Set("Content-Type", "application/json")
+    resp, err := client.Do(req)
+    if err != nil {
+        fmt.Printf("Error sending game result: %v\n", err)
+        return
+    }
+    defer resp.Body.Close()
+
+    // Lire le corps de la réponse
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        fmt.Printf("Error reading response body: %v\n", err)
+        return
+    }
+
+    // Log la réponse complète
+    fmt.Printf("Response Status: %d\n", resp.StatusCode)
+    fmt.Printf("Response Body: %s\n", string(body))
 }

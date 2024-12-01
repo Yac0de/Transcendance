@@ -31,6 +31,8 @@ const leaveLobby = () => {
 
 <style scoped>
 .leave-button-container {
+  display: flex;
+  align-items: start;
 }
 
 .leave-lobby-button {
@@ -43,6 +45,7 @@ const leaveLobby = () => {
   transition: background-color 0.3s;
   padding: 5px 10px;
   font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .leave-lobby-button:hover {

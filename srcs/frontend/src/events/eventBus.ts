@@ -10,6 +10,7 @@ import type {
   LobbyPlayerStatus,
   LobbyTerminate,
   LobbyPregameRemainingTime,
+  LobbySpecialModeToggled,
 } from '../types/lobby';
 
 import type { 
@@ -32,6 +33,7 @@ type Events = {
   'LOBBY_PLAYER_STATUS': LobbyPlayerStatus;
   'LOBBY_TERMINATE': LobbyTerminate;
   'LOBBY_PREGAME_REMAINING_TIME': LobbyPregameRemainingTime;
+  'LOBBY_SPECIAL_MODE_TOGGLED': LobbySpecialModeToggled;
   'LOBBY_DESTROYED': void;
   'GAME_EVENT' : GameEvent;
   'GAME_START': GameStart;
@@ -45,6 +47,7 @@ type Events = {
   'TOURNAMENT_GAME': TournamentGame
   'TOURNAMENT_TREE_STATE': TournamentTreeState
   'TOURNAMENT_ERROR': TournamentError
+  'CHAT_FROM_TOURNAMENT_MASTER': string
 }
 
 export const eventBus = mitt<Events>();

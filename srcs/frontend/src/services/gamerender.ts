@@ -3,6 +3,24 @@ import { fetchUserById } from '../utils/fetch'
 import { UserData } from '../types/models'
 let animationTime = 0;
 
+function getCSSVariable(variableName: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+    // Supprimer le '#' si présent
+    hex = hex.replace('#', '');
+
+    // Extraire les composantes RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Retourner au format RGBA
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+
 export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): void {
     ctx.fillStyle = 'white';
     ctx.fillRect(
@@ -21,32 +39,38 @@ export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): voi
 
 
 function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
+    // Récupérer la couleur hexadécimale de la variable CSS
+    const colorExtract = getCSSVariable('--secondary-bright-color');
+
     ctx.globalCompositeOperation = 'lighter';
-    
-    for(let i = 0; i < 10; i++) {
+
+    for (let i = 0; i < 10; i++) {
         const radius = Math.random() * 15 + 5;
         const angle = Math.random() * Math.PI * 2;
         const offsetX = Math.cos(angle) * (Math.random() * 10);
         const offsetY = Math.sin(angle) * (Math.random() * 10);
-        
+
         const gradient = ctx.createRadialGradient(
-            state.ball.x + offsetX, 
-            state.ball.y + offsetY, 
+            state.ball.x + offsetX,
+            state.ball.y + offsetY,
             0,
             state.ball.x + offsetX,
             state.ball.y + offsetY,
             radius
         );
-            gradient.addColorStop(0, 'rgba(218, 123, 147, 0.8)');
-            gradient.addColorStop(0.4, 'rgba(218, 123, 147, 0.4)');
-            gradient.addColorStop(1, 'rgba(218, 123, 147, 0)');
-        
+
+        // Ajouter les étapes du dégradé avec transparence
+        gradient.addColorStop(0, hexToRgba(colorExtract, 0.8)); // Opacité à 0.8
+        gradient.addColorStop(0.4, hexToRgba(colorExtract, 0.4)); // Opacité à 0.4
+        gradient.addColorStop(1, hexToRgba(colorExtract, 0)); // Opacité à 0
+
         ctx.beginPath();
         ctx.fillStyle = gradient;
         ctx.arc(state.ball.x + offsetX, state.ball.y + offsetY, radius, 0, Math.PI * 2);
         ctx.fill();
     }
 }
+
 
 export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
     // Dessiner l'effet de feu
@@ -57,16 +81,16 @@ export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
     
     // Dessiner la balle principale (toujours en rouge maintenant)
     ctx.beginPath();
-    ctx.fillStyle = 'rgba(218, 123, 147, 0)';
+    ctx.fillStyle = 'rgba(255, 255, 255 , 0.7)';
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
     ctx.fill();
     
     // Dessiner les indicateurs de boost
     ctx.globalCompositeOperation = 'source-over';
-    drawBoostStatus(ctx, state);
 }
 
-function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
+
+export function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
     const statusHeight = 30;
     const margin = 20;
     const width = 100;
@@ -90,9 +114,6 @@ function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
     
     // Fonction pour déterminer la couleur et le texte selon l'état
     function getBoostInfo(boost: any) {
-        const getCSSVariable = (variableName: string) =>
-            getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
-    
         if (boost.isboostactive) {
             return { 
                 color: '#ff0000', 
@@ -112,7 +133,7 @@ function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState) {
     }
 
     // Player 1 boost
-    //console.log(state);
+  //  console.log(state);
     const player1Info = getBoostInfo(state.player1boost);
     ctx.fillStyle = player1Info.color;
     roundRect(margin, y, width, statusHeight);
@@ -165,18 +186,18 @@ export async function drawEndGame(
 
     const winnerId = state.winner === player1id ? player1id : player2id ?? 0;
     const winner: UserData | null = await fetchUserById(winnerId);
-    ctx.fillText(`${winner?.displayname} GAGNE!`, 0, -40);
+    ctx.fillText(`${winner?.displayname} WIN!`, 0, -40);
 
     // Score final
     ctx.font = '32px Arial';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`Score Final: ${state.score.player1} - ${state.score.player2}`, 0, 20);
+    ctx.fillText(`Final Score: ${state.score.player1} - ${state.score.player2}`, 0, 20);
 
     // Message de redirection
     const alpha = (Math.sin(animationTime * 4) + 1) / 2;
     ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
     ctx.font = '24px Arial';
-    ctx.fillText("Retour au menu dans quelques secondes...", 0, 80);
+    ctx.fillText("Back to Menu soon...", 0, 80);
 
     ctx.restore();
 }

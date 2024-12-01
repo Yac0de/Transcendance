@@ -20,7 +20,7 @@ const router = useRouter();
 
 // Form fields
 const fields: Field[] = [
-  { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 20 },
+  { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 16 },
   { label: 'Password', model: password, type: 'password', required: true, maxlength: 50 },
   { label: 'Confirm Password', model: confirmPassword, type: 'password', required: true, maxlength: 50 },
 ];

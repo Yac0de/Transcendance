@@ -43,7 +43,7 @@ export interface TournamentGame {
   lobbyId: number;
 }
 
-export interface TournamentLeave {
+export interface TournamentLeaveWaitingRoom {
   type: 'TOURNAMENT_LEAVE_WAITING_ROOM';
   userId: number;
 }

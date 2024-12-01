@@ -1,8 +1,8 @@
 import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_status';
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
-import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed } from '../types/lobby';
-import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
+import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed, LobbySpecialModeToggled  } from '../types/lobby';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
 import { GameEvent, GameStart, GameFinished, GameLeave } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
@@ -73,7 +73,6 @@ export class WebSocketService {
 
             const chatStore = useChatStore();
             if (chatStore.selectedFriendId !== conversationId) {
-                console.log(`Adding unread message for conversation ID: ${conversationId}`);
                 chatStore.addUnreadMessage(conversationId);
             }
         });
@@ -100,6 +99,9 @@ export class WebSocketService {
         });
         this.setMessageHandler<LobbyPlayerStatus>('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
             eventBus.emit('LOBBY_PLAYER_STATUS', message);
+        });
+        this.setMessageHandler<LobbySpecialModeToggled>('LOBBY_SPECIAL_MODE_TOGGLED', (message: LobbySpecialModeToggled) => {
+            eventBus.emit('LOBBY_SPECIAL_MODE_TOGGLED', message);
         });
         this.setMessageHandler<LobbyPregameRemainingTime>('LOBBY_PREGAME_REMAINING_TIME', (message: LobbyPregameRemainingTime) => {
             eventBus.emit('LOBBY_PREGAME_REMAINING_TIME', message);
@@ -166,8 +168,8 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
+                console.log('Received event:', event);
                 try {
-
                     const events = event.data.split('\n');
 
                     // Use for...of to properly iterate through the array of events
@@ -180,7 +182,6 @@ export class WebSocketService {
                         } else
                             console.warn(`No handler found for message type: ${message.type}`);
                     }
-
                 } catch (e) {
                     console.error('Error parsing WebSocket message:', e);
                 }
@@ -266,6 +267,21 @@ export class WebSocketService {
         }
     }
 
+    public sendSpecialModeToggleMessage(lobbyId: string, isGameMode: boolean): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            console.log("test in sendSpecialModeToggleMessage")
+            const message: LobbySpecialModeToggled = {
+                type: 'LOBBY_SPECIAL_MODE_TOGGLED',
+                lobbyId: lobbyId,
+                isGameMode: isGameMode,
+            };  
+            console.log("Sending SpecialModeStatus message: ", message);
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }    
+
     public sendPlayerReadyMessage(lobbyId: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: LobbyPlayerStatus = {
@@ -273,6 +289,7 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 lobbyId: lobbyId,
             };
+            console.log(message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -346,7 +363,7 @@ export class WebSocketService {
 
     public sendLeaveTournament(): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            const message: TournamentLeave = {
+            const message: TournamentLeaveWaitingRoom = {
                 type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
                 userId: this.userStore.getId!,
             };

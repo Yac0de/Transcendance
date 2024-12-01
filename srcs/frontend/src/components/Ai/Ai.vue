@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/stores/user';
+import { useUserStore } from '../../stores/user.js';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -62,6 +62,7 @@ const startDifficultMode = () => startGameWithAi('DIFFICULT');
 .menu-title {
   font-size: 2.5rem;
   margin-bottom: 2rem;
+  color: white;
 }
 
 .menu-buttons {

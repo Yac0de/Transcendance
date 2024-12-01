@@ -9,6 +9,7 @@ import Lobby from '../components/Lobby/Lobby.vue'
 import MatchHistory from '../components/User/Account/MatchHistory.vue'
 import NotFound from '../components/General/NotFound.vue'
 import Tournament from '../components/Tournament/Tournament.vue'
+import Ai from '../components/Ai/Ai.vue';
 import api from '../services/api'
 import { useUserStore } from '../stores/user'
 
@@ -41,6 +42,11 @@ const routes = [
     path: '/game', 
     component: Game, 
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
+  },
+  {
+    path: '/ai',
+    component: Ai,
+    meta: { requiresAuth: true },
   },
   { 
     path: '/:nickname', 

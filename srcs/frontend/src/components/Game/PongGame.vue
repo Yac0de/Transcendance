@@ -24,6 +24,7 @@ const startTournament = () => {
 const startPlayerVsRobot = () => {
   // TODO: Implement player vs robot logic 
   console.log('Starting Player VS Robot game');
+  router.push('/ai');
 };
 
 const startPlayerVsFriend = () => {

@@ -106,6 +106,10 @@ export class WebSocketService {
         this.setMessageHandler<LobbyDestroyed>('LOBBY_DESTROYED', () => {
             eventBus.emit('LOBBY_DESTROYED');
         });
+        this.setMessageHandler<LobbyAiModeStart>('LOBBY_AI_MODE_START', (message: LobbyAiModeStart) => {
+            console.log("AI_MODE_START response received:", message);
+            eventBus.emit('LOBBY_AI_MODE_START', message);
+          });
         this.setMessageHandler<GameEvent>('GAME_EVENT',(message: GameEvent)  => {
             eventBus.emit('GAME_EVENT', message);
         });
@@ -372,6 +376,20 @@ export class WebSocketService {
             this.ws.send(JSON.stringify(game_event));
         } else {
             console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public sendAiModeStartMessage(difficulty: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          const message = {
+            type: 'LOBBY_AI_MODE_START',
+            difficulty,
+            userId: this.userStore.getId!,
+          };
+          console.log("Sending AI_MODE_START message:", message);
+          this.ws.send(JSON.stringify(message));
+        } else {
+          console.warn("Can't send a message, WebSocket is not connected");
         }
     }
 

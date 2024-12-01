@@ -121,7 +121,6 @@ onMounted(async () => {
           hasLost.value = true
         }
       }
-      return
     }
 
     if (message.final?.player1id !== 0 || message.final?.player2id !== 0) {

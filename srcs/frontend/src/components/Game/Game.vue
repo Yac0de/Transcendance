@@ -37,6 +37,8 @@ const player1Id = ref<number | null>(null)
 const player2Id = ref<number | null>(null)
 let isTournamentGame: boolean =  false;
 
+let lobbyId: string = ''
+
 const currentGameState: GameState = reactive({
     ball: { x: 0, y: 0 },  // Assuming Ball has x, y properties
     score: { 
@@ -161,6 +163,8 @@ onMounted(() => {
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
+
+  lobbyId = route.query.lobbyId 
   if(gameSettingsStore.gameMode)
     window.addEventListener('keydown', handleSpace)
   const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D
@@ -221,7 +225,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (userStore.getWebSocketService?.isConnected()) {
     console.log("-> GAME LEAVE (IN A GAME)");
-    userStore.getWebSocketService?.sendGameLeave(route.query.lobbyId)
+    userStore.getWebSocketService?.sendGameLeave(lobbyId)
   } else {
     console.error('WebSocket is not connected');
   }

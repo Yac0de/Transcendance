@@ -83,11 +83,7 @@ const router = useRouter();
 onMounted(async () => {
   if (userStore.getWebSocketService?.isConnected()) {
     console.log("TC: ", props.tournamentCode)
-    if (props.tournamentCode) {
-      userStore.getWebSocketService?.sendTreeStateMessage(props.tournamentCode)
-    } else if (route.query.lobbyId) {
-      userStore.getWebSocketService?.sendTreeStateMessage(route.query.lobbyId)
-    }
+    userStore.getWebSocketService?.sendTreeStateMessage(props.tournamentCode)
   } else {
     console.error('WebSocket is not connected');
   }

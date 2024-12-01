@@ -5,22 +5,35 @@
         <img :src="avatarUrl" alt="User Avatar" class="avatar-image" />
       </div>
     </div>
-
     <div class="account-info">
       <p><strong>Nickname:</strong> {{ user.nickname }}</p>
       <p><strong>Display Name:</strong> {{ user.displayname }}</p>
+      <p v-if="isOwnProfile"><strong>2FA Status:</strong> {{ user.is2faEnabled ? 'Enabled' : 'Disabled' }}</p>
     </div>
-
     <div v-if="isOwnProfile" class="account-actions">
-      <button class="edit-button" @click="$emit('startEditing')">Edit Profile</button>
+      <button class="action-button" @click="$emit('startEditing')">Edit Profile</button>
+      <button 
+        class="action-button" 
+        @click="showTwoFAModal = true"
+      >
+        {{ user.is2faEnabled ? 'Disable 2FA' : 'Enable 2FA' }}
+      </button>
     </div>
+    
+    <TwoFASetupModal
+      :show="showTwoFAModal"
+      @close="showTwoFAModal = false"
+      @password-verify="handlePasswordVerify"
+      @code-verify="handleCodeVerify"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import api from '../../../services/api';
 import { UserData } from '../../../types/models';
+import TwoFASetupModal from './2FAModal.vue';
 
 interface Props {
   user: UserData;
@@ -28,12 +41,24 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const emit = defineEmits(['startEditing']);
 
 const avatarUrl = computed(() => {
   return props.user.avatar ? api.user.getAvatarUrl(props.user.avatar) : api.user.getAvatarUrl('default.png');
 });
 
-defineEmits(['startEditing']);
+const showTwoFAModal = ref(false);
+
+const handlePasswordVerify = async (password: string) => {
+  // TODO: Implement password verification
+  console.log('Password verified:', password);
+};
+
+const handleCodeVerify = async (code: string) => {
+  // TODO: Implement code verification
+  console.log('Code verified:', code);
+  showTwoFAModal.value = false;
+};
 </script>
 
 <style scoped>
@@ -73,17 +98,18 @@ defineEmits(['startEditing']);
   margin-bottom: 10px;
 }
 
-.account-info p strong{
+.account-info p strong {
   text-shadow: 1px 1px 2px black;
 }
 
 .account-actions {
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.edit-button {
+.action-button {
   width: 100%;
   padding: 10px;
   border: none;
@@ -91,14 +117,12 @@ defineEmits(['startEditing']);
   cursor: pointer;
   color: white;
   font-size: 14px;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
   background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 75%, white));
 }
 
-.edit-button:hover {
+.action-button:hover {
   background: linear-gradient(to right, var(--secondary-dark-color), color-mix(in srgb, var(--secondary-dark-color) 85%, white));
   transform: scale(1.02);
 }
-
-
 </style>

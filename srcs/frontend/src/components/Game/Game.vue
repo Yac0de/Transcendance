@@ -164,7 +164,7 @@ onMounted(() => {
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
 
-  lobbyId = route.query.lobbyId 
+  lobbyId = route.query.lobbyId as string 
   if(gameSettingsStore.gameMode)
     window.addEventListener('keydown', handleSpace)
   const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D

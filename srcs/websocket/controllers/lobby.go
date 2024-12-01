@@ -72,6 +72,8 @@ func HandleLobby(h *Hub, event string, data []byte) {
 		LobbyDenied(h, request)
 	case "LOBBY_TERMINATE":
 		LobbyTerminate(h, request)
+	case "LOBBY_GAME_LEAVE":
+		LobbyClientHasLeft(h, request.LobbyId, request.UserId)
 	case "LOBBY_SPECIAL_MODE_TOGGLED":
 		UpdateSpecialMode(h, request)
 	case "LOBBY_PLAYER_READY_STATUS":
@@ -90,6 +92,9 @@ func (l *Lobby) ArePlayersReachable() bool {
 
 func LobbyClientHasLeft(h *Hub, lobbyId uuid.UUID, clientId uint64) {
 	lobby := h.Lobbies[lobbyId]
+	if lobby == nil {
+		return
+	}
 	error := LobbyErrorEvent{
 		Event: models.Event{
 			Type: "LOBBY_DESTROYED",
@@ -262,11 +267,8 @@ func UpdateSpecialMode(h *Hub, request LobbyEvent) {
 		return
 	}
 
-	// Mettre à jour le mode spécial pour ce lobby
-	fmt.Printf("GAME MODE RECEIVED\n", request.IsGameMode)
 	lobby.IsGameMode = request.IsGameMode
 
-	// Créer un événement et le transmettre aux clients du lobby
 	event := LobbyEvent{
 		Event: models.Event{
 			Type: "LOBBY_SPECIAL_MODE_TOGGLED",
@@ -275,7 +277,6 @@ func UpdateSpecialMode(h *Hub, request LobbyEvent) {
 		IsGameMode: request.IsGameMode,
 	}
 
-	// Serialiser l'événement et l'envoyer aux clients
 	senderJson, err := json.Marshal(&event)
 	if err != nil {
 		fmt.Printf("Impossible to parse LobbyEvent type: ", err.Error())
@@ -289,6 +290,9 @@ func UpdateSpecialMode(h *Hub, request LobbyEvent) {
 func StartRoutine(h *Hub, lobby *Lobby) {
 	lobby.Timestamps.Pregame = time.Now()
 	lobby.Destroy = make(chan struct{})
+	if lobby.IsTournamentGame {
+		lobby.IsGameMode = true
+	}
 	lobby.Game = NewGame(lobby.Sender.Id, lobby.Receiver.Id)
 	gameTicker := time.NewTicker(GameTickRate)
 

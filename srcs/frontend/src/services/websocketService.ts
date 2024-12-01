@@ -137,6 +137,7 @@ export class WebSocketService {
             eventBus.emit('TOURNAMENT_TIMER', message);
         })
         this.setMessageHandler<TournamentGame>('TOURNAMENT_GAME', (message: TournamentGame) => {
+            console.log("problem: ", message)
             eventBus.emit('TOURNAMENT_GAME', message);
         })
         this.setMessageHandler<TournamentError>('TOURNAMENT_ERROR', (message: TournamentError) => {
@@ -409,6 +410,7 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 lobbyId: lobbyId
             };
+            console.log("Message -> ", message)
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");

@@ -8,24 +8,15 @@
     <div class="account-info">
       <p><strong>Nickname:</strong> {{ user.nickname }}</p>
       <p><strong>Display Name:</strong> {{ user.displayname }}</p>
-      <p v-if="isOwnProfile"><strong>2FA Status:</strong> {{  }}</p>
     </div>
     <div v-if="isOwnProfile" class="account-actions">
       <button class="action-button" @click="$emit('startEditing')">Edit Profile</button>
       <button 
         class="action-button" 
-        @click="showTwoFAModal = true"
       >
         {{  }}
       </button>
     </div>
-    
-    <TwoFASetupModal
-      :show="showTwoFAModal"
-      @close="showTwoFAModal = false"
-      @password-verify="handlePasswordVerify"
-      @code-verify="handleCodeVerify"
-    />
   </div>
 </template>
 
@@ -33,7 +24,6 @@
 import { computed, ref } from 'vue';
 import api from '../../../services/api';
 import { UserData } from '../../../types/models';
-import TwoFASetupModal from './2FAModal.vue';
 
 interface Props {
   user: UserData;
@@ -47,8 +37,6 @@ const avatarUrl = computed(() => {
   return props.user.avatar ? api.user.getAvatarUrl(props.user.avatar) : api.user.getAvatarUrl('default.png');
 });
 
-const showTwoFAModal = ref(false);
-
 const handlePasswordVerify = async (password: string) => {
   // TODO: Implement password verification
   console.log('Password verified:', password);
@@ -57,7 +45,6 @@ const handlePasswordVerify = async (password: string) => {
 const handleCodeVerify = async (code: string) => {
   // TODO: Implement code verification
   console.log('Code verified:', code);
-  showTwoFAModal.value = false;
 };
 </script>
 

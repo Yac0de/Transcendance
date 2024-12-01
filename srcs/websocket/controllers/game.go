@@ -468,7 +468,7 @@ func handleGameMessage(h *Hub, data []byte) {
 		return
 	}
 	lobby := h.Lobbies[evt.LobbyId]
-	if lobby == nil {
+	if lobby == nil || lobby.Game == nil {
 		return
 	}
 
@@ -477,13 +477,16 @@ func handleGameMessage(h *Hub, data []byte) {
 		Command:  evt.KeyPressed,
 	}
 	fmt.Printf("CMD: %+v\n", cmd)
-
 	lobby.Game.HandleCommand(cmd)
 }
 
 func (g *Game) HandleCommand(cmd GameCommand) {
+	fmt.Println("LG: ", g.State)
 	g.State.mutex.Lock()
 	defer g.State.mutex.Unlock()
+	if g.State.IsPaused {
+		return
+	}
 
 	switch cmd.Command {
 	case "UP":

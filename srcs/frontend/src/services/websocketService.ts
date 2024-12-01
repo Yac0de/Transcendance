@@ -169,7 +169,6 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
-                console.log('Received event:', event);
                 try {
                     const events = event.data.split('\n');
 
@@ -177,7 +176,7 @@ export class WebSocketService {
                     for (const eventData of events) {
                         const message = JSON.parse(eventData);
                         const handler = this.messageHandlers[message.type];
-                        console.log("<-- ", message);
+                        // console.log("<-- ", message);
                         if (handler) {
                             handler(message);
                         } else

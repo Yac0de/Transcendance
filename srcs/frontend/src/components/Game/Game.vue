@@ -68,7 +68,7 @@ const handlePressUp = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'UP',
       };
@@ -85,7 +85,7 @@ const handleReleaseUp = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'STOP'
       };
@@ -102,7 +102,7 @@ const handlePressDown = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'DOWN'
       };
@@ -119,7 +119,7 @@ const handleReleaseDown = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'STOP'
       };
@@ -136,7 +136,7 @@ const handleSpace = (event: KeyboardEvent): void => {
    if (userStore.getWebSocketService?.isConnected()) {
      const gameEvent: GameEvent = {
        type: 'GAME_EVENT', 
-       lobbyId: route.query.lobbyId as string,
+       lobbyId: lobbyId,
        userId: userStore.getId!,
        keyPressed: 'SPACE'
      };

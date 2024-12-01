@@ -304,11 +304,17 @@ func PreventPlayersGameStart(tournament *Tournament, lobby *Lobby) {
 	event := CreateGameStartEvent(tournament, lobby.Id)
 	ev, _ := json.Marshal(&event)
 	if lobby.Sender != nil {
+		fmt.Println("SENDER TOURNAMENT_GAME -> ", string(ev))
 		safeSend(lobby.Sender.Send, ev)
+	} else {
+		fmt.Println("RECEIVER TOURNAMENT_GAME PROBLEM -> ", string(ev))
 	}
 
 	if lobby.Receiver != nil {
+		fmt.Println("RECEIVER TOURNAMENT_GAME -> ", string(ev))
 		safeSend(lobby.Receiver.Send, ev)
+	} else {
+		fmt.Println("RECEIVER TOURNAMENT_GAME PROBLEM -> ", string(ev))
 	}
 }
 
@@ -361,7 +367,7 @@ func StartFinal(h *Hub, tournament *Tournament) {
 func TournamentMonitoring(h *Hub, tournament *Tournament) {
 	gameTicker := time.NewTicker(time.Second)
 	tournament.State = "TIMER_SEMI_FINAL"
-	sec := int16(15)
+	sec := int16(5)
 
 	CreateLobbies(h, tournament)
 	event := CreateTournamentTreeEvent(tournament)
@@ -378,7 +384,7 @@ func TournamentMonitoring(h *Hub, tournament *Tournament) {
 				} else if tournament.State == "TOURNAMENT_ON_SEMI" {
 					UpdateSemiFinals(h, tournament, event)
 					if tournament.Final.Player1 != 0 && tournament.Final.Player2 != 0 {
-						sec = 15
+						sec = 5
 						tournament.State = "TIMER_FINAL"
 					}
 				} else if tournament.State == "TOURNAMENT_START_FINAL" {

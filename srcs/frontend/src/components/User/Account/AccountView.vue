@@ -11,11 +11,6 @@
     </div>
     <div v-if="isOwnProfile" class="account-actions">
       <button class="action-button" @click="$emit('startEditing')">Edit Profile</button>
-      <button 
-        class="action-button" 
-      >
-        {{  }}
-      </button>
     </div>
   </div>
 </template>
@@ -37,15 +32,6 @@ const avatarUrl = computed(() => {
   return props.user.avatar ? api.user.getAvatarUrl(props.user.avatar) : api.user.getAvatarUrl('default.png');
 });
 
-const handlePasswordVerify = async (password: string) => {
-  // TODO: Implement password verification
-  console.log('Password verified:', password);
-};
-
-const handleCodeVerify = async (code: string) => {
-  // TODO: Implement code verification
-  console.log('Code verified:', code);
-};
 </script>
 
 <style scoped>

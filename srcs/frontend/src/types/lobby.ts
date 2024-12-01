@@ -69,3 +69,10 @@ export interface LobbyDestroyed {
   type: 'LOBBY_DESTROYED';
   lobbyId: string;
 }
+
+export interface LobbyAiModeStart {
+  type: 'LOBBY_AI_MODE_START';
+  userId: number;
+  difficulty: string;
+  lobbyId?: string;
+}

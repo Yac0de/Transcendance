@@ -34,5 +34,12 @@ export default {
     async isAuthenticated(): Promise<boolean> {
         const   userStore = useUserStore();
         return userStore.isSignedIn;
+    },
+
+    async Generate2FAcode(): Promise<string> {
+        return apiRequest('/auth/generate2FA', {
+            method: 'GET',
+            credentials: 'include',
+        });
     }
 };

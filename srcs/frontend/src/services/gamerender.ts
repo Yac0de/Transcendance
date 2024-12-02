@@ -1,6 +1,8 @@
 import { GameState } from '../types/game'
 import { fetchUserById } from '../utils/fetch'
 import { UserData } from '../types/models'
+import i18n from '../../i18n.ts';
+
 let animationTime = 0;
 
 function getCSSVariable(variableName: string): string {
@@ -186,18 +188,24 @@ export async function drawEndGame(
 
     const winnerId = state.winner === player1id ? player1id : player2id ?? 0;
     const winner: UserData | null = await fetchUserById(winnerId);
-    ctx.fillText(`${winner?.displayname} WIN!`, 0, -40);
+    const winnerText = i18n.global.t('winnerText', { displayname: winner?.displayname });
+
+    ctx.fillText(winnerText, 0, -40);
 
     // Score final
+    const finalScoreText = i18n.global.t('finalScoreText', { score1: state.score.player1, score2: state.score.player2 });
+
     ctx.font = '32px Arial';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(`Final Score: ${state.score.player1} - ${state.score.player2}`, 0, 20);
+    ctx.fillText(finalScoreText, 0, 20);
 
     // Message de redirection
     const alpha = (Math.sin(animationTime * 4) + 1) / 2;
+    const backToMenuText = i18n.global.t('backToMenuText');
+
     ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
     ctx.font = '24px Arial';
-    ctx.fillText("Back to Menu soon...", 0, 80);
+    ctx.fillText(backToMenuText, 0, 80);
 
     ctx.restore();
 }

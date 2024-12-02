@@ -5,11 +5,19 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
+    "module": "esnext",
     "moduleResolution": "node",
-    "esModuleInterop": true,
     "target": "esnext",
     "strict": true,
-    "outDir": "./dist"
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "lib": ["esnext", "dom"],
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "../i18n.ts"],
+  "exclude": ["node_modules", "dist"]
 }

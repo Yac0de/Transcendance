@@ -4,15 +4,15 @@
       <div class="player-info">
         <div class="avatar-and-name">
           <div class="avatar-container">
-            <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" alt="Player 1 avatar">
+            <img :src="api.user.getAvatarUrl(player1?.avatar ?? null)" class="avatar" :alt="$t('player1AvatarAlt')" />
           </div>
-          <span :style="nameStyle(player1)">{{ player1?.displayname || 'Player 1' }}</span>
+          <span :style="nameStyle(player1)">{{ player1?.displayname || $t('player1') }}</span>
         </div>
         <span>{{ state.score.player1 }}</span>
       </div>
     </div>
     <div class="timer-container">
-      <div class="timer-title">TIME
+      <div class="timer-title">{{ $t('time') }}
         <div class="timer">{{ state.remainingTime }}s</div>
       </div>
     </div>
@@ -20,9 +20,9 @@
       <div class="player-info">
         <div class="avatar-and-name">
           <div class="avatar-container">
-            <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" alt="Player 2 avatar">
+            <img :src="api.user.getAvatarUrl(player2?.avatar ?? null)" class="avatar" :alt="$t('player2AvatarAlt')" />
           </div>
-          <span :style="nameStyle(player2)">{{ player2?.displayname || 'Player 2' }}</span>
+          <span :style="nameStyle(player2)">{{ player2?.displayname || $t('player2') }}</span>
         </div>
         <span>{{ state.score.player2 }}</span>
       </div>

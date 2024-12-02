@@ -1,4 +1,3 @@
-<!-- PlayerTile.vue -->
 <template>
   <div class="player-tile" :class="{ empty: !player }">
     <div class="player-content">
@@ -11,7 +10,7 @@
         </div>
       </div>
       <div v-else class="waiting-text">
-        Waiting for player...
+        {{ $t('waitingForPlayer') }}
       </div>
     </div>
   </div>

@@ -1,7 +1,14 @@
 <template>
-  <AuthForm formTitle="SIGN UP" submitButtonLabel="Sign Up" :fields="fields" :successMessage="successMessage"
-    :errorMessage="errorMessage" @submit="handleSubmit" @secondaryAction="handleSignin"
-    secondaryButtonLabel="Back to sign in" />
+  <AuthForm 
+    formTitle="formTitleSignUp"
+    submitButtonLabel="submitButtonLabelSignUp"
+    :fields="fields"
+    :successMessage="successMessage"
+    :errorMessage="errorMessage"
+    @submit="handleSubmit"
+    @secondaryAction="handleSignin"
+    secondaryButtonLabel="secondaryButtonLabelSignIn" 
+  />
 </template>
 
 <script setup lang="ts">
@@ -10,6 +17,7 @@ import { useRouter } from 'vue-router';
 import api from '../../services/api';
 import AuthForm from './AuthForm.vue';
 import { Field } from '../../types/models';
+import { useI18n } from 'vue-i18n';
 
 const nickname = ref('');
 const password = ref('');
@@ -18,27 +26,29 @@ const errorMessage = ref('');
 const successMessage = ref('');
 const router = useRouter();
 
+const { t } = useI18n();
+
 // Form fields
 const fields: Field[] = [
-  { label: 'Nickname', model: nickname, type: 'text', required: true, maxlength: 16 },
-  { label: 'Password', model: password, type: 'password', required: true, maxlength: 50 },
-  { label: 'Confirm Password', model: confirmPassword, type: 'password', required: true, maxlength: 50 },
+  { label: t('nicknameField'), model: nickname, type: 'text', required: true, maxlength: 16 },
+  { label: t('passwordField'), model: password, type: 'password', required: true, maxlength: 50 },
+  { label: t('confirmPasswordField'), model: confirmPassword, type: 'password', required: true, maxlength: 50 },
 ];
 
 const handleSubmit = async () => {
   // Field validation
   if (password.value !== confirmPassword.value) {
-    errorMessage.value = "Passwords don't match!";
+    errorMessage.value = t('errorMessagePasswordsDontMatch');
     return;
   }
 
   if (nickname.value.length < 3) {
-    errorMessage.value = "Nickname must be at least 3 characters long!";
+    errorMessage.value = t('errorMessageNicknameTooShort');
     return;
   }
 
   if (password.value.length < 6) {
-    errorMessage.value = "Password must be at least 6 characters long!";
+    errorMessage.value = t('errorMessagePasswordTooShort');
     return;
   }
 
@@ -47,10 +57,10 @@ const handleSubmit = async () => {
     errorMessage.value = '';
     successMessage.value = '';
     await api.auth.signup({ nickname: nickname.value, password: password.value });
-    successMessage.value = `Sign up successful! Welcome, ${nickname.value}!`;
+    successMessage.value = t('successMessageSignUp', { nickname: nickname.value });
     router.push('/signin');
   } catch (err: any) {
-    errorMessage.value = err.error || 'An error occurred during sign up';
+    errorMessage.value = err.error || t('errorUnexpected');
   }
 };
 

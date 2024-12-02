@@ -4,17 +4,25 @@
 
 		<div v-if="showChatInterface" class="chat-interface">
 			<div class="chat-content">
-				<FriendList :friends="friends" :currentFriendId="currentFriendId"
-					@select-friend="selectFriend" />
-				<ChatDiscussion :currentFriend="currentFriend" :messages="currentConversation"
-					:userId="userStore.getId ?? 0" @send-message="sendMessage" />
+				<FriendList 
+					:friends="friends" 
+					:currentFriendId="currentFriendId"
+					@select-friend="selectFriend" 
+				/>
+				<ChatDiscussion 
+					:currentFriend="currentFriend" 
+					:messages="currentConversation"
+					:userId="userStore.getId ?? 0" 
+					@send-message="sendMessage" 
+				/>
 			</div>
-			<button @click="toggleChatInterface" class="close-button">
+			<button @click="toggleChatInterface" class="close-button" :title="$t('closeChat')">
 				<i class="fas fa-times"></i>
 			</button>
 		</div>
 	</div>
 </template>
+
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
@@ -27,14 +35,17 @@ import FriendList from './ChatFriendList.vue';
 import ChatDiscussion from './ChatDiscussion.vue';
 import { Friend, Message } from '../../../types/models';
 import { ChatMessage } from '../../../types/chat';
+import { useI18n } from 'vue-i18n';
 
-const TOURNAMENT_MASTER: Friend = {
+const { t } = useI18n();
+
+const TOURNAMENT_MASTER = computed<Friend>(() => ({
     id: 0,
-    nickname: "Tournament Master",
-    displayname: "Tournament Master",
+    nickname: t('chatInviteTitle'),
+    displayname: t('chatInviteTitle'),
     avatar: '',
-    isOnline: true
-};
+    isOnline: true,
+}));
 
 const showChatInterface = ref(false);
 const currentFriendId = ref<number | null>(null);
@@ -155,7 +166,7 @@ const fetchFriendList = async () => {
 		const fetchedFriends = await api.friendlist.getFriendList();
 		if (fetchedFriends) {
 			friends.value = [
-                            TOURNAMENT_MASTER, 
+                            TOURNAMENT_MASTER.value,
                             ...fetchedFriends
                         ];
 		}
@@ -177,9 +188,29 @@ watch(() => chatStore.selectedFriendId, async (newFriendId) => {
     }
 });
 
+watch(() => t('chatInviteTitle'), (newValue) => {
+    const index = friends.value.findIndex(friend => friend.id === 0); // Trouve "TOURNAMENT_MASTER"
+    if (index !== -1) {
+        friends.value[index] = {
+            ...friends.value[index],
+            nickname: newValue,
+            displayname: newValue,
+        };
+    } else {
+        // Si TOURNAMENT_MASTER n'est pas dans la liste, ajoutez-le
+        friends.value.unshift({
+            id: 0,
+            nickname: newValue,
+            displayname: newValue,
+            avatar: '',
+            isOnline: true,
+        });
+    }
+});
+
 onMounted(() => {
     eventBus.on('CHAT_FROM_TOURNAMENT_MASTER', (message: string) => {
-        if (!conversations.value[0] || message === "You just started a tournament, good luck ..") {
+        if (!conversations.value[0] || message === t('chatInviteMessage')) {
             conversations.value[0] = [];
             chatStore.resetUnreadMessage(0);
         }

@@ -2,49 +2,48 @@
   <div v-if="userExist" class="match-history-container">
     <!-- Menu de navigation -->
     <div class="history-title">
-      <h1>HISTORY</h1>
+      <h1>{{ $t('history') }}</h1>
       <WinrateCircle :percentage="winrate" />
     </div>
 
     <!-- Zone de filtres -->
     <div class="filters">
       <button class="filter-button">
-        <span>Time Period</span>
-        <span>Last 6 matches</span>
+        <span>{{ $t('timePeriod') }}</span>
+        <span>{{ $t('last6Matches') }}</span>
       </button>
     </div>
 
     <!-- Liste des matchs -->
     <div class="matches-list" v-if="games.length > 0">
       <div 
-  v-for="game in limitedGames" 
-  :key="game.id" 
-  :class="['match-card', { 'victory': game.is_winner, 'defeat': !game.is_winner }]"
->
-  <!-- Type de match + Résultat -->
-  <div class="match-info">
-    <span class="match-type">Classic</span>
-    <div class="match-details">
-      <span class="match-result">{{ game.is_winner ? 'Victory' : 'Defeat' }}</span>
-    </div>
-  </div>
+        v-for="game in limitedGames" 
+        :key="game.id" 
+        :class="['match-card', { 'victory': game.is_winner, 'defeat': !game.is_winner }]"
+      >
+        <!-- Type de match + Résultat -->
+        <div class="match-info">
+          <span class="match-type">{{ $t('classic') }}</span>
+          <div class="match-details">
+            <span class="match-result">{{ game.is_winner ? $t('victory') : $t('defeat') }}</span>
+          </div>
+        </div>
 
-  <!-- Scores -->
-  <div class="match-stats">
-    <div class="score">
-      <template v-if="game.player1.nickname === targetNickname">
-        <span class="player-name">{{ game.player1.nickname }}</span>
-        {{ game.score1 }} - {{ game.score2 }}
-        <span class="player-name">{{ game.player2.nickname }}</span>
-      </template>
-      <template v-else>
-        <span class="player-name">{{ game.player2.nickname }}</span>
-        {{ game.score2 }} - {{ game.score1 }}
-        <span class="player-name">{{ game.player1.nickname }}</span>
-      </template>
-    </div>
-</div>
-
+        <!-- Scores -->
+        <div class="match-stats">
+          <div class="score">
+            <template v-if="game.player1.nickname === targetNickname">
+              <span class="player-name">{{ game.player1.nickname }}</span>
+              {{ game.score1 }} - {{ game.score2 }}
+              <span class="player-name">{{ game.player2.nickname }}</span>
+            </template>
+            <template v-else>
+              <span class="player-name">{{ game.player2.nickname }}</span>
+              {{ game.score2 }} - {{ game.score1 }}
+              <span class="player-name">{{ game.player1.nickname }}</span>
+            </template>
+          </div>
+        </div>
 
         <!-- Date -->
         <div class="match-date">
@@ -55,12 +54,11 @@
 
     <!-- Message si pas de matchs -->
     <div v-else class="no-matches">
-      No matches found
+      {{ $t('noMatches') }}
     </div>
   </div>
   <NotFound v-else />
 </template>
-
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'

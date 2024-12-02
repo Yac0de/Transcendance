@@ -5,7 +5,7 @@
         <div class="nav-left">
           <router-link to="/" class="nav-button home-button">{{ $t('home') }}</router-link>
         </div>
-        <button class="nav-button themes" @click="themeStore.nextTheme">SWITCH THEMES</button>
+        <button class="nav-button themes" @click="themeStore.nextTheme">{{ $t('switchThemes') }}</button>
         <div class="nav-right">
           <template v-if="!userStore.isSignedIn">
             <router-link to="/signin" class="nav-button">{{ $t('signin') }}</router-link>
@@ -18,27 +18,20 @@
           </template>
           <!-- Section des langues -->
           <div class="language-switcher">
-            <img 
-              src="../src/assets/flags/Flag_of_France.png" 
-              alt="Français" 
-              class="language-icon" 
-              @click="switchLanguage('fr')" 
-              :class="{ active: currentLanguage === 'fr' }"
-            />
-            <img 
-              src="../src/assets/flags/Flag_of_Spain.png"
-              alt="Español" 
-              class="language-icon" 
-              @click="switchLanguage('es')" 
-              :class="{ active: currentLanguage === 'es' }"
-            />
-            <img 
-              src="../src/assets/flags/Flag_of_the_United_Kingdom.png"
-              alt="English" 
-              class="language-icon" 
-              @click="switchLanguage('en')" 
-              :class="{ active: currentLanguage === 'en' }"
-            />
+            <select class="language-dropdown" @change="switchLanguage(($event.target as HTMLSelectElement)?.value)" :value="currentLanguage">
+              <option value="en" :selected="currentLanguage === 'en'">
+                🇬🇧 English
+              </option>
+              <option value="fr" :selected="currentLanguage === 'fr'">
+                🇫🇷 Français
+              </option>
+              <option value="es" :selected="currentLanguage === 'es'">
+                🇪🇸 Español
+              </option>
+              <option value="ro" :selected="currentLanguage === 'es'">
+                🇲🇩 Moldave
+              </option>
+            </select>
           </div>
         </div>
       </div>
@@ -249,7 +242,8 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   margin-left: 10px;
 }
 
-.nav-button {
+.nav-button,
+select {
   font-family: "Audiowide", sans-serif;
   margin-left: 10px;
   padding: 0.5vh 1vw;
@@ -281,30 +275,30 @@ watch(() => themeStore.currentTheme, (newTheme) => {
 }
 
 .language-switcher {
-  display: flex;
-  align-items: center;
-  margin-left: 10px;
+  position: relative;
 }
 
-.language-icon {
-  width: 30px;
-  height: 20px;
-  margin: 0 5px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.3s, transform 0.3s;
-}
-
-.language-icon.active {
-  opacity: 1;
-  transform: scale(1.1);
-  border: 2px solid white;
+.language-dropdown {
+  font-family: "Audiowide", sans-serif;
+  font-size: 1rem;
+  padding: 5px 10px;
+  border: 1px solid white;
   border-radius: 4px;
+  background: var(--main-color);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
 }
 
-.language-icon:hover {
-  opacity: 1;
+.language-dropdown:hover {
+  background-color: var(--main-extra-color);
 }
+
+.language-dropdown option {
+  background: var(--main-color);
+  color: white;
+}
+
 
 .gradient_backgroud {
   flex: 1;

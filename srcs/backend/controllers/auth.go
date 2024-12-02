@@ -25,37 +25,38 @@ func Auth(ctx *gin.RouterGroup) {
 }
 
 func GetUser2FAStatus(ctx *gin.Context) {
-	id, exists := ctx.get("userid")
+	id, exists := ctx.Get("UserId")
 
-	userid, ok := id.(uint)
+	userId, ok := id.(uint)
 	if !exists || !ok {
-		ctx.json(http.statusunauthorized, gin.h{"error": "unauthorized: you must be logged in to access this resource."})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: you must be logged in to access this resource."})
 		return
 	}
 
 	var twoFactor models.TwoFactorAuth
 	if err := database.DB.Where("user_id = ?", userId).First(&twoFactor).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			ctx.json(http.StatusOK, gin.h{"status": false})
+			ctx.JSON(http.StatusOK, gin.H{"status": false})
 			return
 		}
-	}
-
-	if twoFactor.IsActive == true {
-		ctx.json(http.StatusOK, gin.h{"status": true})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.json(http.StatusOK, gin.h{"status": false})
-	return
+	if twoFactor.IsActive == true {
+		ctx.JSON(http.StatusOK, gin.H{"status": true})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": false})
 }
 
 func Verify2FAcode(ctx *gin.Context) {
-	id, exists := ctx.get("userid")
+	id, exists := ctx.Get("UserId")
 
-	userid, ok := id.(uint)
+	userId, ok := id.(uint)
 	if !exists || !ok {
-		ctx.json(http.statusunauthorized, gin.h{"error": "unauthorized: you must be logged in to access this resource."})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: you must be logged in to access this resource."})
 		return
 	}
 

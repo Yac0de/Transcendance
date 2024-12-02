@@ -32,8 +32,8 @@ const { t } = useI18n();
 
 // Form fields
 const fields: Field[] = [
-  { label: t('nicknameField'), model: nickname, type: 'text', required: true, maxlength: 16 },
-  { label: t('passwordField'), model: password, type: 'password', required: true, maxlength: 50 },
+  { label: 'nicknameField', model: nickname, type: 'text', required: true, maxlength: 16 },
+  { label: 'passwordField', model: password, type: 'password', required: true, maxlength: 50 },
 ];
 
 const handleSubmit = async () => {

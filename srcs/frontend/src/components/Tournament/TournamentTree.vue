@@ -59,12 +59,14 @@ import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
 import { eventBus } from '../../events/eventBus'
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../../stores/user';
+import { useGameSettingsStore } from '../../stores/gameSettings.js';
 
 const props = defineProps<{
   tournamentCode: string;
 }>();
 
 const userStore = useUserStore()
+const gameSettingsStore = useGameSettingsStore();
 
 let goingIntoGame: boolean = false;
 
@@ -85,6 +87,7 @@ const handleGameRouting = async (message: TournamentGame) => {
     
     // Set goingIntoGame before starting navigation
     goingIntoGame = true;
+    gameSettingsStore.setGameMode(true)
     
     try {
         // Wait for the navigation to complete
@@ -195,10 +198,8 @@ onMounted(async () => {
     }
 
   })
-
   
   eventBus.on('TOURNAMENT_GAME', handleGameRouting)
-
 })
 
 onUnmounted(() => {

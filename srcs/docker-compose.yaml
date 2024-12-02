@@ -178,7 +178,7 @@ services:
       - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=mrgriddy
       - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1m
     volumes:
       - grafana-data:/var/lib/grafana

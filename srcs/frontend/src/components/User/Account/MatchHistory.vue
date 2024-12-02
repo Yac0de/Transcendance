@@ -4,6 +4,7 @@
     <div class="history-title">
       <h1>HISTORY</h1>
       <WinrateCircle :percentage="winrate" />
+      <RankIcon :winrate="winrate" />
     </div>
 
     <!-- Zone de filtres -->
@@ -69,7 +70,8 @@ import  gameHistoryService  from '../../../services/gameHistoryService'
 import { useUserStore } from '../../../stores/user'
 import WinrateCircle from './WinrateCircle.vue';
 import NotFound from '../../General/NotFound.vue';
-import { GameHistory } from '../../../types/models';
+import { GameHistory} from '../../../types/models';
+import RankIcon from './RankIcon.vue'
 
 const winrate =ref(0)
 const route = useRoute()
@@ -164,7 +166,6 @@ onMounted(async () => {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 4px;
-  cursor: pointer;
 }
 
 .filter-button span:first-child {

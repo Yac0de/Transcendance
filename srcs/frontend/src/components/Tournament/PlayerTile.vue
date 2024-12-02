@@ -1,10 +1,18 @@
-<!-- PlayerTile.vue -->
 <template>
   <div class="player-tile" :class="{ empty: !player }">
     <div class="player-content">
       <div v-if="player" class="player-info">
+        <!-- The player-avatar div will either show the avatar image or the initial letter -->
         <div class="player-avatar">
-          {{ player.displayname.charAt(0).toUpperCase() }}
+          <img 
+            v-if="player.avatar"
+            :src="api.user.getAvatarUrl(player.avatar)"
+            :alt="`${player.displayname}'s avatar`"
+            class="avatar-image"
+          />
+          <span v-else>
+            {{ player.displayname.charAt(0).toUpperCase() }}
+          </span>
         </div>
         <div class="player-details">
           <span class="player-name">{{ player.displayname }}</span>
@@ -18,12 +26,12 @@
 </template>
 
 <script setup lang="ts">
-import { UserData } from '../../types/models'
+import { UserData } from '../../types/models';
+import api from '../../services/api'; // Adjust this import path as needed
 
 defineProps<{
   player?: UserData | null;
 }>();
-
 </script>
 
 <style scoped>
@@ -60,15 +68,22 @@ defineProps<{
 .player-avatar {
   width: 40px;
   height: 40px;
-  background: linear-gradient(to right, var(--secondary-dark-color), 
-  color-mix(in srgb, var(--secondary-dark-color) 75%, white));
-  color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
   font-weight: bold;
+  overflow: hidden;
+  background: linear-gradient(to right, var(--secondary-dark-color), 
+    color-mix(in srgb, var(--secondary-dark-color) 75%, white));
+  color: white;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .player-details {
@@ -82,21 +97,8 @@ defineProps<{
   color: #333;
 }
 
-.player-status {
-  font-size: 0.9rem;
-}
-
-.player-status.ready {
-  color: #4CAF50;
-}
-
-.player-status.not-ready {
-  color: #f44336;
-}
-
 .waiting-text {
   color: #666;
   font-style: italic;
 }
 </style>
-

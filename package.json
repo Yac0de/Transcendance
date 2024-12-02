@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "flag-icons": "^7.2.3"
-  },
-  "devDependencies": {
-    "@intlify/devtools-types": "^10.0.5"
-  }
-}

@@ -51,7 +51,7 @@ const route = useRoute();
 const isGameRoute = computed(() => route.path.startsWith('/game'));
 
 const checkAuth = async () => {
-  await userStore.fetchUser();
+  await userStore.initializeStore();
 };
 
 const handleSignout = async () => {

@@ -102,12 +102,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (userStore.getWebSocketService?.isConnected()) {
-    userStore.getWebSocketService?.sendLeaveTournamentWaitingRoom(tournamentCode.value)
-  } else {
-    console.error('WebSocket is not connected');
-  }
-
   eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_TERMINATE');

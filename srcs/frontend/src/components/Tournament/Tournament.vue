@@ -55,6 +55,7 @@ const userStore = useUserStore();
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
 const route = useRoute();
+let goingIntoTournament: boolean =  false;
 
 const error = ref<string>('')
 
@@ -90,6 +91,7 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_START', () => {
+    goingIntoTournament =  true;
     currentView.value = 'tournament-tree'
     eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_START', "You just started a tournament, good luck ..");
   })
@@ -100,6 +102,14 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (!goingIntoTournament) {
+    if (userStore.getWebSocketService?.isConnected()) {
+      userStore.getWebSocketService?.sendLeaveTournamentWaitingRoom(tournamentCode.value)
+    } else {
+      console.error('WebSocket is not connected');
+    }
+  }
+
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
   eventBus.off('TOURNAMENT_EVENT');

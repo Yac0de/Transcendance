@@ -80,6 +80,8 @@ func HandleTournament(h *Hub, event string, data []byte) {
 		JoinTournament(h, request)
 	case "TOURNAMENT_LEAVE":
 		UserLeaveTournament(h, request)
+	case "TOURNAMENT_LEAVE_WAITING_ROOM":
+		LeaveWaitingLobby(h, h.Tournaments[request.Code], h.Clients[request.UserId], request)
 	case "TOURNAMENT_START":
 		StartTournament(h, request)
 	case "TOURNAMENT_TREE_STATE":
@@ -211,6 +213,9 @@ func SendDataToPlayers(tournament *Tournament, datas []byte) {
 }
 
 func LeaveWaitingLobby(h *Hub, tournament *Tournament, clientLeft *Client, request TournamentEvent) {
+	if (tournament == nil || clientLeft == nil) {
+		return
+	}
 	if tournament.Player1 == clientLeft {
 		request.Type = "TOURNAMENT_TERMINATE"
 		tnTerminate, err := json.Marshal(&request)
@@ -489,7 +494,6 @@ func TournamentClientHasLeft(h *Hub, tn *Tournament, c *Client) {
 }
 
 func UserLeaveTournament(h *Hub, request TournamentEvent) {
-	fmt.Println("USER LEAVE TOURNAMENT ", request)
 	for _, tournament := range h.Tournaments {
 		if tournament.Semi1.Player1 == request.UserId || tournament.Semi1.Player2 == request.UserId || tournament.Semi2.Player1 == request.UserId || tournament.Semi2.Player2 == request.UserId || tournament.Final.Player1 == request.UserId || tournament.Final.Player2 == request.UserId {
 			request.Code = tournament.Id
@@ -497,7 +501,6 @@ func UserLeaveTournament(h *Hub, request TournamentEvent) {
 			return
 		}
 	}
-	fmt.Println("USER LEAVE TOURNAMENT NOT FOUND", request)
 }
 
 func LeaveTournament(h *Hub, request TournamentEvent) {

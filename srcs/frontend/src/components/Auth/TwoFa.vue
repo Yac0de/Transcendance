@@ -1,8 +1,8 @@
 <template>
   <div class="twoFa-container">
     <div class="twoFa-content">
-      <div class="qrcode"></div>
-      <div class="confirmTwoFA">
+      <div class="qrcode" v-if="showQrCode"></div>
+      <div class="confirmTwoFA" v-if="showQrCode">
         <label for="confirmeTwoFA">Please enter the confirmation code: </label>
         <form class="container-input-confirm-2fa" @submit.prevent="confirm2FA">
           <input 
@@ -14,12 +14,12 @@
           />
           <input type="submit" value="Send" />
         </form>
-        <div class="twoFa">
-          <button @click="generateQrcode">Generate Google Authenticator QR code</button>
-        </div>
-        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-        <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
       </div>
+      <div class="twoFa" v-else>
+        <button @click="generateQrcode">Generate Google Authenticator QR code</button>
+      </div>
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
     </div>
   </div>
 </template>
@@ -31,6 +31,7 @@ import { API_BASE_URL } from '../../services/apiUtils';
 const confirmationCode = ref(''); // Stocke le code 2FA entré par l'utilisateur
 const errorMessage = ref('');
 const successMessage = ref('');
+const showQrCode = ref<boolean>(false); // État pour afficher ou non le QR code et le formulaire
 
 const resetMessages = () => {
   errorMessage.value = '';
@@ -39,6 +40,8 @@ const resetMessages = () => {
 
 const generateQrcode = async () => {
   resetMessages();
+  // Afficher le QR code et le formulaire de confirmation
+  showQrCode.value = true;
   try {
     const response = await fetch(`${API_BASE_URL}/auth/generate2FA`, {
       method: 'GET',
@@ -67,8 +70,10 @@ const generateQrcode = async () => {
 
     // Ajoute l'image à la div
     qrCodeDiv?.appendChild(imgElement);
+
   } catch (error) {
     console.error('Error fetching 2FA QR code:', error);
+    errorMessage.value = 'Failed to generate 2FA QR code. Please try again.';
   }
 };
 
@@ -87,7 +92,7 @@ const confirm2FA = async () => {
     }
 
     const result = await response.json();
-    successMessage.value = (`2FA Confirmation successful: ${result.message}`);
+    successMessage.value = `2FA Confirmation successful: ${result.message}`;
   } catch (error) {
     console.error('Error confirming 2FA:', error);
     errorMessage.value = "Failed to confirm 2FA. Please try again.";
@@ -96,7 +101,6 @@ const confirm2FA = async () => {
 </script>
 
 <style scoped>
-/* Styles inchangés */
 .twoFa-container {
   font-weight: 400;
   font-style: normal;

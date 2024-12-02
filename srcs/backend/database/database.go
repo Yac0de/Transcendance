@@ -41,7 +41,7 @@ func initDB() *gorm.DB {
 		log.Fatalln(err)
 	}
 
-	database.AutoMigrate(&models.User{}, &models.FriendShip{}, &models.Message{}, &models.GameHistory{})
+	database.AutoMigrate(&models.User{}, &models.TwoFactorAuth{}, &models.FriendShip{}, &models.Message{}, &models.GameHistory{})
 
 	return database
 }
@@ -151,28 +151,28 @@ func CreateMockConversation() {
 }
 
 func CreateMockGames() {
-    games := []models.GameHistory{
-        {
-            Player1ID: 1, // Hichame
-            Player2ID: 2, // Maxime
-            WinnerID:  1,
-            Score1:    5,
-            Score2:    3,
-        },
-        {
-            Player1ID: 1, // Hichame
-            Player2ID: 4, // Omar
-            WinnerID:  4,
-            Score1:    2,
-            Score2:    5,
-        },
-    }
+	games := []models.GameHistory{
+		{
+			Player1ID: 1, // Hichame
+			Player2ID: 2, // Maxime
+			WinnerID:  1,
+			Score1:    5,
+			Score2:    3,
+		},
+		{
+			Player1ID: 1, // Hichame
+			Player2ID: 4, // Omar
+			WinnerID:  4,
+			Score1:    2,
+			Score2:    5,
+		},
+	}
 
-    for _, game := range games {
-        if err := DB.Create(&game).Error; err != nil {
-            log.Printf("Failed to create game history: %v", err)
-        } else {
-            log.Printf("Created mock game between players %d and %d", game.Player1ID, game.Player2ID)
-        }
-    }
+	for _, game := range games {
+		if err := DB.Create(&game).Error; err != nil {
+			log.Printf("Failed to create game history: %v", err)
+		} else {
+			log.Printf("Created mock game between players %d and %d", game.Player1ID, game.Player2ID)
+		}
+	}
 }

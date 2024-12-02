@@ -12,6 +12,7 @@ import (
 	"github.com/pquerna/otp/totp"
 	"github.com/skip2/go-qrcode"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func Auth(ctx *gin.RouterGroup) {
@@ -19,13 +20,77 @@ func Auth(ctx *gin.RouterGroup) {
 	ctx.POST("/signup", SignUp)
 	ctx.POST("/signout", SignOut)
 	ctx.GET("/generate2FA", Generate2FAcode)
+	ctx.GET("/2FA-status", GetUser2FAStatus)
+	ctx.POST("/verify2FA", Verify2FAcode)
+}
+
+func GetUser2FAStatus(ctx *gin.Context) {
+	id, exists := ctx.get("userid")
+
+	userid, ok := id.(uint)
+	if !exists || !ok {
+		ctx.json(http.statusunauthorized, gin.h{"error": "unauthorized: you must be logged in to access this resource."})
+		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	if err := database.DB.Where("user_id = ?", userId).First(&twoFactor).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.json(http.StatusOK, gin.h{"status": false})
+			return
+		}
+	}
+
+	if twoFactor.IsActive == true {
+		ctx.json(http.StatusOK, gin.h{"status": true})
+		return
+	}
+
+	ctx.json(http.StatusOK, gin.h{"status": false})
+	return
+}
+
+func Verify2FAcode(ctx *gin.Context) {
+	id, exists := ctx.get("userid")
+
+	userid, ok := id.(uint)
+	if !exists || !ok {
+		ctx.json(http.statusunauthorized, gin.h{"error": "unauthorized: you must be logged in to access this resource."})
+		return
+	}
+
+	var data map[string]interface{}
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
+		return
+	}
+
+	code, exists := data["code"].(string)
+	if !exists || len(code) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "You must provide the 2FA code"})
+		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	if err := database.DB.Where("user_id = ?", userId).First(&twoFactor).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "2FA code was not generated for this user"})
+		return
+	}
+
+	valid := totp.Validate(code, twoFactor.Secret)
+	if !valid {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid 2FA code"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "2FA code verified successfully"})
 }
 
 func Generate2FAcode(ctx *gin.Context) {
 	id, exists := ctx.Get("UserId")
 
 	userId, ok := id.(uint)
-	if exists == false || !ok {
+	if !exists || !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
 		return
 	}
@@ -49,6 +114,30 @@ func Generate2FAcode(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
 		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	if err := database.DB.Where("user_id = ?", userId).First(&twoFactor).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			twoFactor = models.TwoFactorAuth{
+				UserID:   userId,
+				IsActive: false,
+				Secret:   key.Secret(),
+			}
+			if err := database.DB.Create(&twoFactor).Error; err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save TwoFactorAuth"})
+				return
+			}
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query TwoFactorAuth"})
+			return
+		}
+	} else {
+		twoFactor.Secret = key.Secret()
+		if err := database.DB.Save(&twoFactor).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update TwoFactorAuth"})
+			return
+		}
 	}
 
 	ctx.Data(http.StatusCreated, "image/png", png)

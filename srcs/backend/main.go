@@ -32,10 +32,10 @@ func main() {
 	router.Use(prometheus.PrometheusMiddleware())
 
 	// Routes
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.Static("/users/avatar", "./avatars")
 	router.POST("/api/game-history", controllers.SaveGameHistory)
 	router.GET("/api/game-history/:nickname", controllers.GetUserGameHistory)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	users := router.Group("/users")
 	auth := router.Group("/auth")

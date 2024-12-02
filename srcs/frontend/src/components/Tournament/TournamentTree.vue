@@ -4,7 +4,7 @@
     <div v-if="tournamentStatusMessage" class="tournament-status">
       {{ tournamentStatusMessage }}
     </div>
-    <div v-if="remainingSeconds != -1 && !hasLost" class="timer">{{ remainingSeconds }}</div>
+    <div v-if="remainingSeconds > 0 && !hasLost" class="timer">{{ remainingSeconds }}</div>
     <div class="bracket">
       <!-- Final -->
       <div class="match-winner">

@@ -160,6 +160,7 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   --main-extra-color: #fce181;
   --secondary-extra-color: #edeae5;
 }
+
 </style>
 
 <style scoped>

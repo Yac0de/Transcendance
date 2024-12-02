@@ -84,6 +84,12 @@ func Verify2FAcode(ctx *gin.Context) {
 		return
 	}
 
+	twoFactor.IsActive = true
+	if err := database.DB.Save(&twoFactor).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update TwoFactorAuth"})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{"message": "2FA code verified successfully"})
 }
 

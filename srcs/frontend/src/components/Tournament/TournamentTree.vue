@@ -169,23 +169,27 @@ onMounted(async () => {
     if (message.final?.isFinished) {
       if (message.final?.score[0] > message.final?.score[1]) {
         winner.value = await fetchUserById(message.final.player1id)
-        if (message.final?.player1id === userStore.getId) {
-          tournamentStatusMessage.value =  'Congratulations, you won the final !'
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You won the tournament !");
-        } else {
-          tournamentStatusMessage.value =  'You lost, better luck next time !'
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You lost in the final ... Too bad ..");
-          hasLost.value = true
+        if (message.final?.player2id === userStore.getId || message.final?.player1id === userStore.getId) {
+          if (message.final?.player1id === userStore.getId) {
+            tournamentStatusMessage.value =  'Congratulations, you won the final !'
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You won the tournament !");
+          } else {
+            tournamentStatusMessage.value =  'You lost, better luck next time !'
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You lost in the final ... Too bad ..");
+            hasLost.value = true
+          }
         }
       } else {
         winner.value = await fetchUserById(message.final?.player2id)
-        if (message.final?.player2id === userStore.getId) {
-          tournamentStatusMessage.value =  'Congratulations, you won the final !'
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You won the tournament !");
-        } else {
-          tournamentStatusMessage.value =  'You lost, better luck next time !'
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You lost in the final ... Too bad ..");
-          hasLost.value = true
+        if (message.final?.player2id === userStore.getId || message.final?.player1id === userStore.getId) {
+          if (message.final?.player2id === userStore.getId) {
+            tournamentStatusMessage.value =  'Congratulations, you won the final !'
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You won the tournament !");
+          } else {
+            tournamentStatusMessage.value =  'You lost, better luck next time !'
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You lost in the final ... Too bad ..");
+            hasLost.value = true
+          }
         }
       }
     }

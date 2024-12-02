@@ -47,7 +47,9 @@ type Events = {
   'TOURNAMENT_GAME': TournamentGame
   'TOURNAMENT_TREE_STATE': TournamentTreeState
   'TOURNAMENT_ERROR': TournamentError
-  'CHAT_FROM_TOURNAMENT_MASTER': string
+  'CHAT_FROM_TOURNAMENT_MASTER_START': string
+  'CHAT_FROM_TOURNAMENT_MASTER_SEMIS': string
+  'CHAT_FROM_TOURNAMENT_MASTER_FINAL': string
 }
 
 export const eventBus = mitt<Events>();

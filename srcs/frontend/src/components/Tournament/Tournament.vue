@@ -34,7 +34,7 @@
     </div>
     <div v-else-if="currentView === 'tournament-tree'" class="create-view">
       <!-- CreateTournament component will go here -->
-      <TournamentTree/>
+      <TournamentTree :tournamentCode="tournamentCode"/>
     </div>
   </div>
 </template>
@@ -55,6 +55,7 @@ const userStore = useUserStore();
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
 const route = useRoute();
+let goingIntoTournament: boolean =  false;
 
 const error = ref<string>('')
 
@@ -90,8 +91,9 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_START', () => {
+    goingIntoTournament =  true;
     currentView.value = 'tournament-tree'
-    eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You just started a tournament, good luck ..");
+    eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_START', "You just started a tournament, good luck ..");
   })
 
   eventBus.on('TOURNAMENT_ERROR', (message: TournamentError) => {
@@ -100,9 +102,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (tournamentCode.value) {
+  if (!goingIntoTournament) {
     if (userStore.getWebSocketService?.isConnected()) {
-      userStore.getWebSocketService?.leaveTournamentWaitingRoom(tournamentCode.value)
+      userStore.getWebSocketService?.sendLeaveTournamentWaitingRoom(tournamentCode.value)
     } else {
       console.error('WebSocket is not connected');
     }
@@ -110,6 +112,7 @@ onUnmounted(() => {
 
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
+  eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_START');
   eventBus.off('TOURNAMENT_ERROR');
 })

@@ -1,28 +1,27 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 	"sync"
 	"time"
-	"bytes"
-    "net/http"
 	"websocket/models"
-	"io"
 
 	"github.com/google/uuid"
 )
 
 type GameEvent struct {
 	models.Event
-	LobbyId    uuid.UUID `json:"lobbyId"`
-	UserId     uint64    `json:"userId"`
-	State      GameState `json:"state"`
-	KeyPressed string    `json:"keyPressed"`
-	Player1Id  uint64    `json:"player1id"`
-	Player2Id  uint64    `json:"player2id"`
-	IsTournamentGame bool `json:"isTournamentGame"`
+	LobbyId          uuid.UUID `json:"lobbyId"`
+	UserId           uint64    `json:"userId"`
+	State            GameState `json:"state"`
+	KeyPressed       string    `json:"keyPressed"`
+	Player1Id        uint64    `json:"player1id"`
+	Player2Id        uint64    `json:"player2id"`
+	IsTournamentGame bool      `json:"isTournamentGame"`
 }
 
 type Ball struct {
@@ -45,8 +44,8 @@ type Paddle struct {
 }
 
 type Score struct {
-	Player1 int `json:"player1"`
-	Player2 int `json:"player2"`
+	Player1 uint8 `json:"player1"`
+	Player2 uint8 `json:"player2"`
 }
 
 type GameState struct {
@@ -100,7 +99,7 @@ const (
 )
 
 // create instance of game and init all data
-func NewGame(player1ID, player2ID uint64) *Game {
+func NewGame(player1ID uint64, player2ID uint64) *Game {
 	return &Game{
 		Player1: Player{
 			ID:       player1ID,
@@ -152,6 +151,25 @@ func NewGame(player1ID, player2ID uint64) *Game {
 		},
 		Status: "PREGAME",
 	}
+}
+
+func (g *Game) PlayerLeaved(id uint64) {
+	g.State.mutex.Lock()
+	defer g.State.mutex.Unlock()
+
+	if !g.State.IsActive {
+		return
+	}
+
+	if id == g.Player2.ID {
+		g.State.Winner = g.Player1.ID
+		g.State.Score.Player1 = WinningScore
+		g.State.Score.Player2 = 0
+		return
+	}
+	g.State.Winner = g.Player2.ID
+	g.State.Score.Player2 = WinningScore
+	g.State.Score.Player1 = 0
 }
 
 func (g *Game) Update() {
@@ -445,12 +463,11 @@ func (g *Game) hitCounter(playerNum int) {
 func handleGameMessage(h *Hub, data []byte) {
 	var evt GameEvent
 	if err := json.Unmarshal(data, &evt); err != nil {
-		fmt.Printf("Error GameEvent type unmarshall\n")
-		fmt.Printf("Data = \n", string(data))
+		fmt.Printf("Error GameEvent type unmarshall: %s\n", string(data))
 		return
 	}
 	lobby := h.Lobbies[evt.LobbyId]
-	if lobby == nil {
+	if lobby == nil || lobby.Game == nil {
 		return
 	}
 
@@ -458,14 +475,15 @@ func handleGameMessage(h *Hub, data []byte) {
 		PlayerID: evt.UserId,
 		Command:  evt.KeyPressed,
 	}
-	fmt.Printf("CMD: %+v\n", cmd)
-
 	lobby.Game.HandleCommand(cmd)
 }
 
 func (g *Game) HandleCommand(cmd GameCommand) {
 	g.State.mutex.Lock()
 	defer g.State.mutex.Unlock()
+	if g.State.IsPaused {
+		return
+	}
 
 	switch cmd.Command {
 	case "UP":
@@ -498,47 +516,35 @@ func (g *Game) HandleCommand(cmd GameCommand) {
 }
 
 func (g *Game) sendGameResultToBackend() {
-    gameResult := map[string]interface{}{
-        "player1_id": g.Player1.ID,
-        "player2_id": g.Player2.ID,
-        "winner_id":  g.State.Winner,
-        "Score1":     g.State.Score.Player1,
-        "Score2":     g.State.Score.Player2,
-    }
+	gameResult := map[string]interface{}{
+		"player1_id": g.Player1.ID,
+		"player2_id": g.Player2.ID,
+		"winner_id":  g.State.Winner,
+		"Score1":     g.State.Score.Player1,
+		"Score2":     g.State.Score.Player2,
+	}
 
-
-    client := &http.Client{}
-    jsonData, err := json.Marshal(gameResult)
+	client := &http.Client{}
+	jsonData, err := json.Marshal(gameResult)
 	fmt.Printf("%s\n", string(jsonData))
-    if err != nil {
-        fmt.Printf("Error marshalling game result: %v\n", err)
-        return
-    }
+	if err != nil {
+		fmt.Printf("Error marshalling game result: %v\n", err)
+		return
+	}
 
-    fmt.Printf("Sending game result to backend: %+v\n", gameResult)
+	fmt.Printf("Sending game result to backend: %+v\n", gameResult)
 
-    req, err := http.NewRequest("POST", "http://backend:4000/api/game-history", bytes.NewBuffer(jsonData))
-    if err != nil {
-        fmt.Printf("Error creating request: %v\n", err)
-        return
-    }
+	req, err := http.NewRequest("POST", "http://backend:4000/api/game-history", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("Error creating request: %v\n", err)
+		return
+	}
 
-    req.Header.Set("Content-Type", "application/json")
-    resp, err := client.Do(req)
-    if err != nil {
-        fmt.Printf("Error sending game result: %v\n", err)
-        return
-    }
-    defer resp.Body.Close()
-
-    // Lire le corps de la réponse
-    body, err := io.ReadAll(resp.Body)
-    if err != nil {
-        fmt.Printf("Error reading response body: %v\n", err)
-        return
-    }
-
-    // Log la réponse complète
-    fmt.Printf("Response Status: %d\n", resp.StatusCode)
-    fmt.Printf("Response Body: %s\n", string(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error sending game result: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
 }

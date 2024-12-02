@@ -16,25 +16,10 @@ func CreateTournamentTreeEvent(tournament *Tournament) *TournamentTreeEvent {
 		Event: models.Event{
 			Type: "TOURNAMENT_TREE_STATE",
 		},
-		Code: tournament.Id,
-		Semi1: TournamentGame{
-			Player1:    tournament.Semi1[0],
-			Player2:    tournament.Semi1[1],
-			Score:      [2]uint8{0, 0},
-			IsFinished: false,
-		},
-		Semi2: TournamentGame{
-			Player1:    tournament.Semi2[0],
-			Player2:    tournament.Semi2[1],
-			Score:      [2]uint8{0, 0},
-			IsFinished: false,
-		},
-		Final: TournamentGame{
-			Player1:    0,
-			Player2:    0,
-			Score:      [2]uint8{0, 0},
-			IsFinished: false,
-		},
+		Code:  tournament.Id,
+		Semi1: tournament.Semi1,
+		Semi2: tournament.Semi2,
+		Final: tournament.Final,
 	}
 }
 
@@ -55,8 +40,10 @@ func ShuffleTournamentOpposition(h *Hub, tournament *Tournament) {
 
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(4, func(i int, j int) { players[i], players[j] = players[j], players[i] })
-	tournament.Semi1 = [2]uint64{players[0], players[1]}
-	tournament.Semi2 = [2]uint64{players[2], players[3]}
+	tournament.Semi1.Player1 = players[0]
+	tournament.Semi1.Player2 = players[1]
+	tournament.Semi2.Player1 = players[2]
+	tournament.Semi2.Player2 = players[3]
 }
 
 func AppendClientToTournament(h *Hub, tournament *Tournament, request TournamentEvent) bool {

@@ -64,7 +64,6 @@ const handleStartTournament = () => {
 onMounted(() => {
   eventBus.on('TOURNAMENT_EVENT', async (message: TournamentEvent) => {
     try {
-      console.log("TOURNAMENT EVENT: ", message);
       creatorId.value = message.player1id ?? 0;
       const playerIds = [
         message.player1id ?? 0,

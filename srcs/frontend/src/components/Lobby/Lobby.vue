@@ -122,7 +122,6 @@ onMounted(async () => {
   }
 
   eventBus.on('LOBBY_CREATED', async (message: LobbyCreated) => {
-    console.log("lobby message ", message);
     lobbyId.value = message.lobbyId;
     isAcceptingPlayer = message.receiver.id === userStore.getId;
     challengedFriendId.value = isAcceptingPlayer ? message.sender.id : message.receiver.id;
@@ -137,7 +136,6 @@ onMounted(async () => {
   });
 
   eventBus.on('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
-    console.log("lobby player status ", message);
     if (message.userId === userStore.getId) {
       player1Ready.value = player1Ready.value ? false : true 
     } else if (message.userId === challengedFriendId.value) {
@@ -155,11 +153,13 @@ onMounted(async () => {
   })
 
   eventBus.on('GAME_START', () => {
-    goingIntoGame = true
-    router.push({
-      path: '/game', 
-      query: {lobbyId: lobbyId.value }
-    });
+    if (lobbyId) {
+      goingIntoGame = true
+      router.push({
+        path: '/game', 
+        query: {lobbyId: lobbyId.value }
+      });
+    }
   });
 
   eventBus.on('LOBBY_DESTROYED', async () => {

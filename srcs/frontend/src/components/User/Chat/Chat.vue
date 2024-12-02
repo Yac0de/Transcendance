@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useUserStore } from '../../../stores/user';
 import { useChatStore } from '../../../stores/chatStore';
 import { eventBus } from '../../../events/eventBus'
@@ -138,6 +138,9 @@ const setupChatMessageHandler = () => {
             createdAt: new Date().toISOString(),
         };
 
+        //set an array for the bot
+        conversations.value[0] = [];
+
         if (!conversations.value[conversationId]) {
             conversations.value[conversationId] = [];
         }
@@ -178,25 +181,63 @@ watch(() => chatStore.selectedFriendId, async (newFriendId) => {
 });
 
 onMounted(() => {
-    eventBus.on('CHAT_FROM_TOURNAMENT_MASTER', (message: string) => {
-        if (!conversations.value[0] || message === "You just started a tournament, good luck ..") {
-            conversations.value[0] = [];
-            chatStore.resetUnreadMessage(0);
-        }
+    eventBus.on('CHAT_FROM_TOURNAMENT_MASTER_START', (message: string) => {
         const formattedMessage: Message = {
             content: message,
             senderId: 0,  
             receiverId: userStore.getId ?? 0,
             createdAt: new Date().toISOString()
         };
+        chatStore.resetUnreadMessage(0);
+        conversations.value[0] = [];
         conversations.value[0].push(formattedMessage);
 
         if (currentFriendId.value !== 0) {
             chatStore.addUnreadMessage(0);
         }
     })
+
+    eventBus.on('CHAT_FROM_TOURNAMENT_MASTER_SEMIS', (message: string) => {
+        const formattedMessage: Message = {
+            content: message,
+            senderId: 0,  
+            receiverId: userStore.getId ?? 0,
+            createdAt: new Date().toISOString()
+        };
+        chatStore.resetUnreadMessage(0);
+        conversations.value[0] = [];
+        conversations.value[0].push(formattedMessage);
+
+        if (currentFriendId.value !== 0) {
+            chatStore.addUnreadMessage(0);
+        }
+    })
+
+    eventBus.on('CHAT_FROM_TOURNAMENT_MASTER_FINAL', (message: string) => {
+        const formattedMessage: Message = {
+            content: message,
+            senderId: 0,  
+            receiverId: userStore.getId ?? 0,
+            createdAt: new Date().toISOString()
+        };
+        chatStore.resetUnreadMessage(0);
+        conversations.value[0] = [];
+        conversations.value[0].push(formattedMessage);
+
+        if (currentFriendId.value !== 0) {
+            chatStore.addUnreadMessage(0);
+        }
+    })
+
     fetchFriendList();
 });
+
+onUnmounted(() => {
+    chatStore.resetUnreadMessage(0);
+    eventBus.off('CHAT_FROM_TOURNAMENT_MASTER_START');
+    eventBus.off('CHAT_FROM_TOURNAMENT_MASTER_SEMIS');
+    eventBus.off('CHAT_FROM_TOURNAMENT_MASTER_FINAL');
+})
 
 </script>
 

@@ -1,14 +1,14 @@
 <template>
   <div class="friend-list-popover">
     <div class="friend-list-header">
-      <h3>Friends</h3>
+      <h3>{{ $t('friendListTitle') }}</h3>
       <button @click="toggleFriendList" class="close-button">&times;</button>
     </div>
     <div class="friend-list-content">
-      <div v-if="loadingFriends" class="loading-spinner">Loading friends...</div>
+      <div v-if="loadingFriends" class="loading-spinner">{{ $t('loadingFriends') }}</div>
       <div v-else>
         <div v-if="friends.length === 0" class="no-friends-message">
-          <p>You have no friends yet 😢</p>
+          <p>{{ $t('noFriendsMessage') }}</p>
         </div>
         <div v-else>
           <FriendItem v-for="friend in friends" :key="friend.id" :friend="friend"

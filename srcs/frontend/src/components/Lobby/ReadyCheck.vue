@@ -6,7 +6,7 @@
       @click="isPlayerReady ? toggleUnready() : toggleReady()"
       :disabled="disabled || bothPlayersReady"
     >
-      {{ isPlayerReady ? 'Ready!' : 'Not Ready' }}
+      {{ isPlayerReady ? $t('ready') : $t('notReady') }}
     </button>
   </div>
 </template>

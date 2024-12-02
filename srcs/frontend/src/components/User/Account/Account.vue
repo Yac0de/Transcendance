@@ -1,19 +1,32 @@
 <template>
   <div v-if="userExists" class="account-container">
-    <!-- <div class="header-account-details"> -->
     <div class="account-content">
-      <h2>Account Details</h2>
-      <AccountView v-if="!isEditing && !isDeleting" :user="userToDisplay"
-        :isOwnProfile="isOwnProfile" @startEditing="startEditing" />
-      <AccountEdit v-if="isEditing && !isDeleting" :user="userToDisplay" :errorMessage="errorMessage"
-        @saveProfile="saveProfile" @cancelEdit="cancelEdit" @confirmDeleteAccount="confirmDeleteAccount"
-        @updateErrorMessage="errorMessage = $event" />
-      <DeleteAccountPrompt v-if="isDeleting" :deleted="deleted" @deleteAccount="deleteAccount"
-        @cancelDelete="cancelDelete" />
+      <h2>{{ $t('accountDetails') }}</h2>
+      <AccountView 
+        v-if="!isEditing && !isDeleting" 
+        :user="userToDisplay"
+        :isOwnProfile="isOwnProfile" 
+        @startEditing="startEditing" 
+      />
+      <AccountEdit 
+        v-if="isEditing && !isDeleting" 
+        :user="userToDisplay" 
+        :errorMessage="errorMessage"
+        @saveProfile="saveProfile" 
+        @cancelEdit="cancelEdit" 
+        @confirmDeleteAccount="confirmDeleteAccount"
+        @updateErrorMessage="errorMessage = $event" 
+      />
+      <DeleteAccountPrompt 
+        v-if="isDeleting" 
+        :deleted="deleted" 
+        @deleteAccount="deleteAccount"
+        @cancelDelete="cancelDelete" 
+      />
 
       <div v-if="!isEditing && !isDeleting">
         <button @click="goToHistory" class="toggle-button">
-          match history
+          {{ $t('matchHistory') }}
         </button>
       </div>
 
@@ -34,7 +47,9 @@ import AccountView from './AccountView.vue'
 import AccountEdit from './AccountEdit.vue'
 import DeleteAccountPrompt from './DeleteAccountPrompt.vue'
 import { UserData } from '../../../types/models';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const isEditing = ref(false)
 const isDeleting = ref(false)
 const deleted = ref(false)
@@ -66,11 +81,11 @@ const checkOwnProfile = async () => {
 }
 
 const fetchUserData = async (nickname: string) => {
-  resetMessages()
-  userExists.value = true
+  resetMessages();
+  userExists.value = true;
 
   try {
-    let userData: UserData | null
+    let userData: UserData | null;
 
     if (nickname === userStore.getNickname) {
       userData = {
@@ -80,16 +95,16 @@ const fetchUserData = async (nickname: string) => {
         avatar: userStore.getAvatarPath ?? ''
       };
     } else {
-      userData = await api.user.getProfileData(nickname)
+      userData = await api.user.getProfileData(nickname);
       if (!userData) {
-        throw new Error("User not found!")
+        throw new Error(t('userNotFound'));
       }
     }
-    userToDisplay.value = { ...userData }
+    userToDisplay.value = { ...userData };
   } catch (error) {
-    userExists.value = false
+    userExists.value = false;
   }
-}
+};
 
 onMounted(async () => {
   await checkOwnProfile()
@@ -110,31 +125,27 @@ const startEditing = () => {
 }
 
 const saveProfile = async (updatedUser: UserData, newAvatarFile: File | null) => {
-  resetMessages()
+  resetMessages();
 
   if (updatedUser.nickname.length < 3) {
-    errorMessage.value = "Nickname must be at least 3 characters long!";
+    errorMessage.value = t('nicknameTooShort');
     return;
   }
 
   if (updatedUser.displayname.length < 3) {
-    errorMessage.value = "Displayname must be at least 3 characters long!";
+    errorMessage.value = t('displaynameTooShort');
     return;
   }
 
   try {
-    await api.user.updateUserProfile(updatedUser, newAvatarFile)
-    await userStore.fetchUser()
-    userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath ?? '' }
-    successMessage.value = 'Profile updated successfully'
+    await api.user.updateUserProfile(updatedUser, newAvatarFile);
+    await userStore.fetchUser();
+    userToDisplay.value = { ...updatedUser, avatar: userStore.getAvatarPath ?? '' };
+    successMessage.value = t('profileUpdated');
   } catch (error: any) {
-    if (error && error.error) {
-      errorMessage.value = error.error;  // Utilise directement error.error ici
-    } else {
-      errorMessage.value = 'Error updating profile: ' + (error.message || 'Unknown error');
-    }
+    errorMessage.value = t('errorUpdatingProfile') + ': ' + (error.message || t('unknownError'));
   }
-}
+};
 
 const cancelEdit = () => {
   isEditing.value = false 
@@ -148,22 +159,22 @@ const confirmDeleteAccount = () => {
 
 
 const deleteAccount = async (password: string) => {
-  resetMessages()
+  resetMessages();
   try {
-    await api.user.deleteUserAccount(password)
-    successMessage.value = 'Account deleted successfully'
-    deleted.value = true
-    isEditing.value = false
-    await api.auth.signout()
-    userStore.clearUser()
+    await api.user.deleteUserAccount(password);
+    successMessage.value = t('accountDeleted');
+    deleted.value = true;
+    isEditing.value = false;
+    await api.auth.signout();
+    userStore.clearUser();
 
     setTimeout(() => {
-      router.push('/signin')
-    }, 1000)
+      router.push('/signin');
+    }, 1000);
   } catch (error) {
-    errorMessage.value = 'Error deleting account: ' + (error as Error).message
+    errorMessage.value = t('errorDeletingAccount') + ': ' + (error as Error).message;
   }
-}
+};
 
 const cancelDelete = () => {
   isDeleting.value = false

@@ -1,12 +1,12 @@
 <template>
   <div class="friend-requests-popover">
     <div class="friend-requests-header">
-      <h3>Friend Requests</h3>
+      <h3>{{ $t('friendRequestsTitle') }}</h3>
       <button @click="toggleFriendRequests" class="close-button">&times;</button>
     </div>
     <div class="friend-requests-content">
       <div v-if="friendRequests && friendRequests.length > 0">
-        <div v-if="loadingFriendRequests" class="loading-spinner">Loading friend requests...</div>
+        <div v-if="loadingFriendRequests" class="loading-spinner">{{ $t('loadingFriendRequests') }}</div>
         <div v-else>
           <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
             <div class="friend-avatar">
@@ -25,7 +25,7 @@
         </div>
       </div>
       <div v-else>
-        <p>No pending friend requests</p>
+        <p>{{ $t('noPendingRequests') }}</p>
       </div>
       <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '../../../services/api';
 import { Friend } from '../../../types/models';
 
@@ -48,15 +49,17 @@ const loadingFriendRequests = ref(false);
 const successMessage = ref('');
 const errorMessage = ref('');
 
+const { t } = useI18n();
+
 // Fonction pour accepter une demande d'ami
 const acceptFriend = async (friendId: number) => {
   try {
     await api.friendlist.acceptFriendRequest(friendId);
     friendRequests?.splice(friendRequests.findIndex(req => req.id === friendId), 1);
-    successMessage.value = 'Friend request accepted!';
+    successMessage.value = t('acceptRequest');
     fetchFriendRequests();
   } catch (error) {
-    errorMessage.value = 'Failed to accept friend request';
+    errorMessage.value = t('errorAcceptRequest');
   }
 };
 
@@ -65,10 +68,10 @@ const denyFriend = async (requestId: number) => {
   try {
     await api.friendlist.denyFriendRequest(requestId);
     friendRequests?.splice(friendRequests.findIndex(req => req.id === requestId), 1);
-    successMessage.value = 'Friend request denied!';
+    successMessage.value = t('denyRequest');
     fetchFriendRequests();
   } catch (error) {
-    errorMessage.value = 'Failed to deny friend request';
+    errorMessage.value = t('errorDenyRequest');
   }
 };
 

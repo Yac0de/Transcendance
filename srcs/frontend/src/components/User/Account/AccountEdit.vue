@@ -3,7 +3,7 @@
     <div class="avatar-container">
       <div class="avatar-wrapper">
         <img :src="avatarUrl" alt="User Avatar" class="avatar-image" />
-        <div class="avatar-edit-overlay" @click="triggerAvatarUpload">
+        <div class="avatar-edit-overlay" @click="triggerAvatarUpload" :title="$t('editAvatarTooltip')">
           <span class="edit-icon">✎</span>
         </div>
       </div>
@@ -12,13 +12,13 @@
     </div>
 
     <div class="edit-fields">
-      <label for="edit-nickname">Nickname:</label>
+      <label for="edit-nickname">{{ $t('nicknameLabel') }}</label>
       <input id="edit-nickname" v-model="editedUser.nickname" type="text" maxlength="16" />
-      <label for="edit-displayname">Display Name:</label>
+      <label for="edit-displayname">{{ $t('displaynameLabel') }}</label>
       <input id="edit-displayname" v-model="editedUser.displayname" type="text" maxlength="16" />
 
       <div class="password-toggle">
-        <label for="change-password" class="toggle-label">Change password</label>
+        <label for="change-password" class="toggle-label">{{ $t('changePasswordLabel') }}</label>
         <label class="switch">
           <input type="checkbox" v-model="changePassword" />
           <span class="slider round"></span>
@@ -27,28 +27,27 @@
 
       <div v-if="changePassword" class="change-password">
         <div class="current-password">
-          <label for="current-password">Current Password:</label>
-          <input id="current-password" v-model="currentPassword" type="password" placeholder="Enter current password"
+          <label for="current-password">{{ $t('currentPasswordLabel') }}</label>
+          <input id="current-password" v-model="currentPassword" type="password" :placeholder="$t('currentPasswordPlaceholder')"
             maxlength="50" />
         </div>
         <div class="new-password">
-          <label for="new-password">New Password:</label>
-          <input id="new-password" v-model="newPassword" type="password" placeholder="New password" maxlength="50" />
-
-          <input id="confirm-password" v-model="confirmPassword" type="password" placeholder="Confirm new password"
+          <label for="new-password">{{ $t('newPasswordLabel') }}</label>
+          <input id="new-password" v-model="newPassword" type="password" :placeholder="$t('newPasswordPlaceholder')" maxlength="50" />
+          <input id="confirm-password" v-model="confirmPassword" type="password" :placeholder="$t('confirmPasswordPlaceholder')"
             maxlength="50" />
         </div>
       </div>
     </div>
 
     <div class="account-actions">
-      <button class="save-button" @click="saveChanges">Save Changes</button>
+      <button class="save-button" @click="saveChanges">{{ $t('saveChangesButton') }}</button>
       <button class="cancel-button" @click="$emit('cancelEdit')">
-        <i class="fas fa-arrow-left"></i>
+        {{ $t('cancelButton') }}
       </button>
     </div>
 
-    <button class="delete-button" @click="$emit('confirmDeleteAccount')">Delete account</button>
+    <button class="delete-button" @click="$emit('confirmDeleteAccount')">{{ $t('deleteAccountButton') }}</button>
   </div>
 </template>
 

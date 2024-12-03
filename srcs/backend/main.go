@@ -16,10 +16,10 @@ func main() {
 	router := gin.Default()
 	database.New()
 
-	config := cors.Config{
-		AllowOrigins:     []string{"http://localhost:4000", "http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
-		//UNCOMMENT FOR PROD MODE AND COMMENT THE ONE ABOVE
-		// AllowOrigins:     []string{"*", "http://localhost:4000", "http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
+	config := cors.Config {
+		// AllowOrigins:     []string{"http://localhost:4000", "http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
+		// UNCOMMENT FOR PROD MODE AND COMMENT THE ONE ABOVE
+		AllowOrigins:     []string{"*", "http://localhost:4000", "http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,

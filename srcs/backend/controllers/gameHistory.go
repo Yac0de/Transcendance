@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"api/models"
 	"api/database"
+    "api/prometheus"
     "gorm.io/gorm"
 	"fmt"
 )
@@ -54,6 +55,7 @@ func SaveGameHistory(c *gin.Context) {
         "message": "Game history saved successfully",
         "data": gameHistory,
     })
+    prometheus.IncrementPlayedGames()
 }
 
 

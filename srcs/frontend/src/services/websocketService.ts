@@ -2,15 +2,18 @@ import { OnlineUsersMessage, UserStatusMessage } from '../types/connection_statu
 import { ChatMessage } from '../types/chat';
 import { UserData } from '../types/models';
 import { LobbyInvitationToFriend, LobbyInvitationFromFriend, LobbyAcceptFromFriend, LobbyDenyFromFriend, LobbyCreated, LobbyPlayerStatus, LobbyPregameRemainingTime, LobbyTerminate, LobbyDestroyed, LobbySpecialModeToggled  } from '../types/lobby';
-import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
-import { GameEvent, GameStart, GameFinished } from '../types/game';
+import {TournamentStart, TournamentCreate, TournamentJoinWithCode, TournamentLeave, TournamentLeaveWaitingRoom, TournamentTimer, TournamentGame, TournamentError, TournamentTreeState, TournamentEvent, TournamentTerminate } from '../types/tournament';
+import { GameEvent, GameStart, GameFinished, GameLeave } from '../types/game';
 import { useOnlineUsersStore } from '../stores/onlineUsers';
 import { eventBus } from '../events/eventBus';
-import { useChatStore } from '../stores/chatStore.ts';
+import { useChatStore } from '../stores/chatStore';
+import { getBaseHost } from  '../utils/fetch'
 
-const WS_URL = import.meta.env.PROD
-  ? 'wss://localhost:8443/ws'  // Production through Nginx
-  : 'ws://localhost:4001/ws'      // Development direct access
+//const WS_URL = import.meta.env.PROD
+//  ? 'wss://localhost:8443/ws'  // Production through Nginx
+//  : 'ws://localhost:4001/ws'      // Development direct access
+
+const WS_URL = `${getBaseHost().replace('http', 'ws')}${import.meta.env.PROD ? '/ws' : ':4001/ws'}`;
 
 //This is needed because we can't get the return type of userStore inside the constructor of a class that is an attribute of
 //this very store, because it creates circular dependencies, so we create an interface that helps up set the return type of
@@ -164,7 +167,6 @@ export class WebSocketService {
                 console.error('Websocket error, ', error);
             };
             this.ws.onmessage = (event) => {
-                console.log('Received event:', event);
                 try {
                     const events = event.data.split('\n');
 
@@ -172,7 +174,7 @@ export class WebSocketService {
                     for (const eventData of events) {
                         const message = JSON.parse(eventData);
                         const handler = this.messageHandlers[message.type];
-                        //console.log("<-", message);
+                        // console.log("<-- ", message);
                         if (handler) {
                             handler(message);
                         } else
@@ -265,13 +267,11 @@ export class WebSocketService {
 
     public sendSpecialModeToggleMessage(lobbyId: string, isGameMode: boolean): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            console.log("test in sendSpecialModeToggleMessage")
             const message: LobbySpecialModeToggled = {
                 type: 'LOBBY_SPECIAL_MODE_TOGGLED',
                 lobbyId: lobbyId,
                 isGameMode: isGameMode,
             };  
-            console.log("Sending SpecialModeStatus message: ", message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -285,7 +285,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 lobbyId: lobbyId,
             };
-            console.log(message);
             this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
@@ -345,13 +344,35 @@ export class WebSocketService {
         }
     }
 
-    public leaveTournamentWaitingRoom(code: string): void {
+    public sendTreeStateMessage(tournamentCode: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentTreeState = {
+                type: 'TOURNAMENT_TREE_STATE',
+                userId: this.userStore.getId!,
+                code: tournamentCode,
+            };
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public sendLeaveTournament(): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: TournamentLeave = {
+                type: 'TOURNAMENT_LEAVE',
+                userId: this.userStore.getId!,
+            };
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    public sendLeaveTournamentWaitingRoom(code: string): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             const message: TournamentLeaveWaitingRoom = {
                 type: 'TOURNAMENT_LEAVE_WAITING_ROOM',
                 userId: this.userStore.getId!,
-                code: code
+                code: code,
             };
+            console.log("->", message);
             this.ws.send(JSON.stringify(message));
         }
     }
@@ -370,6 +391,19 @@ export class WebSocketService {
     public sendGameEvent(game_event: GameEvent): void {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify(game_event));
+        } else {
+            console.warn("Can't send a message, ws is not connected");
+        }
+    }
+
+    public sendGameLeave(lobbyId: string): void {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const message: GameLeave = {
+                type: 'LOBBY_GAME_LEAVE',
+                userId: this.userStore.getId!,
+                lobbyId: lobbyId
+            };
+            this.ws.send(JSON.stringify(message));
         } else {
             console.warn("Can't send a message, ws is not connected");
         }

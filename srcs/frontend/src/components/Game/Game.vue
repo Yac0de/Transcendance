@@ -35,6 +35,9 @@ const canvasRef = ref<HTMLCanvasElement | null>(null)
 
 const player1Id = ref<number | null>(null)
 const player2Id = ref<number | null>(null)
+let isTournamentGame: boolean =  false;
+
+let lobbyId: string = ''
 
 const currentGameState: GameState = reactive({
     ball: { x: 0, y: 0 },  // Assuming Ball has x, y properties
@@ -46,7 +49,7 @@ const currentGameState: GameState = reactive({
     winner: 0,  // or 0, depending on how you represent no winner
     isPaused: false,
     pauseTime: '',  // or null, depending on how you handle empty time
-    remainingTime: 300,
+    elapsedTime: 0,
     player1boost: {
       ballhit: 0,
       boostready:false,
@@ -65,7 +68,7 @@ const handlePressUp = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'UP',
       };
@@ -82,7 +85,7 @@ const handleReleaseUp = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'STOP'
       };
@@ -99,7 +102,7 @@ const handlePressDown = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'DOWN'
       };
@@ -116,7 +119,7 @@ const handleReleaseDown = (event: KeyboardEvent): void => {
     if (userStore.getWebSocketService?.isConnected()) {
       const gameEvent: GameEvent = {
         type: 'GAME_EVENT',
-        lobbyId: route.query.lobbyId as string,
+        lobbyId: lobbyId,
         userId: userStore.getId!,
         keyPressed: 'STOP'
       };
@@ -133,7 +136,7 @@ const handleSpace = (event: KeyboardEvent): void => {
    if (userStore.getWebSocketService?.isConnected()) {
      const gameEvent: GameEvent = {
        type: 'GAME_EVENT', 
-       lobbyId: route.query.lobbyId as string,
+       lobbyId: lobbyId,
        userId: userStore.getId!,
        keyPressed: 'SPACE'
      };
@@ -160,11 +163,17 @@ onMounted(() => {
   window.addEventListener('keydown', handlePressDown)
   window.addEventListener('keyup', handleReleaseUp)
   window.addEventListener('keyup', handleReleaseDown)
+
+  lobbyId = route.query.lobbyId as string 
   if(gameSettingsStore.gameMode)
     window.addEventListener('keydown', handleSpace)
   const ctx:CanvasRenderingContext2D = canvasRef.value?.getContext('2d') as CanvasRenderingContext2D
 
   eventBus.on('GAME_EVENT', async (message: GameEvent) => {
+
+    if (message.isTournamentGame === true) {
+      isTournamentGame = true;
+    }
 
     if (player1Id.value === null) {
       player1Id.value = message.player1id ?? null;
@@ -196,25 +205,30 @@ onMounted(() => {
 
   eventBus.on('GAME_FINISHED', async (message: GameFinished) => {
     drawEndGame(ctx, message.state!, player1Id.value, player2Id.value);
+
     gameSettingsStore.gameMode = false;
-    if (message.isTournamentGame === false) {
+    if (isTournamentGame === false) {
       window.setTimeout(() => {
         router.push('/');
       }, 3000)
     } else {
       window.setTimeout(() => {
-        router.push({
-        path:'/tournament',
-        query: { view: 'tournament-tree' }
+        router.push({ 
+          path: '/tournament', 
+          query: { view: 'tournament-tree'}
         });
-      })
+      }, 3000);
     }
   })
-
 })
 
 onUnmounted(() => {
-  // Remove key listener
+  if (userStore.getWebSocketService?.isConnected()) {
+    userStore.getWebSocketService?.sendGameLeave(lobbyId)
+  } else {
+    console.error('WebSocket is not connected');
+  }
+
   window.removeEventListener('keydown', handlePressUp)
   window.removeEventListener('keydown', handlePressDown)
   window.removeEventListener('keyup', handleReleaseUp)
@@ -222,6 +236,7 @@ onUnmounted(() => {
   if(gameSettingsStore.gameMode)
     window.removeEventListener('keydown', handleSpace)
   eventBus.off('GAME_EVENT')
+  eventBus.off('GAME_FINISHED')
 })
 </script>
 

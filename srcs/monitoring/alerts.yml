@@ -38,3 +38,12 @@ groups:
         annotations:
           summary: "Multiple login failures detected"
           description: "More than 5 failed login attempts in 5 minutes"
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "Service has been down for more than 1 minute"

@@ -6,6 +6,7 @@ export interface GameEvent {
     keyPressed: string;
     player1id?: number;
     player2id?: number;
+    isTournamentGame?: boolean;
 }
 
 export interface GameStart {
@@ -16,6 +17,12 @@ export interface GameFinished {
     type: 'GAME_FINISHED';
     state?: GameState;
     isTournamentGame: boolean;
+}
+
+export interface GameLeave {
+    type: 'LOBBY_GAME_LEAVE';
+    userId: number;
+    lobbyId: string;
 }
 
 export interface Ball {
@@ -49,7 +56,7 @@ export interface GameState {
     pauseTime: string; 
     player1boost: BoostState;  
     player2boost: BoostState;
-    remainingTime: number;
+    elapsedTime: number;
 }
 
 export interface BoostState {

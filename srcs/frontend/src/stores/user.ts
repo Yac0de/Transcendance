@@ -92,6 +92,9 @@ export const useUserStore = defineStore('user', {
 
     async initializeStore() {
       const loadedFromStorage = this.loadUserFromStorage()
+      if (loadedFromStorage) {
+        await this.fetchUser()
+      }
       return loadedFromStorage
     }
   },

@@ -5,10 +5,11 @@ import (
 	"api/database"
 	"api/middleware"
 	"api/prometheus"
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"time"
 )
 
 func main() {
@@ -17,7 +18,9 @@ func main() {
 
 	// Configuration CORS
 	config := cors.Config{
-		AllowOrigins:     []string{"https://localhost:8443", "http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
+		// AllowOrigins:     []string{"http://localhost:4000", "http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
+		//UNCOMMENT FOR PROD MODE AND COMMENT THE ONE ABOVE
+		AllowOrigins:     []string{"*", "http://localhost:4000", "http://localhost:3000", "http://localhost:5173", "http://localhost:8000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
@@ -32,10 +35,10 @@ func main() {
 	router.Use(prometheus.PrometheusMiddleware())
 
 	// Routes
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	router.Static("/users/avatar", "./avatars")
 	router.POST("/api/game-history", controllers.SaveGameHistory)
 	router.GET("/api/game-history/:nickname", controllers.GetUserGameHistory)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	users := router.Group("/users")
 	auth := router.Group("/auth")

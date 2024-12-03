@@ -1,13 +1,15 @@
 <template>
   <div v-if="show" class="invite-popup">
     <div class="popup-content">
-      <p class="text-message">{{ inviter?.nickname }} invited you to play!</p>
+      <p class="text-message">
+        {{ $t('inviteMessage', { nickname: inviter?.nickname || 'A friend' }) }}
+      </p>
       <div class="button-container">
         <button @click="accept" class="accept-button">
-          Accept
+          {{ $t('acceptButton') }}
         </button>
         <button @click="decline" class="decline-button">
-          Decline
+          {{ $t('declineButton') }}
         </button>
       </div>
     </div>

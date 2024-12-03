@@ -13,6 +13,7 @@
     "vue-router": "^4.0.13"
   },
   "devDependencies": {
+    "@intlify/devtools-types": "^10.0.5",
     "@vitejs/plugin-vue": "^5.1.4",
     "typescript": "^5.5.3",
     "vite": "^5.4.7",

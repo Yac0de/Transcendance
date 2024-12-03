@@ -19,7 +19,7 @@
 			<ChatInput v-if="currentFriend.id !== 0" :currentFriendId="currentFriend.id" ref="chatInputRef" @send="handleSend" />
 		</template>
 		<template v-else>
-			<p class="no-friend-selected"> Select a friend to start chatting</p>
+			<p class="no-friend-selected">{{ $t('selectAFriend') }}</p>
 		</template>
 	</div>
 </template>

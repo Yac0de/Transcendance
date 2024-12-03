@@ -3,12 +3,11 @@
     <div class="lobby-container" :class="{ 'no-clicks': showNotification }">
       <div v-if="showNotification" class="modal-overlay">
         <div class="notification">
-          Lobby has been destroyed, you will be redirected to homepage. 
-          Maybe your opponent was scared ?
+          {{ $t('lobbyDestroyedNotification') }}
         </div>
       </div>
       <div v-if="bothPlayerPresent" class="modes">
-        <h1>SPECIAL MODE</h1>
+        <h1>{{ $t('specialModeTitle') }}</h1>
         <ToggleButton
           :activeLabel="'ON'"
           :inactiveLabel="'OFF'"
@@ -16,25 +15,46 @@
           @toggle="handleToggleMode"
         />
       </div>
-      <LeaveLobbyButton :lobby-id="lobbyId"/>
-      <Timer :remaining-seconds="remainingSeconds" v-if="showTimer"/>
+      <LeaveLobbyButton :lobby-id="lobbyId" />
+      <Timer :remaining-seconds="remainingSeconds" v-if="showTimer" />
       <div class="players-container">
         <div class="player-column">
-          <PlayerItem :is-left="true"
-            :challenged-friend="challengedFriend" />
-          <ReadyCheck :both-players-ready="player1Ready && player2Ready"
-          :isGameMode="isSpecialMode"
-          :isPlayerReady="player1Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="false" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer1Ready" />
+          <PlayerItem
+            :is-left="true"
+            :challenged-friend="challengedFriend"
+          />
+          <ReadyCheck
+            :both-players-ready="player1Ready && player2Ready"
+            :isGameMode="isSpecialMode"
+            :isPlayerReady="player1Ready"
+            :challenged-friend="challengedFriend"
+            :is-accepting="isAcceptingPlayer"
+            :lobbyId="lobbyId"
+            :disabled="false"
+            v-if="bothPlayerPresent && showReadyChecks"
+            @ready-changed="handlePlayer1Ready"
+          />
         </div>
-        <div class="versus">VS</div>
+        <div class="versus">{{ $t('versusLabel') }}</div>
         <div class="player-column">
-          <component :is="challengedFriend ? PlayerItem : PlayerScrolldown" :is-left="false"
+          <component
+            :is="challengedFriend ? PlayerItem : PlayerScrolldown"
+            :is-left="false"
             :challenged-friend="challengedFriend"
             :isWaiting="isWaitingForResponse"
-            @friend-selected="handleFriendSelected" />
-          <ReadyCheck :both-players-ready="player1Ready && player2Ready"
-           :isGameMode="isSpecialMode"
-           :isPlayerReady="player2Ready" :challenged-friend="challengedFriend" :is-accepting="isAcceptingPlayer" :lobbyId="lobbyId" :disabled="true" v-if="bothPlayerPresent && showReadyChecks" @ready-changed="handlePlayer2Ready" />
+            @friend-selected="handleFriendSelected"
+          />
+          <ReadyCheck
+            :both-players-ready="player1Ready && player2Ready"
+            :isGameMode="isSpecialMode"
+            :isPlayerReady="player2Ready"
+            :challenged-friend="challengedFriend"
+            :is-accepting="isAcceptingPlayer"
+            :lobbyId="lobbyId"
+            :disabled="true"
+            v-if="bothPlayerPresent && showReadyChecks"
+            @ready-changed="handlePlayer2Ready"
+          />
         </div>
       </div>
     </div>
@@ -122,7 +142,6 @@ onMounted(async () => {
   }
 
   eventBus.on('LOBBY_CREATED', async (message: LobbyCreated) => {
-    console.log("lobby message ", message);
     lobbyId.value = message.lobbyId;
     isAcceptingPlayer = message.receiver.id === userStore.getId;
     challengedFriendId.value = isAcceptingPlayer ? message.sender.id : message.receiver.id;
@@ -137,7 +156,6 @@ onMounted(async () => {
   });
 
   eventBus.on('LOBBY_PLAYER_STATUS', (message: LobbyPlayerStatus) => {
-    console.log("lobby player status ", message);
     if (message.userId === userStore.getId) {
       player1Ready.value = player1Ready.value ? false : true 
     } else if (message.userId === challengedFriendId.value) {
@@ -155,11 +173,13 @@ onMounted(async () => {
   })
 
   eventBus.on('GAME_START', () => {
-    goingIntoGame = true
-    router.push({
-      path: '/game', 
-      query: {lobbyId: lobbyId.value }
-    });
+    if (lobbyId) {
+      goingIntoGame = true
+      router.push({
+        path: '/game', 
+        query: {lobbyId: lobbyId.value }
+      });
+    }
   });
 
   eventBus.on('LOBBY_DESTROYED', async () => {
@@ -177,6 +197,7 @@ onUnmounted(() => {
   if (lobbyId.value && !goingIntoGame) {
     if (userStore.getWebSocketService?.isConnected()) {
       userStore.getWebSocketService?.leaveAndTerminateLobby(lobbyId.value);
+      gameSettingsStore.setGameMode(false)
     } else {
       console.error('WebSocket is not connected');
     }

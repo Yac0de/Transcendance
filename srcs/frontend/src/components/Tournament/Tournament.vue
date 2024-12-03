@@ -2,39 +2,40 @@
   <div class="tournament-container">
     <!-- Main Menu View -->
     <div v-if="currentView === 'menu'" class="menu-view">
-      <h1 class="tournament-title">Tournament</h1>
+      <h1 class="tournament-title">{{ $t('tournamentTitle') }}</h1>
       
       <div class="tournament-buttons">
         <button 
           class="tournament-button create"
           @click="handleCreateTournament"
         >
-          Create Tournament
+          {{ $t('createTournament') }}
         </button>
         
         <button 
           class="tournament-button join"
           @click="handleJoinTournament"
         >
-          Join Tournament
+          {{ $t('joinTournament') }}
         </button>
       </div>
     </div>
 
     <!-- Join Tournament View -->
     <div v-else-if="currentView === 'join'" class="join-view">
-      <h2 class="view-title">Join Tournament</h2>
-      <JoinTournamentMenu :error="error"/>
+      <h2 class="view-title">{{ $t('joinTournamentTitle') }}</h2>
+      <JoinTournamentMenu :error="error" />
     </div>
 
-    <!-- Waiting room tournament view (placeholder) -->
+    <!-- Waiting room tournament view -->
     <div v-else-if="currentView === 'waiting-room'" class="create-view">
-      <!-- CreateTournament component will go here -->
-      <TournamentWaitingRoom/>
+      <TournamentWaitingRoom />
     </div>
+
+    <!-- Tournament tree view -->
     <div v-else-if="currentView === 'tournament-tree'" class="create-view">
       <!-- CreateTournament component will go here -->
-      <TournamentTree/>
+      <TournamentTree :tournamentCode="tournamentCode"/>
     </div>
   </div>
 </template>
@@ -48,6 +49,9 @@ import TournamentWaitingRoom from './TournamentWaitingRoom.vue'
 import TournamentTree from './TournamentTree.vue'
 import { eventBus } from '../../events/eventBus'
 import { TournamentCreate, TournamentEvent, TournamentError } from '../../types/tournament'
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type ViewState = 'menu' | 'join' | 'waiting-room' | 'tournament-tree'
 
@@ -55,6 +59,7 @@ const userStore = useUserStore();
 const currentView = ref<ViewState>('menu')
 const tournamentCode = ref<string>('')
 const route = useRoute();
+let goingIntoTournament: boolean =  false;
 
 const error = ref<string>('')
 
@@ -90,8 +95,9 @@ onMounted(() => {
   })
 
   eventBus.on('TOURNAMENT_START', () => {
+    goingIntoTournament =  true;
     currentView.value = 'tournament-tree'
-    eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER', "You just started a tournament, good luck ..");
+    eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_START', t('tournamentStartMessage'));
   })
 
   eventBus.on('TOURNAMENT_ERROR', (message: TournamentError) => {
@@ -100,9 +106,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (tournamentCode.value) {
+  if (!goingIntoTournament) {
     if (userStore.getWebSocketService?.isConnected()) {
-      userStore.getWebSocketService?.leaveTournamentWaitingRoom(tournamentCode.value)
+      userStore.getWebSocketService?.sendLeaveTournamentWaitingRoom(tournamentCode.value)
     } else {
       console.error('WebSocket is not connected');
     }
@@ -110,6 +116,7 @@ onUnmounted(() => {
 
   eventBus.off('TOURNAMENT_CREATE');
   eventBus.off('TOURNAMENT_JOIN_WITH_CODE');
+  eventBus.off('TOURNAMENT_EVENT');
   eventBus.off('TOURNAMENT_START');
   eventBus.off('TOURNAMENT_ERROR');
 })

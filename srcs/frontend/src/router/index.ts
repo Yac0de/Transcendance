@@ -39,9 +39,16 @@ const routes = [
     meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
   },
   {
-    path: '/game', 
-    component: Game, 
-    meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
+    path: '/game',
+    component: Game,
+    meta: { requiresAuth: true },
+    beforeEnter: (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
+      if ('lobbyId' in to.query) {
+        next(); 
+      } else {
+        next('/'); 
+      }
+    }
   },
   { 
     path: '/:nickname', 

@@ -1,6 +1,6 @@
 <template>
   <div class="leave-button-container">
-    <button class="nav-button leave-lobby-button" @click="leaveLobby">Leave Lobby</button>
+    <button class="nav-button leave-lobby-button" @click="leaveLobby">{{ $t('leaveLobby') }}</button>
   </div>
 </template>
 

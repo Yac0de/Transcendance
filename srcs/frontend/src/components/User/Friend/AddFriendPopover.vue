@@ -1,24 +1,33 @@
 <template>
   <div class="add-friend-popover">
-    <div class="add-friend-header"> 
-      <h3>Add Friend</h3>
+    <div class="add-friend-header">
+      <h3>{{ $t('addFriendTitle') }}</h3>
       <button @click="toggleAddFriend" class="close-button">&times;</button>
     </div>
     <div class="add-friend-content">
-      <input v-model="newFriendNickname" type="text" placeholder="Enter friend's name" class="friend-input" />
+      <input 
+        v-model="newFriendNickname" 
+        type="text" 
+        :placeholder="$t('enterFriendNamePlaceholder')" 
+        class="friend-input" 
+      />
       <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
       <button @click="addFriend" class="add-friend-btn" :disabled="loadingAddFriend">
-        <span v-if="loadingAddFriend">Adding...</span>
-        <span v-else>Add Friend</span>
+        <span v-if="loadingAddFriend">{{ $t('addingFriend') }}</span>
+        <span v-else>{{ $t('addFriendButton') }}</span>
       </button>
     </div>
   </div>
 </template>
+
     
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '../../../services/api';
+
+const { t } = useI18n();
 
 const newFriendNickname = ref('');
 const errorMessage = ref('');
@@ -39,12 +48,12 @@ const addFriend = async () => {
   resetMessages();
 
   if (newFriendNickname.value.trim() === "") {
-    errorMessage.value = "Please enter a friend's name.";
+    errorMessage.value = t('errorEnterFriendName');
     return;
   }
 
   if (newFriendNickname.value.length < 3) {
-    errorMessage.value = "Friend's nickname must be at least 3 characters long.";
+    errorMessage.value = t('errorNicknameTooShort');
     return;
   }
 
@@ -53,11 +62,10 @@ const addFriend = async () => {
     await api.friendlist.sendFriendRequest(newFriendNickname.value.trim());
     newFriendNickname.value = '';
     props.fetchFriendRequests();
-    successMessage.value = 'Friend request sent successfully!';
+    successMessage.value = t('friendRequestSuccess');
     errorMessage.value = '';
   } catch (error: any) {
-    // Affichage direct du message d'erreur provenant du backend
-    errorMessage.value = error.error || "An unexpected error occurred. Please try again.";
+    errorMessage.value = error.error || t('errorUnexpected');
   } finally {
     loadingAddFriend.value = false;
   }

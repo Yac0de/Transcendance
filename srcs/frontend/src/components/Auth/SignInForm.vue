@@ -84,7 +84,6 @@ const handleSubmit = async () => {
     const response = await api.auth.signin({ nickname: nickname.value, password: password.value });
 
         // Check if the response status is 202 (2FA required)\
-        console.log("ca pue !: ", response.status)
     if (response.status === 202) {
       successMessage.value = 'Two-factor authentication is required. Please enter your 2FA code.';
 

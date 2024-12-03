@@ -67,7 +67,6 @@ export default {
     },
 
     async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-        console.log("Sending request with currentPassword:", currentPassword, "and newPassword:", newPassword);
         return apiRequest('/users/change-password', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },

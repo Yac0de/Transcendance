@@ -53,7 +53,7 @@ const isOnline = computed(() => {
 
 const handleChallengeClick = () => {
     if (!isOnline.value) return;
-    router.push({        // Then navigate to lobby
+    router.push({
         path: '/lobby',
         query: { friendId: props.currentFriendId.toString() }
     });

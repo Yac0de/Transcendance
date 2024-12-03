@@ -16,7 +16,6 @@
             <router-link :to="`/${userStore.nickname}`" class="nav-button">{{ $t('account') }}</router-link>
             <button @click="handleSignout" class="nav-button">{{ $t('signout') }}</button>
           </template>
-          <!-- Section des langues -->
           <div class="language-switcher">
             <select class="language-dropdown" @change="switchLanguage(($event.target as HTMLSelectElement)?.value)" :value="currentLanguage">
               <option value="en" :selected="currentLanguage === 'en'">
@@ -69,13 +68,12 @@ const route = useRoute();
 
 const isGameRoute = computed(() => route.path.startsWith('/game'));
 
-const currentLanguage = ref('en'); // Langue par défaut
+const currentLanguage = ref('en');
 
 const switchLanguage = (language: string) => {
   currentLanguage.value = language;
   locale.value = language;
   localStorage.setItem('language', language);
-  console.log(`Language switched to: ${language}`);
 };
 
 const checkAuth = async () => {
@@ -105,7 +103,7 @@ onMounted(() => {
 });
 
 watch(() => themeStore.currentTheme, (newTheme) => {
-  themeStore.applyTheme(newTheme); // Appliquer le thème lorsque la valeur change
+  themeStore.applyTheme(newTheme);
 });
 </script>
 
@@ -335,7 +333,7 @@ select {
   }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1600px) {
   .sticky-nav {
   justify-content: space-between;
 }

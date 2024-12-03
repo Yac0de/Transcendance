@@ -69,11 +69,9 @@ const toggleChatInterface = () => {
     showChatInterface.value = !showChatInterface.value;
 
     if (!showChatInterface.value) {
-        // close chat
         currentFriendId.value = null;
         chatStore.selectFriend(-1);
     } else {
-        // open chat
         if (currentFriendId.value) {
             chatStore.selectFriend(currentFriendId.value);
         }
@@ -128,7 +126,6 @@ const sendMessage = (message: string) => {
 const setupChatMessageHandler = () => {
     const webSocketService = userStore.getWebSocketService;
     if (!webSocketService?.isConnected()) {
-        console.log("WebSocket not ready.");
         return;
     }
 
@@ -161,7 +158,6 @@ const setupChatMessageHandler = () => {
             chatStore.addUnreadMessage(conversationId);
         }
     });
-    console.log("WebSocket handlers set up.");
 };
 
 const fetchFriendList = async () => {
@@ -192,7 +188,7 @@ watch(() => chatStore.selectedFriendId, async (newFriendId) => {
 });
 
 watch(() => t('chatInviteTitle'), (newValue) => {
-    const index = friends.value.findIndex(friend => friend.id === 0); // Trouve "TOURNAMENT_MASTER"
+    const index = friends.value.findIndex(friend => friend.id === 0);
     if (index !== -1) {
         friends.value[index] = {
             ...friends.value[index],
@@ -200,7 +196,6 @@ watch(() => t('chatInviteTitle'), (newValue) => {
             displayname: newValue,
         };
     } else {
-        // Si TOURNAMENT_MASTER n'est pas dans la liste, ajoutez-le
         friends.value.unshift({
             id: 0,
             nickname: newValue,

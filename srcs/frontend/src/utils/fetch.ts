@@ -5,7 +5,6 @@ export const fetchUserById = async (userId: number): Promise<UserData | null> =>
   try {
     const user = await api.user.getOtherUserData(userId);
     if (!user) {
-      console.log('User not found or unauthorized');
       return null;
     }
     return user;
@@ -17,12 +16,9 @@ export const fetchUserById = async (userId: number): Promise<UserData | null> =>
 
 export function getBaseHost(): string {
   if (import.meta.env.PROD) {
-    // In production, we can use window.location to get the current host
-    // This will automatically handle IP addresses or domain names
-    const currentHost = window.location.host; // This includes host:port
+    const currentHost = window.location.host;
     return `https://${currentHost}`;
   }
-  // In development, use localhost with direct ports
   return 'http://localhost';
 }
 
@@ -34,6 +30,6 @@ export const fetchMultipleUsers = async (userIds: number[]) => {
         return await Promise.all(userPromises);
     } catch (error) {
         console.error("One or more fetches failed:", error);
-        return Array(userIds.length).fill(null); // Return null users instead of throwing
+        return Array(userIds.length).fill(null);
     }
 };

@@ -10,15 +10,12 @@ function getCSSVariable(variableName: string): string {
 }
 
 function hexToRgba(hex: string, alpha: number): string {
-    // Supprimer le '#' si présent
     hex = hex.replace('#', '');
 
-    // Extraire les composantes RGB
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    // Retourner au format RGBA
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
@@ -41,7 +38,6 @@ export function drawPaddle(ctx: CanvasRenderingContext2D, state: GameState): voi
 
 
 function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
-    // Récupérer la couleur hexadécimale de la variable CSS
     const colorExtract = getCSSVariable('--secondary-bright-color');
 
     ctx.globalCompositeOperation = 'lighter';
@@ -61,10 +57,9 @@ function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
             radius
         );
 
-        // Ajouter les étapes du dégradé avec transparence
-        gradient.addColorStop(0, hexToRgba(colorExtract, 0.8)); // Opacité à 0.8
-        gradient.addColorStop(0.4, hexToRgba(colorExtract, 0.4)); // Opacité à 0.4
-        gradient.addColorStop(1, hexToRgba(colorExtract, 0)); // Opacité à 0
+        gradient.addColorStop(0, hexToRgba(colorExtract, 0.8));
+        gradient.addColorStop(0.4, hexToRgba(colorExtract, 0.4));
+        gradient.addColorStop(1, hexToRgba(colorExtract, 0));
 
         ctx.beginPath();
         ctx.fillStyle = gradient;
@@ -75,19 +70,13 @@ function drawFireBall(ctx: CanvasRenderingContext2D, state: GameState) {
 
 
 export function drawBall(ctx: CanvasRenderingContext2D, state: GameState) {
-    // Dessiner l'effet de feu
     drawFireBall(ctx, state);
-    
-    // Restaurer le mode de composition normal
     ctx.globalCompositeOperation = 'source-over';
-    
-    // Dessiner la balle principale (toujours en rouge maintenant)
+
     ctx.beginPath();
     ctx.fillStyle = 'rgba(255, 255, 255 , 0.7)';
     ctx.arc(state.ball.x, state.ball.y, 10, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Dessiner les indicateurs de boost
     ctx.globalCompositeOperation = 'source-over';
 }
 
@@ -114,7 +103,6 @@ export function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState)
         ctx.closePath();
     }
     
-    // Fonction pour déterminer la couleur et le texte selon l'état
     function getBoostInfo(boost: any) {
         if (boost.isboostactive) {
             return { 
@@ -134,8 +122,6 @@ export function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState)
         }
     }
 
-    // Player 1 boost
-  //  console.log(state);
     const player1Info = getBoostInfo(state.player1boost);
     ctx.fillStyle = player1Info.color;
     roundRect(margin, y, width, statusHeight);
@@ -143,14 +129,12 @@ export function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState)
     ctx.strokeStyle = '#ffffff';
     ctx.stroke();
     
-    // Player 2 boost
     const player2Info = getBoostInfo(state.player2boost);
     ctx.fillStyle = player2Info.color;
     roundRect(ctx.canvas.width - width - margin, y, width, statusHeight);
     ctx.fill();
     ctx.stroke();
     
-    // Texte
     ctx.fillStyle = '#ffffff';
     ctx.font = '14px Arial';
     ctx.textAlign = 'center';
@@ -169,18 +153,15 @@ export async function drawEndGame(
 ) {
     animationTime += 0.02;
 
-    // Fond semi-transparent
     ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    // Animation de texte
     const scale = 1 + Math.sin(animationTime * 2) * 0.1;
 
     ctx.save();
     ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
     ctx.scale(scale, scale);
 
-    // Texte principal
     ctx.font = 'bold 48px Arial';
     ctx.fillStyle = '#FFD700';
     ctx.textAlign = 'center';
@@ -192,14 +173,12 @@ export async function drawEndGame(
 
     ctx.fillText(winnerText, 0, -40);
 
-    // Score final
     const finalScoreText = i18n.global.t('finalScoreText', { score1: state.score.player1, score2: state.score.player2 });
 
     ctx.font = '32px Arial';
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(finalScoreText, 0, 20);
 
-    // Message de redirection
     const alpha = (Math.sin(animationTime * 4) + 1) / 2;
     const backToMenuText = i18n.global.t('backToMenuText');
 
@@ -218,18 +197,15 @@ export async function drawSemiEndGame(
 ) {
     animationTime += 0.02;
 
-    // Fond semi-transparent
     ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    // Animation de texte
     const scale = 1 + Math.sin(animationTime * 2) * 0.1;
 
     ctx.save();
     ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
     ctx.scale(scale, scale);
 
-    // Texte principal
     ctx.font = 'bold 48px Arial';
     ctx.fillStyle = '#FFD700';
     ctx.textAlign = 'center';
@@ -239,12 +215,10 @@ export async function drawSemiEndGame(
     const winner: UserData | null = await fetchUserById(winnerId);
     ctx.fillText(`${winner?.displayname} GAGNE!`, 0, -40);
 
-    // Score final
     ctx.font = '32px Arial';
     ctx.fillStyle = '#FFFFFF';
     ctx.fillText(`Score Final: ${state.score.player1} - ${state.score.player2}`, 0, 20);
 
-    // Message de redirection
     const alpha = (Math.sin(animationTime * 4) + 1) / 2;
     ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
     ctx.font = '24px Arial';

@@ -28,12 +28,11 @@ const props = defineProps<{
 
 const user_store = useUserStore();
 
-// Calcul de la taille de la police en fonction du pseudo
 const nameStyle = computed(() => {
   const nickname = (props.isLeft ? user_store.nickname : props.challengedFriend?.nickname) || '';
-  const minFontSize = 11;  // Taille minimum de la police
-  const maxFontSize = 24;  // Taille maximum de la police
-  const minLength = 3;     // Longueur minimale du pseudo
+  const minFontSize = 11;
+  const maxFontSize = 24;
+  const minLength = 3;
 
   const length = nickname.length;
   const fontSize = Math.max(minFontSize, Math.min(maxFontSize, maxFontSize - (length - minLength) * 1.5));

@@ -9,7 +9,6 @@ import (
 
 type UserToken struct {
 	ID uint
-	// ADD CREATEDAT FIELD ?
 }
 
 func CreateToken(id uint) (string, error) {

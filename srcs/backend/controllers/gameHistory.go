@@ -62,7 +62,6 @@ func SaveGameHistory(c *gin.Context) {
 func GetUserGameHistory(c *gin.Context) {
     nickname := c.Param("nickname")
     
-    // D'abord, récupérer l'ID de l'utilisateur
     var user models.User
     if err := database.DB.Where("nickname = ?", nickname).First(&user).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
@@ -72,7 +71,6 @@ func GetUserGameHistory(c *gin.Context) {
             })
             return
         }
-        // Pour toute autre erreur de base de données, on garde le 500
         c.JSON(http.StatusInternalServerError, gin.H{
             "error": "Failed to fetch user",
             "details": err.Error(),
@@ -80,12 +78,9 @@ func GetUserGameHistory(c *gin.Context) {
         return
     }
 
-    // Ensuite, récupérer l'historique des parties
     var gameHistories []models.GameHistory
     if err := database.DB.
-        // Utiliser une seule condition avec l'ID de l'utilisateur
         Where("player1_id = ? OR player2_id = ?", user.ID, user.ID).
-        // Charger les relations nécessaires
         Preload("Player1", func(db *gorm.DB) *gorm.DB {
             return db.Select("id", "display_name", "nickname", "avatar")
         }).
@@ -95,7 +90,6 @@ func GetUserGameHistory(c *gin.Context) {
         Preload("Winner", func(db *gorm.DB) *gorm.DB {
             return db.Select("id", "display_name", "nickname", "avatar")
         }).
-        // Trier par date de création décroissante
         Order("created_at desc").
         Find(&gameHistories).Error; err != nil {
             fmt.Printf("Database error: %v\n", err) 
@@ -106,7 +100,6 @@ func GetUserGameHistory(c *gin.Context) {
         return
     }
 
-    // Préparer la réponse avec is_winner
     type GameHistoryResponse struct {
         models.GameHistory
         IsWinner bool `json:"is_winner"`
@@ -116,7 +109,7 @@ func GetUserGameHistory(c *gin.Context) {
     for _, game := range gameHistories {
         response = append(response, GameHistoryResponse{
             GameHistory: game,
-            IsWinner:    game.WinnerID == uint64(user.ID), // Maintenant on peut utiliser user.ID
+            IsWinner:    game.WinnerID == uint64(user.ID),
         })
     }
 

@@ -104,13 +104,6 @@ func AddFriendsToUsers() {
 
 }
 
-//	type Message struct {
-//		ID         uint      `json:"id" gorm:"primaryKey;autoIncrement"`
-//		SenderID   uint      `json:"senderId" gorm:"not null"`
-//		ReceiverID uint      `json:"receiverId" gorm:"not null"`
-//		Message    string    `json:"message"`
-//		CreatedAt  time.Time `json:"createdAt" gorm:"autoCreateTime"`
-//	}
 
 func GetMockedMessages() []models.Message {
 	return []models.Message{{
@@ -153,15 +146,15 @@ func CreateMockConversation() {
 func CreateMockGames() {
 	games := []models.GameHistory{
 		{
-			Player1ID: 1, // Hichame
-			Player2ID: 2, // Maxime
+			Player1ID: 1,
+			Player2ID: 2,
 			WinnerID:  1,
 			Score1:    5,
 			Score2:    3,
 		},
 		{
-			Player1ID: 1, // Hichame
-			Player2ID: 4, // Omar
+			Player1ID: 1,
+			Player2ID: 4,
 			WinnerID:  4,
 			Score1:    2,
 			Score2:    5,

@@ -71,7 +71,6 @@ const toggleOffFriendMenu = () => {
   showAddFriend.value = false;
   showFriendRequests.value = false;
 
-  // Reset states to force reloading next time
   friendsLoaded.value = false;
   friendRequestsLoaded.value = false;
 };
@@ -81,7 +80,7 @@ const toggleFriendList = async () => {
   if (showFriendList.value) {
     showAddFriend.value = false;
     showFriendRequests.value = false;
-    await fetchFriendList(); // Load only when necessary
+    await fetchFriendList();
   }
 };
 
@@ -123,12 +122,12 @@ const fetchFriendList = async () => {
 };
 
 const fetchFriendRequests = async () => {
-  if (friendRequestsLoaded.value) return; // Do not recharge if already charged
+  if (friendRequestsLoaded.value) return;
 
   loadingFriendRequests.value = true;
   try {
     friendRequests.value = await api.friendlist.getFriendRequests();
-    friendRequestsLoaded.value = true; // Mark requests as loaded
+    friendRequestsLoaded.value = true;
   } catch (error) {
     console.error('Failed to fetch friend requests:', error);
   } finally {

@@ -1,7 +1,5 @@
-// src/i18n.ts
 import { createI18n } from 'vue-i18n';
 
-// Définitions des messages traduits
 const messages = {
   en: {
     home: "Home",
@@ -26,6 +24,7 @@ const messages = {
     errorMessageNicknameTooShort: "Nickname must be at least 3 characters long!",
     errorMessagePasswordTooShort: "Password must be at least 6 characters long!",
     nicknameField: "Nickname",
+    displaynameField: "Display Name",
     passwordField: "Password",
     confirmPasswordField: "Confirm Password",
     friendRequestsTitle: "Friend Requests",
@@ -47,7 +46,6 @@ const messages = {
     loadingFriends: "Loading friends...",
     noFriendsMessage: "You have no friends yet 😢",
     tournament: "Tournament",
-    playerVsRobot: "Player VS Robot",
     playAgainstFriend: "Play against your friend",
     leaveLobby: "Leave Lobby",
     waitingForFriend: "Waiting for friend's answer...",
@@ -139,6 +137,15 @@ const messages = {
     winnerText: "{displayname} WINS!",
     finalScoreText: "Final Score: {score1} - {score2}",
     backToMenuText: "Back to Menu soon...",
+    enterConfirmationCode: "Please enter the confirmation code:",
+    enter2FACodePlaceholder: "Enter 2FA code",
+    generateQRCode: "Generate Google Authenticator QR code",
+    alreadyActive2FA: "2FA is already active. QR code generation is not allowed.",
+    fetchStatusError: "Failed to check 2FA status. Please try again.",
+    fetchQRCodeError: "Failed to generate 2FA QR code. Please try again.",
+    confirm2FAError: "Failed to confirm 2FA. Please try again.",
+    confirm2FASuccess: "2FA Confirmation successful: {message}",
+    loading: "Loading..."
   },
   fr: {
     home: "Accueil",
@@ -163,6 +170,7 @@ const messages = {
     errorMessageNicknameTooShort: "Le pseudo doit comporter au moins 3 caractères !",
     errorMessagePasswordTooShort: "Le mot de passe doit comporter au moins 6 caractères !",
     nicknameField: "Pseudo",
+    displaynameField: "Nom d'affichage",
     passwordField: "Mot de passe",
     confirmPasswordField: "Confirmer le mot de passe",
     friendRequestsTitle: "Demandes d'amis",
@@ -184,7 +192,6 @@ const messages = {
     loadingFriends: "Chargement des amis...",
     noFriendsMessage: "Vous n'avez pas encore d'amis 😢",
     tournament: "Tournoi",
-    playerVsRobot: "Joueur contre Robot",
     playAgainstFriend: "Jouer contre un ami",
     leaveLobby: "Quitter le lobby",
     waitingForFriend: "En attente de la réponse de votre ami...",
@@ -276,6 +283,15 @@ const messages = {
     winnerText: "{displayname} GAGNE!",
     finalScoreText: "Score Final: {score1} - {score2}",
     backToMenuText: "Retour au menu dans quelques secondes...",
+    enterConfirmationCode: "Veuillez entrer le code de confirmation :",
+    enter2FACodePlaceholder: "Entrez le code 2FA",
+    generateQRCode: "Générer le QR code pour Google Authenticator",
+    alreadyActive2FA: "La 2FA est déjà active. La génération de QR code n'est pas autorisée.",
+    fetchStatusError: "Échec de la vérification de l'état de la 2FA. Veuillez réessayer.",
+    fetchQRCodeError: "Échec de la génération du QR code 2FA. Veuillez réessayer.",
+    confirm2FAError: "Échec de la confirmation de la 2FA. Veuillez réessayer.",
+    confirm2FASuccess: "Confirmation de la 2FA réussie : {message}",
+    loading: "Chargement..."
   },
   es: {
     home: "Inicio",
@@ -301,6 +317,7 @@ const messages = {
     errorMessageNicknameTooShort: "¡El apodo debe tener al menos 3 caracteres!",
     errorMessagePasswordTooShort: "¡La contraseña debe tener al menos 6 caracteres!",
     nicknameField: "Apodo",
+    displaynameField: "Nombre para mostrar",
     passwordField: "Contraseña",
     confirmPasswordField: "Confirmar contraseña",
     friendRequestsTitle: "Solicitudes de amistad",
@@ -322,7 +339,6 @@ const messages = {
     loadingFriends: "Cargando amigos...",
     noFriendsMessage: "Todavía no tienes amigos 😢",
     tournament: "Torneo",
-    playerVsRobot: "Jugador contra Robot",
     playAgainstFriend: "Jugar contra un amigo",
     leaveLobby: "Salir del lobby",
     waitingForFriend: "Esperando la respuesta de tu amigo...",
@@ -411,6 +427,16 @@ const messages = {
     notFoundTitle: "404 - Página no encontrada",
     notFoundMessage: "La página que buscas no existe.",
     goBackHome: "Volver al inicio",
+    backToMenuText: "Volver al menú en unos segundos...",
+    enterConfirmationCode: "Por favor, ingrese el código de confirmación:",
+    enter2FACodePlaceholder: "Ingrese el código 2FA",
+    generateQRCode: "Generar código QR para Google Authenticator",
+    alreadyActive2FA: "2FA ya está activo. No se permite la generación de códigos QR.",
+    fetchStatusError: "Error al verificar el estado de 2FA. Por favor, intente nuevamente.",
+    fetchQRCodeError: "Error al generar el código QR 2FA. Por favor, intente nuevamente.",
+    confirm2FAError: "Error al confirmar el 2FA. Por favor, intente nuevamente.",
+    confirm2FASuccess: "Confirmación de 2FA exitosa: {message}",
+    loading: "Cargando..."
   },
   ro: {
     home: "Acasă",
@@ -435,6 +461,7 @@ const messages = {
     errorMessageNicknameTooShort: "Porecla trebuie să aibă cel puțin 3 caractere!",
     errorMessagePasswordTooShort: "Parola trebuie să aibă cel puțin 6 caractere!",
     nicknameField: "Poreclă",
+    displaynameField: "Nume afișat",
     passwordField: "Parolă",
     confirmPasswordField: "Confirmă parola",
     friendRequestsTitle: "Cereri de prietenie",
@@ -456,7 +483,6 @@ const messages = {
     loadingFriends: "Se încarcă lista de prieteni...",
     noFriendsMessage: "Nu ai încă prieteni 😢",
     tournament: "Turneu",
-    playerVsRobot: "Jucător contra Robot",
     playAgainstFriend: "Joacă împotriva unui prieten",
     leaveLobby: "Părăsește lobby-ul",
     waitingForFriend: "Aștept răspunsul prietenului...",
@@ -548,14 +574,22 @@ const messages = {
     winnerText: "{displayname} A CÂȘTIGAT!",
     finalScoreText: "Scor Final: {score1} - {score2}",
     backToMenuText: "Înapoi la meniu în curând...",
+    enterConfirmationCode: "Vă rugăm să introduceți codul de confirmare:",
+    enter2FACodePlaceholder: "Introduceți codul 2FA",
+    generateQRCode: "Generați codul QR pentru Google Authenticator",
+    alreadyActive2FA: "2FA este deja activ. Generarea codurilor QR nu este permisă.",
+    fetchStatusError: "Eroare la verificarea stării 2FA. Vă rugăm să încercați din nou.",
+    fetchQRCodeError: "Eroare la generarea codului QR 2FA. Vă rugăm să încercați din nou.",
+    confirm2FAError: "Eroare la confirmarea 2FA. Vă rugăm să încercați din nou.",
+    confirm2FASuccess: "Confirmarea 2FA reușită: {message}",
+    loading: "Se încarcă..."
   },
 };
 
-// Initialisation de Vue I18n
 const i18n = createI18n({
-  locale: 'en', // Langue par défaut  
-  fallbackLocale: 'en', // Langue de secours
-  messages, // Messages traduits
+  locale: 'en', 
+  fallbackLocale: 'en', 
+  messages, 
 });
 
 export default i18n;

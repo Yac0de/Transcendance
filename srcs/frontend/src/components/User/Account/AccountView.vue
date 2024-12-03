@@ -7,10 +7,10 @@
     </div>
     <div class="account-info">
       <p><strong>{{ $t('nicknameField') }}:</strong> {{ user.nickname }}</p>
-      <p><strong>{{ $t('passwordField') }}:</strong> {{ user.displayname }}</p>
+      <p><strong>{{ $t('displaynameField') }}:</strong> {{ user.displayname }}</p>
     </div>
     <div v-if="isOwnProfile" class="account-actions">
-      <button class="action-button" @click="$emit('startEditing')">{{ $t('editProfile') }}</button>
+      <button class="action-button" @click="$emitFaccount-container('startEditing')">{{ $t('editProfile') }}</button>
     </div>
   </div>
 </template>

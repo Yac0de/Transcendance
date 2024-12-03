@@ -15,7 +15,7 @@ export async function apiRequest<T>(url: string, options: RequestInit): Promise<
     if (!response.ok) {
         throw { error: result.error || 'Request failed', status: response.status };
     }
-
+    result.status = response.status;
     return result;
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <AuthForm v-if="show2fa" formTitle="SIGN IN" submitButtonLabel="Sign In" :fields="fields" :successMessage="successMessage"
+  <AuthForm v-if="!show2fa" formTitle="SIGN IN" submitButtonLabel="Sign In" :fields="fields" :successMessage="successMessage"
     :errorMessage="errorMessage" @submit="handleSubmit" @secondaryAction="handleSignup"
     secondaryButtonLabel="Sign Up" />
   <div v-else class="confirmTwoFA">
@@ -72,7 +72,8 @@ const handleSubmit = async () => {
     successMessage.value = '';
     const response = await api.auth.signin({ nickname: nickname.value, password: password.value });
 
-        // Check if the response status is 202 (2FA required)
+        // Check if the response status is 202 (2FA required)\
+        console.log("ca pue !: ", response.status)
     if (response.status === 202) {
       successMessage.value = 'Two-factor authentication is required. Please enter your 2FA code.';
 
@@ -109,7 +110,7 @@ const resetMessages = () => {
 const confirm2FA = async () => {
   resetMessages();
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/verify2FA`, {
+    const response = await fetch(`${API_BASE_URL}/auth/check2FA`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -171,5 +172,29 @@ const confirm2FA = async () => {
     var(--secondary-dark-color),
     color-mix(in srgb, var(--secondary-dark-color) 75%, white)
   );
+}
+
+.error-message,
+.success-message {
+  position: static;
+  margin: 16px 0;
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+
+.error-message {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ef9a9a;
+}
+
+.success-message {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  border: 1px solid #a5d6a7;
 }
 </style>

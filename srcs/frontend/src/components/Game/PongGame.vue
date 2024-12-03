@@ -3,7 +3,6 @@
     <div class="pong-menu-container">
       <div class="menu-buttons">
         <button @click="startTournament" class="menu-button">{{ $t('tournament') }}</button>
-        <button @click="startPlayerVsRobot" class="menu-button">{{ $t('playerVsRobot') }}</button>
         <button @click="startPlayerVsFriend" class="menu-button">{{ $t('playAgainstFriend') }}</button>
       </div>
     </div>
@@ -19,11 +18,6 @@ const startTournament = () => {
   // TODO: Implement tournament logic 
   console.log('Starting tournament');
   router.push('/tournament');
-};
-
-const startPlayerVsRobot = () => {
-  // TODO: Implement player vs robot logic 
-  console.log('Starting Player VS Robot game');
 };
 
 const startPlayerVsFriend = () => {

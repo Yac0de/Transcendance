@@ -9,6 +9,13 @@ type User struct {
 	Friends     []*User `gorm:"many2many:friendShip;"`
 }
 
+type TwoFactorAuth struct {
+	ID       uint   `json:"id" gorm:"primary_key;autoIncrement"`
+	UserID   uint   `json:"user_id" gorm:"not null;unique"`
+	IsActive bool   `json:"is_active" gorm:"default:false"`
+	Secret   string `json:"secret" gorm:"not null"`
+}
+
 type UserResponse struct {
 	ID          uint   `json:"id"`
 	DisplayName string `json:"displayname"`

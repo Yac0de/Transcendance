@@ -10,8 +10,7 @@
       <p><strong>{{ $t('passwordField') }}:</strong> {{ user.displayname }}</p>
     </div>
     <div v-if="isOwnProfile" class="account-actions">
-      <button class="edit-button" @click="$emit('startEditing')">{{ $t('editProfile') }}</button>
-      <button class="action-button" @click="$emit('startEditing')">Edit Profile</button>
+      <button class="action-button" @click="$emit('startEditing')">{{ $t('editProfile') }}</button>
     </div>
   </div>
 </template>

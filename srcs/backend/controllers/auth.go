@@ -3,19 +3,200 @@ package controllers
 import (
 	"api/database"
 	"api/models"
+	"api/prometheus"
 	"api/utils"
 	"net/http"
 	"strings"
-	"api/prometheus"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pquerna/otp/totp"
+	"github.com/skip2/go-qrcode"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func Auth(ctx *gin.RouterGroup) {
 	ctx.POST("/signin", SignIn)
 	ctx.POST("/signup", SignUp)
 	ctx.POST("/signout", SignOut)
+	ctx.GET("/generate2FA", Generate2FAcode)
+	ctx.GET("/2FA-status", GetUser2FAStatus)
+	ctx.POST("/verify2FA", Verify2FAcode)
+	ctx.POST("/check2FA", Check2FAcode)
+}
+
+func GetUser2FAStatus(ctx *gin.Context) {
+	id, exists := ctx.Get("UserId")
+
+	userId, ok := id.(uint)
+	if !exists || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: you must be logged in to access this resource."})
+		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	if err := database.DB.Where("user_id = ?", userId).First(&twoFactor).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			ctx.JSON(http.StatusOK, gin.H{"status": false})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if twoFactor.IsActive == true {
+		ctx.JSON(http.StatusOK, gin.H{"status": true})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": false})
+}
+
+func Check2FAcode(ctx *gin.Context) {
+	var data map[string]interface{}
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
+		return
+	}
+	nickname, exists := data["nickname"].(string)
+	if !exists || len(nickname) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "You must provide nickname"})
+		return
+	}
+
+	code, exists := data["code"].(string)
+	if !exists || len(code) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "You must provide the 2FA code"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.Where("nickname = ?", nickname).First(&user).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "nickname not found"})
+		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	if err := database.DB.Where("user_id = ?", user.ID).First(&twoFactor).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "2FA code was not generated for this user"})
+		return
+	}
+
+	valid := totp.Validate(code, twoFactor.Secret)
+	if !valid {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid 2FA code"})
+		return
+	}
+
+	token, err := utils.CreateToken(user.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while generating the token. Please try again."})
+		prometheus.RecordLoginAttempt(false)
+		return
+	}
+	prometheus.IncrementActiveUsers()
+	prometheus.RecordLoginAttempt(true)
+	ctx.SetCookie("access_token", token, 0, "/", "", false, true)
+	ctx.JSON(http.StatusOK, gin.H{"message": "2FA code verified successfully"})
+}
+
+func Verify2FAcode(ctx *gin.Context) {
+	id, exists := ctx.Get("UserId")
+
+	userId, ok := id.(uint)
+	if !exists || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized: you must be logged in to access this resource."})
+		return
+	}
+
+	var data map[string]interface{}
+	if err := ctx.ShouldBindJSON(&data); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
+		return
+	}
+
+	code, exists := data["code"].(string)
+	if !exists || len(code) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "You must provide the 2FA code"})
+		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	if err := database.DB.Where("user_id = ?", userId).First(&twoFactor).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "2FA code was not generated for this user"})
+		return
+	}
+
+	valid := totp.Validate(code, twoFactor.Secret)
+	if !valid {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid 2FA code"})
+		return
+	}
+
+	twoFactor.IsActive = true
+	if err := database.DB.Save(&twoFactor).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update TwoFactorAuth"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "2FA code verified successfully"})
+}
+
+func Generate2FAcode(ctx *gin.Context) {
+	id, exists := ctx.Get("UserId")
+
+	userId, ok := id.(uint)
+	if !exists || !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: You must be logged in to access this resource."})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, userId).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      "Transcendance",
+		AccountName: user.Nickname,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate TOTP secret"})
+		return
+	}
+
+	png, err := qrcode.Encode(key.URL(), qrcode.Medium, 256)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
+		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	if err := database.DB.Where("user_id = ?", userId).First(&twoFactor).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			twoFactor = models.TwoFactorAuth{
+				UserID:   userId,
+				IsActive: false,
+				Secret:   key.Secret(),
+			}
+			if err := database.DB.Create(&twoFactor).Error; err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save TwoFactorAuth"})
+				return
+			}
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query TwoFactorAuth"})
+			return
+		}
+	} else {
+		twoFactor.Secret = key.Secret()
+		if err := database.DB.Save(&twoFactor).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update TwoFactorAuth"})
+			return
+		}
+	}
+
+	ctx.Data(http.StatusCreated, "image/png", png)
 }
 
 func SignOut(ctx *gin.Context) {
@@ -69,46 +250,56 @@ func SignUp(ctx *gin.Context) {
 }
 
 func SignIn(ctx *gin.Context) {
-    var input models.SignInDto
+	var input models.SignInDto
 
-    err := ctx.ShouldBindJSON(&input)
-    if err != nil {
-        ctx.JSON(http.StatusBadRequest, gin.H{
-            "error": "Invalid input data. Please check the fields and try again.",
+	err := ctx.ShouldBindJSON(&input)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid input data. Please check the fields and try again.",
 		})
 		prometheus.RecordLoginAttempt(false)
-        return
-    }
+		return
+	}
 
-    var user models.User
-    result := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&user)
-    if result.Error != nil {
-        if result.RowsAffected == 0 {
-            ctx.JSON(http.StatusNotFound, gin.H{"error": "User does not exist. Please check your nickname."})
-            prometheus.RecordLoginAttempt(false)
+	var user models.User
+	result := database.DB.Where("nickname = ?", strings.ToLower(input.Nickname)).First(&user)
+	if result.Error != nil {
+		if result.RowsAffected == 0 {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User does not exist. Please check your nickname."})
+			prometheus.RecordLoginAttempt(false)
 			return
-        }
-        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while checking the user. Please try again later."})
-        prometheus.RecordLoginAttempt(false)
-		return
-    }
-
-    err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
-    if err != nil {
-        ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password. Please try again."})
-        prometheus.RecordLoginAttempt(false)
-		return
-    }
-
-    token, err := utils.CreateToken(user.ID)
-    if err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while generating the token. Please try again."})
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while checking the user. Please try again later."})
 		prometheus.RecordLoginAttempt(false)
-        return
-    }
+		return
+	}
 
-    ctx.SetCookie("access_token", token, 0, "/", "", false, true)
-    ctx.JSON(http.StatusAccepted, gin.H{"success": "User connected"})
-	prometheus.RecordLoginAttempt(true)
-    prometheus.IncrementActiveUsers()
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password))
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password. Please try again."})
+		prometheus.RecordLoginAttempt(false)
+		return
+	}
+
+	var twoFactor models.TwoFactorAuth
+	err = database.DB.Where("user_id = ?", user.ID).First(&twoFactor).Error
+	if err != nil && err == gorm.ErrRecordNotFound || !twoFactor.IsActive {
+		token, err := utils.CreateToken(user.ID)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "An error occurred while generating the token. Please try again."})
+			prometheus.RecordLoginAttempt(false)
+			return
+		}
+		prometheus.IncrementActiveUsers()
+		prometheus.RecordLoginAttempt(false)
+		ctx.SetCookie("access_token", token, 0, "/", "", false, true)
+		ctx.JSON(http.StatusOK, gin.H{"success": "User connected"})
+		return
+	}
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, gin.H{"success": "You must provide 2FA code"})
 }

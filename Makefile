@@ -36,6 +36,8 @@ clean:
 	@echo "Cleaning Docker containers..."
 	@$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) down --remove-orphans
 	@docker volume rm -f srcs_frontend_build
+	@docker volume rm -f srcs_grafana-data
+	@docker volume rm -f srcs_prometheus_data
 	@docker system prune --force
 	@echo "Cleanup complete."
 

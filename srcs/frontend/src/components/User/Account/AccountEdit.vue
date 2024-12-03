@@ -17,12 +17,17 @@
       <label for="edit-displayname">{{ $t('displaynameLabel') }}</label>
       <input id="edit-displayname" v-model="editedUser.displayname" type="text" maxlength="16" />
 
-      <div class="password-toggle">
-        <label for="change-password" class="toggle-label">{{ $t('changePasswordLabel') }}</label>
-        <label class="switch">
-          <input type="checkbox" v-model="changePassword" />
-          <span class="slider round"></span>
-        </label>
+      <div class="password-and-2fa">
+        <div class="password-toggle">
+          <label for="change-password" class="toggle-label">{{ $t('changePasswordLabel') }}</label>
+          <label class="switch">
+            <input type="checkbox" v-model="changePassword" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        <div class="two-fa">
+          <button @click="redirect2fa">Setup 2FA</button> 
+        </div>
       </div>
 
       <div v-if="changePassword" class="change-password">
@@ -53,6 +58,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '../../../services/api';
 import { UserData } from '../../../types/models';
 
@@ -62,6 +68,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const emit = defineEmits(['saveProfile', 'cancelEdit', 'confirmDeleteAccount', 'updateErrorMessage']);
+const router = useRouter();
 
 const editedUser = ref({ ...props.user });
 const newAvatarFile = ref<File | null>(null);
@@ -70,7 +77,6 @@ const changePassword = ref<boolean>(false);
 const currentPassword = ref<string>('');
 const newPassword = ref<string>('');
 const confirmPassword = ref<string>('');
-
 
 const avatarUrl = computed(() => {
   if (newAvatarFile.value) {
@@ -82,6 +88,8 @@ const avatarUrl = computed(() => {
 const triggerAvatarUpload = () => {
   avatarInput.value?.click();
 };
+
+const redirect2fa = () => { router.push('/2fa'); }
 
 const handleAvatarChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0];
@@ -258,12 +266,35 @@ button {
   transform: scale(1.02);
 }
 
+.password-and-2fa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .password-toggle {
   display: flex;
   flex-direction: column;
   margin-top: 10px;
   height: 45px;
   justify-content: space-between;
+}
+
+.two-fa button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  background: linear-gradient(90deg, var(--secondary-bright-color), var(--secondary-dark-color));
+  transition: background-color 0.3s;
+}
+
+.two-fa button:hover {
+  opacity: 0.8;
+  transform: scale(1.03);
 }
 
 .change-password input {

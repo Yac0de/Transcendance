@@ -49,7 +49,7 @@ const currentGameState: GameState = reactive({
     winner: 0,  // or 0, depending on how you represent no winner
     isPaused: false,
     pauseTime: '',  // or null, depending on how you handle empty time
-    remainingTime: 300,
+    elapsedTime: 0,
     player1boost: {
       ballhit: 0,
       boostready:false,

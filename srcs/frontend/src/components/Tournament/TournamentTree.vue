@@ -3,7 +3,7 @@
     <div v-if="tournamentStatusMessage" class="tournament-status">
       {{ $t(tournamentStatusMessage) }}
     </div>
-    <div v-if="remainingSeconds != -1 && !hasLost" class="timer">{{ remainingSeconds }}</div>
+    <div v-if="remainingSeconds > 0 && !hasLost" class="timer">{{ remainingSeconds }}</div>
     <div class="bracket">
       <!-- Final -->
       <div class="match-winner">
@@ -58,14 +58,18 @@ import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch';
 import { eventBus } from '../../events/eventBus';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../../stores/user';
+import { useGameSettingsStore } from '../../stores/gameSettings.js';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   tournamentCode: string;
 }>();
 
+const userStore = useUserStore()
+const gameSettingsStore = useGameSettingsStore();
+
 const { t } = useI18n();
-const userStore = useUserStore();
+
 let goingIntoGame: boolean = false;
 
 const UsersInSemis1 = ref<(UserData | null)[]>([null, null]);
@@ -83,6 +87,7 @@ const handleGameRouting = async (message: TournamentGame) => {
     const lobbyId = message.lobbyId;
     
     goingIntoGame = true;
+    gameSettingsStore.setGameMode(true)
     
     try {
         await router.push({
@@ -160,7 +165,6 @@ onMounted(async () => {
       }
     }
   });
-
   eventBus.on('TOURNAMENT_GAME', handleGameRouting);
 });
 

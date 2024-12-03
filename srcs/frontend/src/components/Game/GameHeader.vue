@@ -13,7 +13,7 @@
     </div>
     <div class="timer-container">
       <div class="timer-title">{{ $t('time') }}
-        <div class="timer">{{ state.remainingTime }}s</div>
+        <div class="timer">{{ state.elapsedTime }}s</div>
       </div>
     </div>
     <div class="scoreP2">

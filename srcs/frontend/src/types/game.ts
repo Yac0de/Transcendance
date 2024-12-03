@@ -56,7 +56,7 @@ export interface GameState {
     pauseTime: string; 
     player1boost: BoostState;  
     player2boost: BoostState;
-    remainingTime: number;
+    elapsedTime: number;
 }
 
 export interface BoostState {

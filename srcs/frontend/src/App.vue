@@ -79,7 +79,7 @@ const switchLanguage = (language: string) => {
 };
 
 const checkAuth = async () => {
-  await userStore.fetchUser();
+  await userStore.initializeStore();
 };
 
 const handleSignout = async () => {

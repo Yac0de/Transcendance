@@ -197,6 +197,7 @@ onUnmounted(() => {
   if (lobbyId.value && !goingIntoGame) {
     if (userStore.getWebSocketService?.isConnected()) {
       userStore.getWebSocketService?.leaveAndTerminateLobby(lobbyId.value);
+      gameSettingsStore.setGameMode(false)
     } else {
       console.error('WebSocket is not connected');
     }

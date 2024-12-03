@@ -59,7 +59,7 @@ type GameState struct {
 	PauseTime     time.Time  `json:"pauseTime"`
 	Player1Boost  BoostState `json:"player1boost"`
 	Player2Boost  BoostState `json:"player2boost"`
-	RemainingTime int        `json:"remainingTime"`
+	ElapsedTime int        `json:"elapsedTime"`
 }
 
 type BoostState struct {
@@ -147,7 +147,7 @@ func NewGame(player1ID uint64, player2ID uint64) *Game {
 			Winner:   0,
 			IsActive: true,
 
-			RemainingTime: 300,
+			ElapsedTime: 0,
 		},
 		Status: "PREGAME",
 	}
@@ -191,17 +191,7 @@ func (g *Game) Update() {
 	now := time.Now()
 	if now.Sub(g.State.PauseTime) >= time.Second {
 		g.State.PauseTime = now
-		if g.State.RemainingTime > 0 {
-			g.State.RemainingTime--
-		} else {
-			g.State.IsActive = false
-			if g.State.Score.Player1 > g.State.Score.Player2 {
-				g.State.Winner = g.Player1.ID
-			} else if g.State.Score.Player2 > g.State.Score.Player1 {
-				g.State.Winner = g.Player2.ID
-			}
-			return
-		}
+		g.State.ElapsedTime++
 	}
 
 	// Update paddles

@@ -1,4 +1,3 @@
-<!-- Timer.vue -->
 <template>
  <div class="timer">
     {{ remainingSeconds }} 

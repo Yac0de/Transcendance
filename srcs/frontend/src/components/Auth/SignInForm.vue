@@ -58,14 +58,12 @@ const { t } = useI18n();
 const show2fa = ref<boolean>(false);
 const confirmationCode = ref('');
 
-// Form fields
 const fields: Field[] = [
   { label: 'nicknameField', model: nickname, type: 'text', required: true, maxlength: 16 },
   { label: 'passwordField', model: password, type: 'password', required: true, maxlength: 50 },
 ];
 
 const handleSubmit = async () => {
-  // Field validation
   if (nickname.value.length < 3) {
     errorMessage.value = t('errorMessageNicknameTooShort');
     return;
@@ -87,15 +85,14 @@ const handleSubmit = async () => {
             credentials: "include",
             body: JSON.stringify({ nickname: nickname.value, password: password.value }),
         });
-    let result = await response.json()
-    console.log("RESULT", result)
+    await response.json()
 
-        // Check if the response status is 202 (2FA required)\
+      // Check if the response status is 202 (2FA required)\
     if (response.status === 202) {
       successMessage.value = 'Two-factor authentication is required. Please enter your 2FA code.';
 
       // Redirect to a 2FA page or show a 2FA input form
-      show2fa.value = true; // Example route for 2FA
+      show2fa.value = true;
       return;
     }
     
@@ -105,12 +102,10 @@ const handleSubmit = async () => {
     if (userId) {
       userStore.setWebSocketService(userId);
     }
-    console.log('Sign in successful', userStore.getNickname);
 
     successMessage.value = t('successMessageSignIn');
     router.push('/');
   } catch (err: any) {
-    console.log(err);
     errorMessage.value = err.error || t('errorUnexpected');
   }
 };
@@ -149,7 +144,6 @@ const confirm2FA = async () => {
     if (userId) {
       userStore.setWebSocketService(userId);
     }
-    console.log('Sign in successful', userStore.getNickname);
 
     successMessage.value = 'Sign in successful!';
     router.push('/');

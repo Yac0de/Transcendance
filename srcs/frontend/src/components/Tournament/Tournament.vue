@@ -1,6 +1,5 @@
 <template>
   <div class="tournament-container">
-    <!-- Main Menu View -->
     <div v-if="currentView === 'menu'" class="menu-view">
       <h1 class="tournament-title">{{ $t('tournamentTitle') }}</h1>
       
@@ -21,20 +20,16 @@
       </div>
     </div>
 
-    <!-- Join Tournament View -->
     <div v-else-if="currentView === 'join'" class="join-view">
       <h2 class="view-title">{{ $t('joinTournamentTitle') }}</h2>
       <JoinTournamentMenu :error="error" />
     </div>
 
-    <!-- Waiting room tournament view -->
     <div v-else-if="currentView === 'waiting-room'" class="create-view">
       <TournamentWaitingRoom />
     </div>
 
-    <!-- Tournament tree view -->
     <div v-else-if="currentView === 'tournament-tree'" class="create-view">
-      <!-- CreateTournament component will go here -->
       <TournamentTree :tournamentCode="tournamentCode"/>
     </div>
   </div>

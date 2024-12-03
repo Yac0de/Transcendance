@@ -135,7 +135,6 @@ export function drawBoostStatus(ctx: CanvasRenderingContext2D, state: GameState)
     }
 
     // Player 1 boost
-  //  console.log(state);
     const player1Info = getBoostInfo(state.player1boost);
     ctx.fillStyle = player1Info.color;
     roundRect(margin, y, width, statusHeight);

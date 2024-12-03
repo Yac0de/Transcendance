@@ -2,8 +2,8 @@ import { defineStore } from 'pinia';
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    themes: ['texturized-and-dynamic', 'metallic-chill', 'cool-and-collected', 'erthy-and-serene', 'mechanical-and-floaty', 'striking-and-simple', 'sleek-and-futuristic', 'eye-catching-and-sleek', 'impactful-and-striking-colors', 'vibrant-and-calming'], // Liste des thèmes disponibles
-    currentThemeIndex: 0, // Index du thème actif
+    themes: ['texturized-and-dynamic', 'metallic-chill', 'cool-and-collected', 'erthy-and-serene', 'mechanical-and-floaty', 'striking-and-simple', 'sleek-and-futuristic', 'eye-catching-and-sleek', 'impactful-and-striking-colors', 'vibrant-and-calming'],
+    currentThemeIndex: 0,
   }),
   getters: {
     currentTheme: (state) => state.themes[state.currentThemeIndex],
@@ -14,7 +14,7 @@ export const useThemeStore = defineStore('theme', {
       if (savedTheme && this.themes.includes(savedTheme)) {
         this.currentThemeIndex = this.themes.indexOf(savedTheme);
       } else {
-        this.currentThemeIndex = 0; // Défaut au premier thème
+        this.currentThemeIndex = 0;
       }
     },
     applyTheme(theme: string) {

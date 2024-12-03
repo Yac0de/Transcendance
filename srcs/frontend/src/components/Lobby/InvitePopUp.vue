@@ -54,7 +54,6 @@ const decline = () => {
   if (wsService) {
     if (inviter) {
       wsService.denyInviteFromFriend(lobbyId, inviter.id);
-      console.log('WebSocket service found, would send DECLINE for inviterId:', inviter.id)
     }
   }
   show.value = false

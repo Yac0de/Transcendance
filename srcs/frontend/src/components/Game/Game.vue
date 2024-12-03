@@ -40,15 +40,15 @@ let isTournamentGame: boolean =  false;
 let lobbyId: string = ''
 
 const currentGameState: GameState = reactive({
-    ball: { x: 0, y: 0 },  // Assuming Ball has x, y properties
+    ball: { x: 0, y: 0 },
     score: { 
         player1: 0, 
         player2: 0 
     },
     isGameMode: false,
-    winner: 0,  // or 0, depending on how you represent no winner
+    winner: 0,
     isPaused: false,
-    pauseTime: '',  // or null, depending on how you handle empty time
+    pauseTime: '',
     elapsedTime: 0,
     player1boost: {
       ballhit: 0,

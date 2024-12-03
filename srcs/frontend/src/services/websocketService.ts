@@ -154,7 +154,6 @@ export class WebSocketService {
     public connect(): void {
         try {
             const url = WS_URL + `?id=${this.clientId}`
-            console.log(url);
             this.ws = new WebSocket(url);
             this.ws.onopen = () => {
                 console.log('Websocket connected!');
@@ -174,7 +173,6 @@ export class WebSocketService {
                     for (const eventData of events) {
                         const message = JSON.parse(eventData);
                         const handler = this.messageHandlers[message.type];
-                        // console.log("<-- ", message);
                         if (handler) {
                             handler(message);
                         } else
@@ -372,7 +370,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 code: code,
             };
-            console.log("->", message);
             this.ws.send(JSON.stringify(message));
         }
     }

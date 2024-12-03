@@ -31,7 +31,7 @@ func Users(ctx *gin.RouterGroup) {
 	ctx.PUT("/update-profile", UpdateProfile)
 	ctx.PUT("/change-password", ChangePassword)
 
-	FriendShip(ctx.Group("/friendships")) // /users/friends/...
+	FriendShip(ctx.Group("/friendships"))
 	ctx.DELETE("/delete-account", DeleteAccount)
 }
 

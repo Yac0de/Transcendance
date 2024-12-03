@@ -128,7 +128,6 @@ const sendMessage = (message: string) => {
 const setupChatMessageHandler = () => {
     const webSocketService = userStore.getWebSocketService;
     if (!webSocketService?.isConnected()) {
-        console.log("WebSocket not ready.");
         return;
     }
 
@@ -161,7 +160,6 @@ const setupChatMessageHandler = () => {
             chatStore.addUnreadMessage(conversationId);
         }
     });
-    console.log("WebSocket handlers set up.");
 };
 
 const fetchFriendList = async () => {

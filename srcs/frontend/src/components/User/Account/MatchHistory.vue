@@ -93,16 +93,12 @@ const formatDate = (dateString: string) => {
 }
 
 onMounted(async () => {
-  console.log("test " + targetNickname.value)
   try {
-    console.log("NEW:", route.params);
     const userId = userStore.id;
     if (userId) {
       
       const history = await gameHistoryService.getUserHistory(route.params.nickname as string);
-      console.log("History received:", history);
       if (history) {
-        // Assigner directement l'historique reçu
         games.value = history;
         const victories = history.filter(game =>game.is_winner).length;
         winrate.value = (victories / history.length) * 100;

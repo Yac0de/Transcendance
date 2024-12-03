@@ -2,7 +2,6 @@
   <div class="player-tile" :class="{ empty: !player }">
     <div class="player-content">
       <div v-if="player" class="player-info">
-        <!-- The player-avatar div will either show the avatar image or the initial letter -->
         <div class="player-avatar">
           <img 
             v-if="player.avatar"

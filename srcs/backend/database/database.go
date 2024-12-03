@@ -153,15 +153,15 @@ func CreateMockConversation() {
 func CreateMockGames() {
 	games := []models.GameHistory{
 		{
-			Player1ID: 1, // Hichame
-			Player2ID: 2, // Maxime
+			Player1ID: 1,
+			Player2ID: 2,
 			WinnerID:  1,
 			Score1:    5,
 			Score2:    3,
 		},
 		{
-			Player1ID: 1, // Hichame
-			Player2ID: 4, // Omar
+			Player1ID: 1,
+			Player2ID: 4,
 			WinnerID:  4,
 			Score1:    2,
 			Score2:    5,

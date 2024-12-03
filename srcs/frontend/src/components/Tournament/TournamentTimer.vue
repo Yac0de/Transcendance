@@ -1,4 +1,3 @@
-<!-- TournamentTimer.vue -->
 <template>
   <div class="tournament-timer">
     {{ remainingSeconds }}

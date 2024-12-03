@@ -2,7 +2,7 @@
   <div class="twoFa-content" v-if="!isLoading">
     <div v-if="showQrCode && !is2FAActive" class="qrcode"></div>
     <div v-if="showQrCode && !is2FAActive" class="confirmTwoFA">
-      <label for="confirmationCode">Please enter the confirmation code:</label>
+      <label for="confirmationCode">{{ $t('enterConfirmationCode') }}</label>
       <form
         class="container-input-confirm-2fa"
         @submit.prevent="confirm2FA"
@@ -12,14 +12,14 @@
           type="text"
           id="confirmationCode"
           required
-          placeholder="Enter 2FA code"
+          :placeholder="$t('enter2FACodePlaceholder')"
         />
-        <input type="submit" value="Send" />
+        <input type="submit" :value="$t('sendButton')" />
       </form>
     </div>
     <div v-if="!showQrCode && !is2FAActive" class="twoFa">
       <button @click="generateQrcode">
-        Generate Google Authenticator QR code
+        {{ $t('generateQRCode') }}
       </button>
     </div>
     <div
@@ -33,12 +33,13 @@
     </div>
   </div>
   <div v-else class="loading">
-    Loading...
+    {{ $t('loading') }}
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { API_BASE_URL } from '../../services/apiUtils';
 
 const confirmationCode = ref('');
@@ -47,6 +48,8 @@ const successMessage = ref('');
 const isLoading = ref(true);
 const showQrCode = ref<boolean>(false);
 const is2FAActive = ref<boolean>(false);
+
+const { t } = useI18n();
 
 const resetMessages = () => {
   errorMessage.value = '';
@@ -69,12 +72,12 @@ const check2FaStatus = async () => {
     is2FAActive.value = result.status;
 
     if (is2FAActive.value) {
-      errorMessage.value = "2FA is already active. QR code generation is not allowed.";
+      errorMessage.value = t('alreadyActive2FA');
     }
 
   } catch (error) {
     console.error('Error fetching 2FA status:', error);
-    errorMessage.value = 'Failed to check 2FA status. Please try again.';
+    errorMessage.value = t('fetchStatusError');
   }
   finally {
     isLoading.value = false;
@@ -86,7 +89,7 @@ const generateQrcode = async () => {
   showQrCode.value = true;
 
   if (is2FAActive.value) {
-    errorMessage.value = "2FA is already active. QR code generation is not allowed.";
+    errorMessage.value = t('alreadyActive2FA');
     return;
   }
 
@@ -134,11 +137,11 @@ const confirm2FA = async () => {
     }
 
     const result = await response.json();
-    successMessage.value = `2FA Confirmation successful: ${result.message}`;
+    successMessage.value = t('confirm2FASuccess', { message: result.message });
     is2FAActive.value = true;
   } catch (error) {
     console.error('Error confirming 2FA:', error);
-    errorMessage.value = "Failed to confirm 2FA. Please try again.";
+    errorMessage.value = t('confirm2FAError');
   }
 };
 

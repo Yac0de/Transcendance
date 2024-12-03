@@ -13,6 +13,7 @@ RUN npm install
 
 RUN npm install pinia
 RUN npm install mitt
+RUN npm install vue-i18n
 
 # Copier tout le code source dans le conteneur
 COPY . .

@@ -1,17 +1,22 @@
 <template>
   <div class="delete-account-prompt">
-    <h3>Delete Account</h3>
-    <p>Are you sure you want to delete your account?</p>
-    <p>This action cannot be undone.</p>
+    <h3>{{ $t('deleteAccountTitle') }}</h3>
+    <p>{{ $t('deleteAccountConfirmation') }}</p>
+    <p>{{ $t('deleteAccountWarning') }}</p>
     <div v-if="!deleted" class="password-input-container">
       <div class="password-input">
-        <label for="delete-password">Please enter your password to confirm:</label>
-        <input type="password" id="delete-password" v-model="password" placeholder="Enter your password" />
+        <label for="delete-password">{{ $t('enterPasswordPrompt') }}</label>
+        <input
+          type="password"
+          id="delete-password"
+          v-model="password"
+          :placeholder="$t('passwordPlaceholder')"
+        />
       </div>
     </div>
     <div v-if="!deleted" class="delete-actions">
-      <button class="confirm-delete-button" @click="confirmDelete">Confirm Delete</button>
-      <button class="cancel-delete-button" @click="$emit('cancelDelete')">Cancel</button>
+      <button class="confirm-delete-button" @click="confirmDelete">{{ $t('confirmDelete') }}</button>
+      <button class="cancel-delete-button" @click="$emit('cancelDelete')">{{ $t('cancelDelete') }}</button>
     </div>
   </div>
 </template>
@@ -36,6 +41,7 @@ const confirmDelete = () => {
 
 <style scoped>
 .delete-account-prompt {
+  color: white;
   display: flex;
   flex-direction: column;
   align-items: center;

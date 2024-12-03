@@ -1,14 +1,13 @@
-<!-- TournamentTree.vue -->
 <template>
   <div class="status-bracket-container">
     <div v-if="tournamentStatusMessage" class="tournament-status">
-      {{ tournamentStatusMessage }}
+      {{ $t(tournamentStatusMessage) }}
     </div>
     <div v-if="remainingSeconds > 0 && !hasLost" class="timer">{{ remainingSeconds }}</div>
     <div class="bracket">
       <!-- Final -->
       <div class="match-winner">
-        <p v-if="!winner"> Winner</p>
+        <p v-if="!winner">{{ $t('winnerPlaceholder') }}</p>
         <p v-else> {{ winner?.displayname }} </p>
       </div>
       <div class="match-connections">
@@ -16,7 +15,7 @@
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">
-              <p v-if="!UsersInFinal[0]"> Semi 1 Winner</p>
+              <p v-if="!UsersInFinal[0]">{{ $t('semiWinner', { number: 1 }) }}</p>
               <p v-else> {{ UsersInFinal[0]?.displayname }} </p>
             </div>
             <div class="match-connections">
@@ -33,7 +32,7 @@
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">
-              <p v-if="!UsersInFinal[1]"> Semi 2 Winner</p>
+              <p v-if="!UsersInFinal[1]">{{ $t('semiWinner', { number: 2 }) }}</p>
               <p v-else> {{ UsersInFinal[1]?.displayname }} </p>
             </div>
             <div class="match-connections">
@@ -52,14 +51,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { UserData } from '../../types/models'
-import { TournamentTimer, TournamentTreeState, TournamentGame } from '../../types/tournament'
-import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch'
-import { eventBus } from '../../events/eventBus'
+import { ref, onMounted, onUnmounted } from 'vue';
+import { UserData } from '../../types/models';
+import { TournamentTimer, TournamentTreeState, TournamentGame } from '../../types/tournament';
+import { fetchMultipleUsers, fetchUserById } from '../../utils/fetch';
+import { eventBus } from '../../events/eventBus';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../../stores/user';
 import { useGameSettingsStore } from '../../stores/gameSettings.js';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   tournamentCode: string;
@@ -68,66 +68,37 @@ const props = defineProps<{
 const userStore = useUserStore()
 const gameSettingsStore = useGameSettingsStore();
 
+const { t } = useI18n();
+
 let goingIntoGame: boolean = false;
 
-const UsersInSemis1 = ref<(UserData | null)[]>([null, null]); 
-const UsersInSemis2 = ref<(UserData | null)[]>([null, null]); 
-const UsersInFinal = ref<(UserData | null)[]>([null, null]); 
-
+const UsersInSemis1 = ref<(UserData | null)[]>([null, null]);
+const UsersInSemis2 = ref<(UserData | null)[]>([null, null]);
+const UsersInFinal = ref<(UserData | null)[]>([null, null]);
 const winner = ref<UserData | null>(null);
 let hasEmittedFinalMessage: boolean = false;
 
 const hasLost = ref<boolean>(false);
 const remainingSeconds = ref<number>(-1);
-const tournamentStatusMessage = ref<string>(''); 
+const tournamentStatusMessage = ref<string>('');
 const router = useRouter();
 
 const handleGameRouting = async (message: TournamentGame) => {
     const lobbyId = message.lobbyId;
     
-    // Set goingIntoGame before starting navigation
     goingIntoGame = true;
     gameSettingsStore.setGameMode(true)
     
     try {
-        // Wait for the navigation to complete
         await router.push({
             path: '/game',
-            query: { lobbyId: lobbyId.toString() } // Ensure lobbyId is a string
+            query: { lobbyId: lobbyId.toString() }
         });
     } catch (error) {
         console.error('Navigation failed:', error);
-        goingIntoGame = false; // Reset if navigation fails
+        goingIntoGame = false;
     }
 }
-
-onMounted(() => {
-    if (userStore.getWebSocketService?.isConnected()) {
-        userStore.getWebSocketService?.sendTreeStateMessage(props.tournamentCode)
-    } else {
-        console.error('WebSocket is not connected');
-    }
-
-    // Other event listeners...
-    eventBus.on('TOURNAMENT_GAME', handleGameRouting)
-});
-
-onUnmounted(() => {
-    // Only attempt to leave if we're not transitioning to a game
-    if (!goingIntoGame) {
-        if (userStore.getWebSocketService?.isConnected()) {
-            userStore.getWebSocketService?.sendLeaveTournament()
-        } else {
-            console.error('WebSocket is not connected');
-        }
-    }
-
-    // Clean up event listeners
-    eventBus.off('TOURNAMENT_GAME', handleGameRouting)
-    eventBus.off('TOURNAMENT_TIMER')
-    eventBus.off('TOURNAMENT_TREE_STATE')
-});
-
 
 onMounted(async () => {
   if (userStore.getWebSocketService?.isConnected()) {
@@ -138,69 +109,64 @@ onMounted(async () => {
 
   eventBus.on('TOURNAMENT_TIMER', (message: TournamentTimer) => {
     remainingSeconds.value = message.remainingTime;
-  })
+  });
 
   eventBus.on('TOURNAMENT_TREE_STATE', async (message: TournamentTreeState) => {
     if (message.semi1) {
-      UsersInSemis1.value = await fetchMultipleUsers([message.semi1.player1id, message.semi1.player2id]); 
+      UsersInSemis1.value = await fetchMultipleUsers([message.semi1.player1id, message.semi1.player2id]);
     }
 
     if (message.semi2) {
-      UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]); 
+      UsersInSemis2.value = await fetchMultipleUsers([message.semi2.player1id, message.semi2.player2id]);
     }
 
-
     if (message.final?.player1id !== 0 || message.final?.player2id !== 0) {
-      const finalPlayer1Id = message.final?.player1id ?? null
-      const finalPlayer2Id = message.final?.player2id ?? null
-      if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
-        tournamentStatusMessage.value =  'Congratulations, you are qualified in the final'
-        if (finalPlayer1Id === userStore.getId && !hasEmittedFinalMessage) {
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_SEMIS', "You are expected to play in the final next!");
-          hasEmittedFinalMessage = true;
-        } else if (finalPlayer2Id === userStore.getId && !hasEmittedFinalMessage) {
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_SEMIS', "You are expected to play in the final next!");
-          hasEmittedFinalMessage = true;
+      const finalPlayer1Id = message.final?.player1id ?? null;
+      const finalPlayer2Id = message.final?.player2id ?? null;
+      tournamentStatusMessage.value =
+        finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId
+          ? 'qualifiedFinal'
+          : 'betterLuckNextTime';
+
+      if (!hasEmittedFinalMessage) {
+        if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_SEMIS', t('prepareFinal'));
         }
-      } else {
-        tournamentStatusMessage.value =  'You lost, better luck next time !'
-        hasLost.value = true
+        hasEmittedFinalMessage = true;
       }
-      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id ?? 0, finalPlayer2Id ?? 0]); 
+      UsersInFinal.value = await fetchMultipleUsers([finalPlayer1Id ?? 0, finalPlayer2Id ?? 0]);
     }
 
     if (message.final?.isFinished) {
       if (message.final?.score[0] > message.final?.score[1]) {
-        winner.value = await fetchUserById(message.final.player1id)
-        if (message.final?.player2id === userStore.getId || message.final?.player1id === userStore.getId) {
-          if (message.final?.player1id === userStore.getId) {
-            tournamentStatusMessage.value =  'Congratulations, you won the final !'
-            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You won the tournament !");
-          } else {
-            tournamentStatusMessage.value =  'You lost, better luck next time !'
-            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You lost in the final ... Too bad ..");
-            hasLost.value = true
+        winner.value = await fetchUserById(message.final.player1id);
+        if (message.final.player1id === userStore.getId) {
+          tournamentStatusMessage.value = 'congratulationsWinFinal';
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('congratulationsWinFinal'));
+        } else {
+          tournamentStatusMessage.value = 'betterLuckNextTime';
+          if (message.final.player2id === userStore.getId) {
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('betterLuckNextTime'));
           }
         }
+        hasLost.value = message.final.player1id !== userStore.getId;
       } else {
-        winner.value = await fetchUserById(message.final?.player2id)
-        if (message.final?.player2id === userStore.getId || message.final?.player1id === userStore.getId) {
-          if (message.final?.player2id === userStore.getId) {
-            tournamentStatusMessage.value =  'Congratulations, you won the final !'
-            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You won the tournament !");
-          } else {
-            tournamentStatusMessage.value =  'You lost, better luck next time !'
-            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', "You lost in the final ... Too bad ..");
-            hasLost.value = true
+        winner.value = await fetchUserById(message.final.player2id);
+        if (message.final.player2id === userStore.getId) {
+          tournamentStatusMessage.value = 'congratulationsWinFinal';
+          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('congratulationsWinFinal'));
+        } else {
+          tournamentStatusMessage.value = 'betterLuckNextTime';
+          if (message.final.player1id === userStore.getId) {
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('betterLuckNextTime'));
           }
         }
+        hasLost.value = message.final.player2id !== userStore.getId;
       }
     }
-
-  })
-  
-  eventBus.on('TOURNAMENT_GAME', handleGameRouting)
-})
+  });
+  eventBus.on('TOURNAMENT_GAME', handleGameRouting);
+});
 
 onUnmounted(() => {
   if (!goingIntoGame) {
@@ -211,14 +177,13 @@ onUnmounted(() => {
     }
   }
 
-  eventBus.off('TOURNAMENT_GAME', handleGameRouting)
-  eventBus.off('TOURNAMENT_TIMER')
-  eventBus.off('TOURNAMENT_TREE_STATE')
-})
+  eventBus.off('TOURNAMENT_GAME', handleGameRouting);
+  eventBus.off('TOURNAMENT_TIMER');
+  eventBus.off('TOURNAMENT_TREE_STATE');
+});
 </script>
 
 <style scoped>
-
 .status-bracket-container {
   display: flex;
   flex-direction: column;
@@ -226,7 +191,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 2rem;
 }
-
 
 .tournament-status {  
   color: white;

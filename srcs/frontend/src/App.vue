@@ -3,19 +3,36 @@
     <nav class="sticky-nav">
       <div class="nav-content">
         <div class="nav-left">
-          <router-link to="/" class="nav-button home-button">HOME</router-link>
+          <router-link to="/" class="nav-button home-button">{{ $t('home') }}</router-link>
         </div>
-        <button class="nav-button themes" @click="themeStore.nextTheme">SWITCH THEMES</button>
+        <button class="nav-button themes" @click="themeStore.nextTheme">{{ $t('switchThemes') }}</button>
         <div class="nav-right">
           <template v-if="!userStore.isSignedIn">
-            <router-link to="/signin" class="nav-button">SIGN IN</router-link>
-            <router-link to="/signup" class="nav-button">SIGN UP</router-link>
+            <router-link to="/signin" class="nav-button">{{ $t('signin') }}</router-link>
+            <router-link to="/signup" class="nav-button">{{ $t('signup') }}</router-link>
           </template>
           <template v-else>
-            <router-link to="/pong" class="nav-button">Play Pong</router-link>
-            <router-link :to="`/${userStore.nickname}`" class="nav-button">Account</router-link>
-            <button @click="handleSignout" class="nav-button">Sign Out</button>
+            <router-link to="/pong" class="nav-button">{{ $t('playPong') }}</router-link>
+            <router-link :to="`/${userStore.nickname}`" class="nav-button">{{ $t('account') }}</router-link>
+            <button @click="handleSignout" class="nav-button">{{ $t('signout') }}</button>
           </template>
+          <!-- Section des langues -->
+          <div class="language-switcher">
+            <select class="language-dropdown" @change="switchLanguage(($event.target as HTMLSelectElement)?.value)" :value="currentLanguage">
+              <option value="en" :selected="currentLanguage === 'en'">
+                🇬🇧 English
+              </option>
+              <option value="fr" :selected="currentLanguage === 'fr'">
+                🇫🇷 Français
+              </option>
+              <option value="es" :selected="currentLanguage === 'es'">
+                🇪🇸 Español
+              </option>
+              <option value="ro" :selected="currentLanguage === 'es'">
+                🇲🇩 Moldave
+              </option>
+            </select>
+          </div>
         </div>
       </div>
     </nav>
@@ -31,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue';
+import { onMounted, computed, watch, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from './stores/user';
 import { useChatStore } from './stores/chatStore';
@@ -40,15 +57,26 @@ import api from './services/api';
 import FriendList from './components/User/Friend/FriendMenu.vue';
 import Chat from './components/User/Chat/Chat.vue';
 import InvitePopUp from './components/Lobby/InvitePopUp.vue';
+import { useI18n } from 'vue-i18n';
 
 const userStore = useUserStore();
 const chatStore = useChatStore();
 const themeStore = useThemeStore();
+const { locale } = useI18n();
 
 const router = useRouter();
 const route = useRoute();
 
 const isGameRoute = computed(() => route.path.startsWith('/game'));
+
+const currentLanguage = ref('en'); // Langue par défaut
+
+const switchLanguage = (language: string) => {
+  currentLanguage.value = language;
+  locale.value = language;
+  localStorage.setItem('language', language);
+  console.log(`Language switched to: ${language}`);
+};
 
 const checkAuth = async () => {
   await userStore.initializeStore();
@@ -67,8 +95,13 @@ const handleSignout = async () => {
 
 onMounted(() => {
   checkAuth();
-  themeStore.loadTheme(); // Charger le thème depuis localStorage
-  themeStore.applyTheme(themeStore.currentTheme); // Appliquer le thème
+  const savedLanguage = localStorage.getItem('language');
+  if (savedLanguage) {
+    currentLanguage.value = savedLanguage;
+    locale.value = savedLanguage;
+  }
+  themeStore.loadTheme();
+  themeStore.applyTheme(themeStore.currentTheme);
 });
 
 watch(() => themeStore.currentTheme, (newTheme) => {
@@ -210,7 +243,9 @@ watch(() => themeStore.currentTheme, (newTheme) => {
   margin-left: 10px;
 }
 
-.nav-button {
+.nav-button,
+select {
+  font-family: "Audiowide", sans-serif;
   margin-left: 10px;
   padding: 0.5vh 1vw;
   font-family: "Audiowide", sans-serif;
@@ -239,6 +274,32 @@ watch(() => themeStore.currentTheme, (newTheme) => {
 .nav-button:hover {
   background-color: var(--main-extra-color);
 }
+
+.language-switcher {
+  position: relative;
+}
+
+.language-dropdown {
+  font-family: "Audiowide", sans-serif;
+  font-size: 1rem;
+  padding: 5px 10px;
+  border: 1px solid white;
+  border-radius: 4px;
+  background: var(--main-color);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.language-dropdown:hover {
+  background-color: var(--main-extra-color);
+}
+
+.language-dropdown option {
+  background: var(--main-color);
+  color: white;
+}
+
 
 .gradient_backgroud {
   flex: 1;

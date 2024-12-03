@@ -19,7 +19,7 @@
         </div>
       </div>
       <div v-else class="waiting-text">
-        Waiting for player...
+        {{ $t('waitingForPlayer') }}
       </div>
     </div>
   </div>

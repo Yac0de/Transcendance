@@ -5,14 +5,14 @@
         v-model="tournamentCode"
         type="text"
         class="tournament-input"
-        placeholder="Enter tournament code"
+        :placeholder="$t('enterTournamentCode')"
         maxlength="8"
       />
       <button 
         class="join-button"
         @click="handleJoin"
       >
-        Join Tournament
+        {{ $t('joinTournament') }}
       </button>
       <div v-if="error" class="error-message">
         {{ error }}

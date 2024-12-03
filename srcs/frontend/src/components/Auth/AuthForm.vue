@@ -1,17 +1,17 @@
 <template>
   <div class="auth-container">
     <div class="auth-form">
-      <h1>{{ formTitle }}</h1>
+      <h1>{{ $t(formTitle) }}</h1>
       <form @submit.prevent="onSubmit">
         <div v-for="(field, index) in fields" :key="index">
-          <label :for="field.label">{{ field.label }}</label>
+          <label :for="field.label">{{ $t(field.label) }}</label>
           <input :type="field.type" :id="field.label" v-model="field.model.value" :required="field.required"
             :maxlength="field.maxlength" />
         </div>
         <div v-if="successMessage" class="alert alert-success">{{ successMessage }}</div>
         <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
-        <button class="primary-button" type="submit">{{ submitButtonLabel }}</button>
-        <button class="secondary-button" @click="onSecondaryAction">{{ secondaryButtonLabel }}</button>
+        <button class="primary-button" type="submit">{{ $t(submitButtonLabel) }}</button>
+        <button class="secondary-button" @click="onSecondaryAction">{{ $t(secondaryButtonLabel) }}</button>
       </form>
     </div>
   </div>

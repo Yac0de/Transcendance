@@ -1,16 +1,24 @@
 <template>
 	<div class="message-input">
-		<input ref="inputRef" maxlength="800" v-model="message" @keyup.enter="sendMessage" placeholder="Type a message..." />
+		<input 
+			ref="inputRef" 
+			maxlength="800" 
+			v-model="message" 
+			@keyup.enter="sendMessage" 
+			:placeholder="$t('typeMessagePlaceholder')" 
+		/>
 		<button 
 			class="action-button challenge-btn" 
 			:class="{ 'disabled': !isOnline }"
 			@click="handleChallengeClick"
 			:disabled="!isOnline"
-			title="Challenge to a match"
+			:title="$t('challengeMatchTitle')"
 		>
 			<i class="fas fa-gamepad"></i>
 		</button>
-		<button class="action-button" @click="sendMessage">Send</button>
+		<button class="action-button" @click="sendMessage">
+			{{ $t('sendButton') }}
+		</button>
 	</div>
 </template>
 

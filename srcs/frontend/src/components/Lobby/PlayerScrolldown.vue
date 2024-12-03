@@ -1,19 +1,24 @@
 <template>
   <div class="scroll-down-container" ref="containerRef">
     <div v-if="isWaiting" class="selected-friend">
-      <span class="select-friend-text">Waiting for friend's answer...</span>
+      <span class="select-friend-text">{{ $t('waitingForFriend') }}</span>
     </div>
     <div v-else>
       <div class="selected-friend" @click="toggleDropdown">
         <span v-if="selectedFriend">{{ selectedFriend }}</span>
-        <span class="select-friend-text" v-else>Select a friend</span>
+        <span class="select-friend-text" v-else>{{ $t('selectFriend') }}</span>
         <span class="arrow" :class="{ 'arrow-up': isOpen }">▼</span>
       </div>
       <div class="dropdown-list" v-if="isOpen">
         <div v-if="onlineFriends.length === 0" class="friend-item no-friends">
-          No friends online
+          {{ $t('noFriendsOnline') }}
         </div>
-        <div v-for="friend in onlineFriends" :key="friend.id" class="friend-item" @click="selectFriend(friend.id)">
+        <div
+          v-for="friend in onlineFriends"
+          :key="friend.id"
+          class="friend-item"
+          @click="selectFriend(friend.id)"
+        >
           {{ friend.nickname }}
         </div>
       </div>

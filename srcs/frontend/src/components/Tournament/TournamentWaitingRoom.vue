@@ -1,9 +1,9 @@
 <template>
   <div class="tournament-lobby">
     <div class="code-display">
-      <h3>Tournament Code</h3>
+      <h3>{{ $t('tournamentCode') }}</h3>
       <div class="code-box" @click="copyToClipboard">
-        {{ tournamentCode.slice(0,8) }}
+        {{ tournamentCode.slice(0, 8) }}
         <i class="fas fa-clipboard copy-icon"></i>
       </div>
     </div>
@@ -15,11 +15,13 @@
         :player="user"
       />
     </div>
-    <button :disabled="users.includes(null)" v-if="creatorId === clientId"
+    <button 
+      :disabled="users.includes(null)" 
+      v-if="creatorId === clientId"
       class="start-button"
       @click="handleStartTournament"
     >
-      Start Tournament
+      {{ $t('startTournament') }}
     </button>
   </div>
 </template>
@@ -33,6 +35,7 @@ import { eventBus } from '../../events/eventBus'
 import { fetchMultipleUsers } from '../../utils/fetch'
 import { useRouter } from 'vue-router';
 import { TournamentCreate, TournamentEvent } from '../../types/tournament';
+import { useI18n } from 'vue-i18n';
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -40,6 +43,8 @@ const tournamentCode = ref<string>('');
 const creatorId = ref<number>(0);
 const clientId = ref<number | null>(userStore.getId);
 const users = ref<(UserData | null)[]>([null, null, null, null]); 
+
+const { t } = useI18n();
 
 const copyToClipboard = (event: MouseEvent) => {
   const element = event.currentTarget as HTMLElement;
@@ -49,7 +54,10 @@ const copyToClipboard = (event: MouseEvent) => {
     element.classList.remove('click-animation');
   }, 150); 
 
-  navigator.clipboard.writeText(tournamentCode.value.slice(0,8))
+  navigator.clipboard.writeText(tournamentCode.value.slice(0, 8))
+    .then(() => {
+      console.log(t('copySuccess')); // Message de confirmation dans la console
+    })
     .catch(err => console.error('Failed to copy code:', err));
 };
 

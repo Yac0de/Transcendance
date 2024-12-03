@@ -49,17 +49,17 @@ type Score struct {
 }
 
 type GameState struct {
-	Ball          Ball       `json:"ball"`
-	Paddles       Paddle     `json:"paddle"`
-	Score         Score      `json:"score"`
-	IsActive      bool       `json:"isActive"`
-	Winner        uint64     `json:"winner"`
-	mutex         sync.Mutex `json:"-"`
-	IsPaused      bool       `json:"isPaused"`
-	PauseTime     time.Time  `json:"pauseTime"`
-	Player1Boost  BoostState `json:"player1boost"`
-	Player2Boost  BoostState `json:"player2boost"`
-	ElapsedTime int        `json:"elapsedTime"`
+	Ball         Ball       `json:"ball"`
+	Paddles      Paddle     `json:"paddle"`
+	Score        Score      `json:"score"`
+	IsActive     bool       `json:"isActive"`
+	Winner       uint64     `json:"winner"`
+	mutex        sync.Mutex `json:"-"`
+	IsPaused     bool       `json:"isPaused"`
+	PauseTime    time.Time  `json:"pauseTime"`
+	Player1Boost BoostState `json:"player1boost"`
+	Player2Boost BoostState `json:"player2boost"`
+	ElapsedTime  int        `json:"elapsedTime"`
 }
 
 type BoostState struct {
@@ -345,12 +345,14 @@ func (g *Game) Update() {
 	if g.State.Ball.X <= 0 {
 		g.State.Score.Player2++
 		g.resetBall()
+		g.State.Ball.DX = -BallSpeed
 		g.resetPaddle()
 	}
 
 	if g.State.Ball.X >= CanvasWidth {
 		g.State.Score.Player1++
 		g.resetBall()
+		g.State.Ball.DX = BallSpeed
 		g.resetPaddle()
 
 	}
@@ -432,6 +434,8 @@ func (g *Game) resetBall() {
 func (g *Game) resetPaddle() {
 	g.State.Paddles.Player1Y = (CanvasHeight / 2) - 120/2
 	g.State.Paddles.Player2Y = (CanvasHeight / 2) - 120/2
+	g.State.Paddles.Player1Direction = 0
+	g.State.Paddles.Player2Direction = 0
 }
 
 func (g *Game) hitCounter(playerNum int) {

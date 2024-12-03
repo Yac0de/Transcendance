@@ -335,7 +335,7 @@ select {
   }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1600px) {
   .sticky-nav {
   justify-content: space-between;
 }

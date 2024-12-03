@@ -8,6 +8,7 @@ export const API_BASE_URL = `${getBaseHost()}${import.meta.env.PROD ? '/api' : '
 
 export async function apiRequest<T>(url: string, options: RequestInit): Promise<T> {
     const response = await fetch(`${API_BASE_URL}${url}`, options);
+
     let result;
     
     try {
@@ -19,7 +20,6 @@ export async function apiRequest<T>(url: string, options: RequestInit): Promise<
     if (!response.ok) {
         throw { error: result.error || 'Request failed', status: response.status };
     }
-    result.status = response.status;
     return result;
 }
 

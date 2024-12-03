@@ -40,7 +40,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import api from '../../services/api';
 import AuthForm from './AuthForm.vue';
 import { useUserStore } from '../../stores/user';
 import { Field } from '../../types/models';
@@ -76,12 +75,20 @@ const handleSubmit = async () => {
     errorMessage.value = t('errorMessagePasswordTooShort');
     return;
   }
-
   // API call for authentication
   try {
     errorMessage.value = '';
     successMessage.value = '';
-    const response = await api.auth.signin({ nickname: nickname.value, password: password.value });
+    const response = await fetch(`${API_BASE_URL}/auth/signin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "include",
+            body: JSON.stringify({ nickname: nickname.value, password: password.value }),
+        });
+    let result = await response.json()
+    console.log("RESULT", result)
 
         // Check if the response status is 202 (2FA required)\
     if (response.status === 202) {

@@ -127,6 +127,7 @@ onMounted(async () => {
         finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId
           ? 'qualifiedFinal'
           : 'betterLuckNextTime';
+      hasLost.value = !(finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId);
 
       if (!hasEmittedFinalMessage) {
         if (finalPlayer1Id === userStore.getId || finalPlayer2Id === userStore.getId) {
@@ -139,31 +140,32 @@ onMounted(async () => {
 
     if (message.final?.isFinished) {
       if (message.final?.score[0] > message.final?.score[1]) {
-        winner.value = await fetchUserById(message.final.player1id);
-        if (message.final.player1id === userStore.getId) {
-          tournamentStatusMessage.value = 'congratulationsWinFinal';
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('congratulationsWinFinal'));
-        } else {
-          tournamentStatusMessage.value = 'betterLuckNextTime';
-          if (message.final.player2id === userStore.getId) {
+        winner.value = await fetchUserById(message.final.player1id)
+        if (message.final?.player2id === userStore.getId || message.final?.player1id === userStore.getId) {
+          if (message.final?.player1id === userStore.getId) {
+            tournamentStatusMessage.value = 'congratulationsWinFinal'
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('congratulationsWinFinal'));
+          } else {
+            tournamentStatusMessage.value = 'betterLuckNextTime'
             eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('betterLuckNextTime'));
+            hasLost.value = true
           }
         }
-        hasLost.value = message.final.player1id !== userStore.getId;
       } else {
-        winner.value = await fetchUserById(message.final.player2id);
-        if (message.final.player2id === userStore.getId) {
-          tournamentStatusMessage.value = 'congratulationsWinFinal';
-          eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('congratulationsWinFinal'));
-        } else {
-          tournamentStatusMessage.value = 'betterLuckNextTime';
-          if (message.final.player1id === userStore.getId) {
+        winner.value = await fetchUserById(message.final?.player2id)
+        if (message.final?.player2id === userStore.getId || message.final?.player1id === userStore.getId) {
+          if (message.final?.player2id === userStore.getId) {
+            tournamentStatusMessage.value = 'congratulationsWinFinal'
+            eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('congratulationsWinFinal'));
+          } else {
+            tournamentStatusMessage.value = 'betterLuckNextTime'
             eventBus.emit('CHAT_FROM_TOURNAMENT_MASTER_FINAL', t('betterLuckNextTime'));
+            hasLost.value = true
           }
         }
-        hasLost.value = message.final.player2id !== userStore.getId;
       }
     }
+
   });
   eventBus.on('TOURNAMENT_GAME', handleGameRouting);
 });

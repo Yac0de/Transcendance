@@ -28,7 +28,6 @@ const router = useRouter();
 
 const { t } = useI18n();
 
-// Form fields
 const fields: Field[] = [
   { label: 'nicknameField', model: nickname, type: 'text', required: true, maxlength: 16 },
   { label: 'passwordField', model: password, type: 'password', required: true, maxlength: 50 },
@@ -36,7 +35,6 @@ const fields: Field[] = [
 ];
 
 const handleSubmit = async () => {
-  // Field validation
   if (password.value !== confirmPassword.value) {
     errorMessage.value = t('errorMessagePasswordsDontMatch');
     return;
@@ -52,7 +50,6 @@ const handleSubmit = async () => {
     return;
   }
 
-  // API call for authentication
   try {
     errorMessage.value = '';
     successMessage.value = '';

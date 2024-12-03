@@ -31,7 +31,6 @@ func Users(ctx *gin.RouterGroup) {
 	ctx.PUT("/update-profile", UpdateProfile)
 	ctx.PUT("/change-password", ChangePassword)
 
-	FriendShip(ctx.Group("/friendships")) // /users/friends/...
 	ctx.DELETE("/delete-account", DeleteAccount)
 }
 
@@ -143,19 +142,16 @@ func UpdateUser(ctx *gin.Context, id uint) (int, error) {
     validate := validator.New()
     var user models.User
 
-    // Vérifier si l'utilisateur existe
     result := database.DB.First(&user, "id = ?", id)
     if result.Error != nil {
         return http.StatusNotFound, result.Error
     }
 
-    // Récupérer les données envoyées via le formulaire
     form, err := ctx.MultipartForm()
     if err != nil {
         return http.StatusNotFound, err
     }
 
-    // Récupérer les valeurs du formulaire
     var newNickname, newDisplayName string
     for key := range form.Value {
         switch strings.ToLower(key) {
@@ -166,7 +162,6 @@ func UpdateUser(ctx *gin.Context, id uint) (int, error) {
         }
     }
 
-    // Vérifier si le displayname a changé et s'il existe déjà
     if newDisplayName != user.DisplayName {
         var existingUser models.User
         err := database.DB.Where("display_name = ?", newDisplayName).First(&existingUser).Error
@@ -175,11 +170,9 @@ func UpdateUser(ctx *gin.Context, id uint) (int, error) {
         }
     }
 
-    // Mettre à jour le nickname et le displayname si nécessaire
     user.Nickname = newNickname
     user.DisplayName = newDisplayName
 
-    // Valider les données
     err = validate.Struct(user)
     if err != nil {
         var e string
@@ -189,7 +182,6 @@ func UpdateUser(ctx *gin.Context, id uint) (int, error) {
         return http.StatusBadRequest, fmt.Errorf(e)
     }
 
-    // Gérer l'avatar
     if form.File["avatar"] != nil {
         filename, err := SaveAvatar(ctx, form.File["avatar"][0])
         if err != nil {
@@ -201,7 +193,6 @@ func UpdateUser(ctx *gin.Context, id uint) (int, error) {
         user.Avatar = filename
     }
 
-    // Sauvegarder l'utilisateur
     if err := database.DB.Save(&user).Error; err != nil {
         return http.StatusBadRequest, err
     }

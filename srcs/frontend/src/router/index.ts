@@ -17,26 +17,26 @@ const routes = [
   { path: '/', component: HomeView },
   { path: '/signin',
     component: SignInForm,
-    meta: { requiresGuest: true } // Empêche l'accès si l'utilisateur est connecté
+    meta: { requiresGuest: true }
   },
   { path: '/signup',
     component: SignUpForm,
     meta: { requiresGuest: true }
   },
   {
-    path: '/pong', 
-    component: PongGame, 
-    meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
+    path: '/pong',
+    component: PongGame,
+    meta: { requiresAuth: true }
   },
   {
-    path: '/tournament', 
-    component: Tournament, 
-    meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
+    path: '/tournament',
+    component: Tournament,
+    meta: { requiresAuth: true }
   },
   {
-    path: '/lobby', 
-    component: Lobby, 
-    meta: { requiresAuth: true } // Indique que l'authentification est nécessaire
+    path: '/lobby',
+    component: Lobby,
+    meta: { requiresAuth: true }
   },
   {
     path: '/game',
@@ -44,31 +44,31 @@ const routes = [
     meta: { requiresAuth: true },
     beforeEnter: (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
       if ('lobbyId' in to.query) {
-        next(); 
+        next();
       } else {
-        next('/'); 
+        next('/');
       }
     }
   },
   { 
-    path: '/:nickname', 
-    component: Account, 
+    path: '/:nickname',
+    component: Account,
     meta: { requiresAuth: true },
     props: true 
   },
   {
-    path: '/:pathMatch(.*)*', 
+    path: '/:pathMatch(.*)*',
     component: NotFound
   },
   { 
-    path: '/match_history/:nickname', 
-    component: MatchHistory, 
+    path: '/match_history/:nickname',
+    component: MatchHistory,
     meta: { requiresAuth: true },
-    props: true 
+    props: true
   },
   { 
-    path: '/2fa', 
-    component: TwoFa, 
+    path: '/2fa',
+    component: TwoFa,
     meta: { requiresAuth: true },
     props: true 
   },
@@ -79,7 +79,6 @@ const router = createRouter({
   routes
 })
 
-// Navigation Guard (executé avant chaque changement de route)
 router.beforeEach(async (to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const requiresAuth = to.matched.some((record: RouteRecordRaw) => record.meta && record.meta.requiresAuth);
   const requiresGuest = to.matched.some((record: RouteRecordRaw) => record.meta && record.meta.requiresGuest);

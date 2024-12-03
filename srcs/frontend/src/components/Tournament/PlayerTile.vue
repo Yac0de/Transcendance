@@ -2,7 +2,6 @@
   <div class="player-tile" :class="{ empty: !player }">
     <div class="player-content">
       <div v-if="player" class="player-info">
-        <!-- The player-avatar div will either show the avatar image or the initial letter -->
         <div class="player-avatar">
           <img 
             v-if="player.avatar"
@@ -27,7 +26,7 @@
 
 <script setup lang="ts">
 import { UserData } from '../../types/models';
-import api from '../../services/api'; // Adjust this import path as needed
+import api from '../../services/api';
 
 defineProps<{
   player?: UserData | null;

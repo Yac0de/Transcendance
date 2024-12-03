@@ -51,7 +51,6 @@ const errorMessage = ref('');
 
 const { t } = useI18n();
 
-// Fonction pour accepter une demande d'ami
 const acceptFriend = async (friendId: number) => {
   try {
     await api.friendlist.acceptFriendRequest(friendId);
@@ -63,7 +62,6 @@ const acceptFriend = async (friendId: number) => {
   }
 };
 
-// Fonction pour refuser une demande d'ami
 const denyFriend = async (requestId: number) => {
   try {
     await api.friendlist.denyFriendRequest(requestId);

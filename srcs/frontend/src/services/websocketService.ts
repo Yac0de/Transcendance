@@ -15,9 +15,6 @@ import { getBaseHost } from  '../utils/fetch'
 
 const WS_URL = `${getBaseHost().replace('http', 'ws')}${import.meta.env.PROD ? '/ws' : ':4001/ws'}`;
 
-//This is needed because we can't get the return type of userStore inside the constructor of a class that is an attribute of
-//this very store, because it creates circular dependencies, so we create an interface that helps up set the return type of
-//our userStore
 interface IUserStore {
     id: number | null;
     nickname: string | null;
@@ -154,7 +151,6 @@ export class WebSocketService {
     public connect(): void {
         try {
             const url = WS_URL + `?id=${this.clientId}`
-            console.log(url);
             this.ws = new WebSocket(url);
             this.ws.onopen = () => {
                 console.log('Websocket connected!');
@@ -170,11 +166,9 @@ export class WebSocketService {
                 try {
                     const events = event.data.split('\n');
 
-                    // Use for...of to properly iterate through the array of events
                     for (const eventData of events) {
                         const message = JSON.parse(eventData);
                         const handler = this.messageHandlers[message.type];
-                        // console.log("<-- ", message);
                         if (handler) {
                             handler(message);
                         } else
@@ -372,7 +366,6 @@ export class WebSocketService {
                 userId: this.userStore.getId!,
                 code: code,
             };
-            console.log("->", message);
             this.ws.send(JSON.stringify(message));
         }
     }

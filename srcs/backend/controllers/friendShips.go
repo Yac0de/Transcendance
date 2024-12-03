@@ -174,7 +174,6 @@ func GetFriendList(ctx *gin.Context) {
 
 	var friendsRequested []models.UserResponse
 
-	// Search friends user by friend.user_id field
 	err := database.DB.Raw(`
 		SELECT u.id, u.display_name, u.nickname, u.avatar 
 		FROM friend_ships f JOIN "users" u ON f.friend_id = u.id
@@ -186,7 +185,6 @@ func GetFriendList(ctx *gin.Context) {
 		return
 	}
 
-	// Search friends user by friend.friend_id field
 	var friendsAccepted []models.UserResponse
 	err = database.DB.Raw(`
 		SELECT u.id, u.display_name, u.nickname, u.avatar 

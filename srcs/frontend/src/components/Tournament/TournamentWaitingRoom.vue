@@ -56,7 +56,7 @@ const copyToClipboard = (event: MouseEvent) => {
 
   navigator.clipboard.writeText(tournamentCode.value.slice(0, 8))
     .then(() => {
-      console.log(t('copySuccess')); // Message de confirmation dans la console
+      console.log(t('copySuccess'));
     })
     .catch(err => console.error('Failed to copy code:', err));
 };

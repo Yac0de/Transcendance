@@ -27,7 +27,7 @@ type GameEvent struct {
 type Ball struct {
 	X      float64 `json:"x"`
 	Y      float64 `json:"y"`
-	DX, DY float64 `json:"-"` //vitesse de la ball et direction
+	DX, DY float64 `json:"-"`
 	Radius float64 `json:"-"`
 }
 
@@ -98,7 +98,6 @@ const (
 	boostMultiplier     = 2.5
 )
 
-// create instance of game and init all data
 func NewGame(player1ID uint64, player2ID uint64) *Game {
 	return &Game{
 		Player1: Player{
@@ -194,7 +193,6 @@ func (g *Game) Update() {
 		g.State.ElapsedTime++
 	}
 
-	// Update paddles
 	if g.State.Paddles.Player1Direction != 0 {
 		newY := g.State.Paddles.Player1Y + float64(g.State.Paddles.Player1Direction)*paddleSpeed
 		g.State.Paddles.Player1Y = math.Max(0, math.Min(CanvasHeight-g.State.Paddles.Height, newY))
@@ -205,16 +203,13 @@ func (g *Game) Update() {
 		g.State.Paddles.Player2Y = math.Max(0, math.Min(CanvasHeight-g.State.Paddles.Height, newY))
 	}
 
-	// Update ball position
 	g.State.Ball.X += g.State.Ball.DX
 	g.State.Ball.Y += g.State.Ball.DY
 
-	// Ball collision with top and bottom walls
 	if g.State.Ball.Y-g.State.Ball.Radius <= 0 || g.State.Ball.Y+g.State.Ball.Radius >= CanvasHeight {
 		g.State.Ball.DY = -g.State.Ball.DY
 	}
 
-	// Classic ball collision with paddle 1
 	if g.State.Ball.X <= Paddle1DistanceWall+g.State.Paddles.Width+g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player1Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player1Y+g.State.Paddles.Height &&
@@ -237,7 +232,6 @@ func (g *Game) Update() {
 		}
 	}
 
-	// Classic ball collision with paddle 2
 	if g.State.Ball.X >= Paddle2DistanceWall-g.State.Ball.Radius {
 		if g.State.Ball.Y >= g.State.Paddles.Player2Y &&
 			g.State.Ball.Y <= g.State.Paddles.Player2Y+g.State.Paddles.Height &&
@@ -249,7 +243,7 @@ func (g *Game) Update() {
 				g.State.Player2Boost.IsBoostActive = false
 				g.State.Player2Boost.BoostReady = false
 			}
-			g.State.Ball.DX = -BallSpeed * multiplier // Negative because ball should go left
+			g.State.Ball.DX = -BallSpeed * multiplier
 			g.State.Ball.DY = computeDeviation(
 				g.State.Ball.Y,
 				g.State.Paddles.Player2Y,
@@ -258,15 +252,13 @@ func (g *Game) Update() {
 			g.hitCounter(2)
 		}
 	}
-	//Top part of the paddle collision
+
 	if g.isBallAbovePaddle() {
 		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player1X &&
 			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player1X+g.State.Paddles.Width {
-
-			// Calculate vertical distance between ball and paddle top edge
+		
 			distanceY := math.Abs(g.State.Ball.Y - g.State.Paddles.Player1Y)
-
-			// If distance is less than ball radius, we have a collision
+		
 			if distanceY-5 <= g.State.Ball.Radius {
 				overlap := g.State.Ball.Radius - distanceY
 				g.State.Ball.DY = g.State.Ball.Y - overlap - 1
@@ -276,7 +268,6 @@ func (g *Game) Update() {
 					g.State.Paddles.Width,
 				)
 				g.State.Ball.DY = -BallSpeed
-
 			}
 		}
 	}
@@ -284,9 +275,9 @@ func (g *Game) Update() {
 	if g.isBallBelowPaddle() {
 		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player1X &&
 			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player1X+g.State.Paddles.Width {
-			// Calculate vertical distance between ball and paddle bottom edge
+		
 			distanceY := math.Abs(g.State.Ball.Y - (g.State.Paddles.Player1Y + g.State.Paddles.Height))
-			// If distance is less than ball radius, we have a collision
+		
 			if distanceY-5 <= g.State.Ball.Radius {
 				overlap := g.State.Ball.Radius - distanceY
 				g.State.Ball.DY = g.State.Ball.Y + overlap + 1
@@ -296,18 +287,16 @@ func (g *Game) Update() {
 					g.State.Paddles.Width,
 				)
 				g.State.Ball.DY = BallSpeed
-
 			}
 		}
 	}
 
-	//Top part of the paddle collision for Player 2
 	if g.isBallAbovePaddle() {
 		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player2X &&
 			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player2X+g.State.Paddles.Width {
-			// Calculate vertical distance between ball and paddle top edge
+		
 			distanceY := math.Abs(g.State.Ball.Y - g.State.Paddles.Player2Y)
-			// If distance is less than ball radius, we have a collision
+		
 			if distanceY-5 <= g.State.Ball.Radius {
 				overlap := g.State.Ball.Radius - distanceY
 				g.State.Ball.DY = g.State.Ball.Y - overlap - 1
@@ -317,16 +306,15 @@ func (g *Game) Update() {
 					g.State.Paddles.Width,
 				)
 				g.State.Ball.DY = -BallSpeed
-
 			}
 		}
 	}
 	if g.isBallBelowPaddle() {
 		if g.State.Ball.X+g.State.Ball.Radius >= g.State.Paddles.Player2X &&
 			g.State.Ball.X-g.State.Ball.Radius <= g.State.Paddles.Player2X+g.State.Paddles.Width {
-			// Calculate vertical distance between ball and paddle bottom edge
+		
 			distanceY := math.Abs(g.State.Ball.Y - (g.State.Paddles.Player2Y + g.State.Paddles.Height))
-			// If distance is less than ball radius, we have a collision
+		
 			if distanceY-5 <= g.State.Ball.Radius {
 				overlap := g.State.Ball.Radius - distanceY
 				g.State.Ball.DY = g.State.Ball.Y + overlap + 1
@@ -341,7 +329,6 @@ func (g *Game) Update() {
 		}
 	}
 
-	// Score points
 	if g.State.Ball.X <= 0 {
 		g.State.Score.Player2++
 		g.resetBall()
@@ -355,7 +342,6 @@ func (g *Game) Update() {
 
 	}
 
-	// Check for winner
 	if g.State.Score.Player1 == WinningScore {
 		g.State.IsActive = false
 		g.State.Winner = g.Player1.ID
@@ -386,25 +372,17 @@ func (g *Game) isBallBelowPaddle() bool {
 }
 
 func computeDeviation(ballY, paddleY, paddleHeight float64) float64 {
-	// trouve la position du milieu du paddel
 	midPaddle := paddleY + (paddleHeight / 2)
-	// calcule la distance du milieu du paddel a la balle
 	middleDistance := midPaddle - ballY
-	// calcule l angle qui est entre 1 et -1
 	bounceAngle := middleDistance / (paddleHeight / 2)
-	//calcule la vitesse vertival final
 	verticalSpeed := -bounceAngle * (BallSpeed / 2)
 	return verticalSpeed
 }
 
 func computeSideDeviation(ballX, paddleX, paddleWidth float64) float64 {
-	// trouve la position du milieu du paddle horizontalement
 	midPaddle := paddleX + (paddleWidth / 2)
-	// calcule la distance du milieu du paddle à la balle horizontalement
 	middleDistance := midPaddle - ballX
-	// calcule l'angle qui est entre 1 et -1
 	bounceAngle := middleDistance / (paddleWidth / 2)
-	// calcule la vitesse horizontale finale
 	horizontalSpeed := -bounceAngle * (BallSpeed / 2)
 	return horizontalSpeed
 }

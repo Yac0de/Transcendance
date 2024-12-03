@@ -1,4 +1,3 @@
-<!-- RankBadge.vue -->
 <template>
 	<div class="rank-badge">
 	  <img 
@@ -12,7 +11,6 @@
   <script setup lang="ts">
   import { computed } from 'vue';
   
-  // Importez vos images
   import rank1Image from '../../../assets/ranks/rank1.png';
   import rank2Image from '../../../assets/ranks/rank2.png';
   import rank3Image from '../../../assets/ranks/rank3.png';

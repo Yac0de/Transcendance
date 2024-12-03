@@ -33,7 +33,6 @@ defineProps<{
 }>();
 
 const handleJoin = () => {
-  console.log('Joining tournament with code:', tournamentCode.value)
   if (userStore.getWebSocketService?.isConnected()) {
     userStore.getWebSocketService?.joinTournamentWithCode(tournamentCode.value)
   } else {

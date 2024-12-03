@@ -1,4 +1,3 @@
-<!-- Timer.vue -->
 <template>
  <div class="timer">
     {{ remainingSeconds }} 
@@ -16,7 +15,7 @@ defineProps<{
 <style scoped>
 .timer {
  position: absolute;
- top: 80px; /* Adjust this value to position above VS */
+ top: 80px;
  left: 50%;
  transform: translateX(-50%);
  font-size: 24px;

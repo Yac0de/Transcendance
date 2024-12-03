@@ -260,7 +260,6 @@ func LobbyUpdatePlayerStatus(h *Hub, request LobbyEvent) {
 }
 
 func UpdateSpecialMode(h *Hub, request LobbyEvent) {
-	// Récupérer le lobby à partir de son ID
 	lobby, exists := h.Lobbies[request.LobbyId]
 	if !exists {
 		fmt.Printf("Lobby not found: %s\n", request.LobbyId)

@@ -95,15 +95,13 @@ const handleAvatarChange = (event: Event) => {
   const file = (event.target as HTMLInputElement).files?.[0];
   if (file) {
     newAvatarFile.value = file;
-    editedUser.value.avatar = file.name; // This is temporary, just for display
+    editedUser.value.avatar = file.name;
   }
 };
 
 const saveChanges = async () => {
-  // Reset any previous error messages
   emit('updateErrorMessage', '');
 
-  // Validate nickname and display name fields first
   if (editedUser.value.nickname.length < 3) {
     emit('updateErrorMessage', 'Nickname must be at least 3 characters long.');
     return;
@@ -114,7 +112,6 @@ const saveChanges = async () => {
     return;
   }
 
-  // Validate password change if requested
   if (changePassword.value) {
     if (currentPassword.value.length === 0) {
       emit('updateErrorMessage', 'Please enter your current password.');
@@ -139,7 +136,6 @@ const saveChanges = async () => {
     }
   }
 
-  // If everything is valid, save the profile and optionally upload avatar
   emit('saveProfile', editedUser.value, newAvatarFile.value);
 };
 

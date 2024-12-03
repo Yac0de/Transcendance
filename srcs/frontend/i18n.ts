@@ -1,7 +1,5 @@
-// src/i18n.ts
 import { createI18n } from 'vue-i18n';
 
-// Définitions des messages traduits
 const messages = {
   en: {
     home: "Home",
@@ -47,7 +45,6 @@ const messages = {
     loadingFriends: "Loading friends...",
     noFriendsMessage: "You have no friends yet 😢",
     tournament: "Tournament",
-    playerVsRobot: "Player VS Robot",
     playAgainstFriend: "Play against your friend",
     leaveLobby: "Leave Lobby",
     waitingForFriend: "Waiting for friend's answer...",
@@ -184,7 +181,6 @@ const messages = {
     loadingFriends: "Chargement des amis...",
     noFriendsMessage: "Vous n'avez pas encore d'amis 😢",
     tournament: "Tournoi",
-    playerVsRobot: "Joueur contre Robot",
     playAgainstFriend: "Jouer contre un ami",
     leaveLobby: "Quitter le lobby",
     waitingForFriend: "En attente de la réponse de votre ami...",
@@ -322,7 +318,6 @@ const messages = {
     loadingFriends: "Cargando amigos...",
     noFriendsMessage: "Todavía no tienes amigos 😢",
     tournament: "Torneo",
-    playerVsRobot: "Jugador contra Robot",
     playAgainstFriend: "Jugar contra un amigo",
     leaveLobby: "Salir del lobby",
     waitingForFriend: "Esperando la respuesta de tu amigo...",
@@ -456,7 +451,6 @@ const messages = {
     loadingFriends: "Se încarcă lista de prieteni...",
     noFriendsMessage: "Nu ai încă prieteni 😢",
     tournament: "Turneu",
-    playerVsRobot: "Jucător contra Robot",
     playAgainstFriend: "Joacă împotriva unui prieten",
     leaveLobby: "Părăsește lobby-ul",
     waitingForFriend: "Aștept răspunsul prietenului...",
@@ -551,11 +545,10 @@ const messages = {
   },
 };
 
-// Initialisation de Vue I18n
 const i18n = createI18n({
-  locale: 'en', // Langue par défaut  
-  fallbackLocale: 'en', // Langue de secours
-  messages, // Messages traduits
+  locale: 'en', 
+  fallbackLocale: 'en', 
+  messages, 
 });
 
 export default i18n;

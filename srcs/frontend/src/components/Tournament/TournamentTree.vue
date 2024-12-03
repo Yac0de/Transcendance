@@ -5,13 +5,11 @@
     </div>
     <div v-if="remainingSeconds > 0 && !hasLost" class="timer">{{ remainingSeconds }}</div>
     <div class="bracket">
-      <!-- Final -->
       <div class="match-winner">
         <p v-if="!winner">{{ $t('winnerPlaceholder') }}</p>
         <p v-else> {{ winner?.displayname }} </p>
       </div>
       <div class="match-connections">
-        <!-- Semi-Final 1 -->
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">
@@ -28,7 +26,6 @@
             </div>
           </div>
         </div>
-        <!-- Semi-Final 2 -->
         <div class="match-branch">
           <div class="bracket">
             <div class="match-winner">

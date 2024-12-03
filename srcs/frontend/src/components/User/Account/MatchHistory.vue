@@ -1,13 +1,11 @@
 <template>
   <div v-if="userExist" class="match-history-container">
-    <!-- Menu de navigation -->
     <div class="history-title">
       <h1>{{ $t('history') }}</h1>
       <WinrateCircle :percentage="winrate" />
       <RankIcon :winrate="winrate" />
     </div>
 
-    <!-- Zone de filtres -->
     <div class="filters">
       <button class="filter-button">
         <span>{{ $t('timePeriod') }}</span>
@@ -15,14 +13,12 @@
       </button>
     </div>
 
-    <!-- Liste des matchs -->
     <div class="matches-list" v-if="games.length > 0">
       <div 
         v-for="game in limitedGames" 
         :key="game.id" 
         :class="['match-card', { 'victory': game.is_winner, 'defeat': !game.is_winner }]"
       >
-        <!-- Type de match + Résultat -->
         <div class="match-info">
           <span class="match-type">{{ $t('classic') }}</span>
           <div class="match-details">
@@ -30,7 +26,6 @@
           </div>
         </div>
 
-        <!-- Scores -->
         <div class="match-stats">
           <div class="score">
             <template v-if="game.player1.nickname === targetNickname">
@@ -46,14 +41,12 @@
           </div>
         </div>
 
-        <!-- Date -->
         <div class="match-date">
           {{ formatDate(game.CreatedAt) }}
         </div>
       </div>
     </div>
 
-    <!-- Message si pas de matchs -->
     <div v-else class="no-matches">
       {{ $t('noMatches') }}
     </div>
@@ -93,16 +86,12 @@ const formatDate = (dateString: string) => {
 }
 
 onMounted(async () => {
-  console.log("test " + targetNickname.value)
   try {
-    console.log("NEW:", route.params);
     const userId = userStore.id;
     if (userId) {
       
       const history = await gameHistoryService.getUserHistory(route.params.nickname as string);
-      console.log("History received:", history);
       if (history) {
-        // Assigner directement l'historique reçu
         games.value = history;
         const victories = history.filter(game =>game.is_winner).length;
         winrate.value = (victories / history.length) * 100;
